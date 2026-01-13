@@ -1,0 +1,23 @@
+.navbar {
+  @apply flex items-center w-full;
+
+  ul {
+    @apply flex gap-6 m-0 p-0 list-none justify-center flex-1;
+
+    li {
+      @apply transition;
+
+      a {
+        @apply text-sm font-medium text-white transition hover:underline;
+
+        &.active {
+          @apply underline;
+        }
+      }
+    }
+  }
+
+  a.header__login {
+    @apply text-sm font-medium text-white transition hover:underline;
+  }
+}

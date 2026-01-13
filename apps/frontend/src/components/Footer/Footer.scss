@@ -1,0 +1,35 @@
+.footer {
+  @apply w-full bg-secondary;
+
+  &__container {
+    @apply mx-0 flex w-full items-center justify-between px-6 py-3;
+  }
+
+  &__brand {
+    @apply flex items-center gap-3 text-white font-semibold;
+
+    img {
+      @apply h-8 w-8;
+    }
+  }
+
+  &__nav {
+    @apply flex gap-6 text-sm text-white;
+
+    a {
+      @apply transition hover:underline;
+
+      &.active {
+        @apply underline;
+      }
+    }
+  }
+
+  &__contact {
+    @apply text-sm font-medium text-white transition hover:underline;
+
+    &.active {
+      @apply underline;
+    }
+  }
+}
