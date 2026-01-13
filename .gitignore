@@ -37,3 +37,9 @@ apps/backend/prisma/migrations/
 
 # Build
 *.tsbuildinfo
+
+# Monorepo NPM Workspaces Safety
+# On ignore tous les package-lock.json par défaut
+**/package-lock.json
+# Sauf celui de la racine
+!package-lock.json
