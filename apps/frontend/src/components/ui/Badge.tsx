@@ -11,9 +11,5 @@ export default function Badge({ label, variant = "neutral", className = "" }: Ba
     neutral: "bg-transparent text-black p-0 font-normal",
   };
 
-  return (
-    <span className={`rounded-full text-sm ${styles[variant]} ${className}`}>
-      {label}
-    </span>
-  );
+  return <span className={`rounded-full text-sm ${styles[variant]} ${className}`}>{label}</span>;
 }

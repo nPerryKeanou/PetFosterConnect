@@ -15,9 +15,7 @@ const Navbar = () => {
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-sm font-medium text-white transition hover:underline ${
-      isActive ? "underline" : ""
-    }`;
+    `text-sm font-medium text-white transition hover:underline ${isActive ? "underline" : ""}`;
 
   return (
     <nav className="flex items-center w-full">
@@ -35,14 +33,14 @@ const Navbar = () => {
       {/* Bouton login/déconnexion à droite */}
       {isLoggedIn ? (
         <NavLink
-          to="/disconnect"
+          to="/déconnexion"
           className="text-sm font-medium text-white transition hover:underline ml-4"
         >
           Déconnexion
         </NavLink>
       ) : (
         <NavLink
-          to="/login"
+          to="/connexion"
           className="text-sm font-medium text-white transition hover:underline ml-4"
         >
           Connexion / Inscription

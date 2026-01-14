@@ -2,7 +2,9 @@ import { z } from "zod";
 
 // ENUM
 // Définit les rôles possibles
-export const UserRoleEnum = z.enum(["individual", "shelter", "admin"]);
+export const UserRoleEnum = z.enum(["individual", "shelter", "admin"], {
+  error: "Veuillez choisir un type de compte valide",
+});
 export type UserRole = z.infer<typeof UserRoleEnum>; // Export du type TS
 
 // SCHÉMA PRINCIPAL (Entité BDD)
@@ -12,7 +14,7 @@ export const UserSchema = z.object({
   email: z.email({ error: "Format d'email invalide" }).max(255),
   password: z
     .string()
-    .min(8, { error: "Le mot de passe doit faire au moins 8 caractères" })
+    .min(12, { error: "Le mot de passe doit faire au moins 12 caractères" })
     .regex(/[A-Z]/, { error: "Une majuscule requise" })
     .regex(/[0-9]/, { error: "Un chiffre requis" })
     .regex(/[^a-zA-Z0-9]/, { error: "Un caractère spécial requis" }),
