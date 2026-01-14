@@ -3,16 +3,13 @@ import Badge from "../components/ui/Badge";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Button from "../components/ui/Button";
 import BackBanner from "../components/ui/BackBanner";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { Heart } from "lucide-react"; 
 
 export default function AnimalDetail() {
   const animal = mockAnimal;
 
   return (
-    <div className="min-h-screen bg-bgapp font-openSans text-gray-800 flex flex-col">
-      <Header />
+    <div className="bg-bgapp font-openSans text-gray-800">
       <BackBanner to="/animaux" />
 
       <main className="container mx-auto px-4 py-8 flex-grow">
@@ -154,7 +151,6 @@ export default function AnimalDetail() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }
