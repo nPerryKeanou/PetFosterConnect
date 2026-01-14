@@ -1,10 +1,16 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '../generated/prisma'; // Chemin vers ton output du schema.prisma
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '../generated/prisma';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  
   async onModuleInit() {
-    // Cette ligne force la connexion à la DB dès que NestJS démarre
+    // Se connecte à la base de données au démarrage du module
     await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    // Ferme proprement la connexion à la base de données quand le serveur s'arrête
+    await this.$disconnect();
   }
 }
