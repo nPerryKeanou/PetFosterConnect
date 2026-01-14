@@ -1,16 +1,18 @@
-import "./App.css";
-import { useEffect } from "react";
-import Footer from "./components/Footer.tsx";
-import Header from "./components/Header.tsx";
+import { Routes, Route } from "react-router-dom";
+import AnimalDetail from "./pages/AnimalDetail";
+
+// Fausse page d'accueil pour l'instant pour ne pas avoir d'erreur
+const Home = () => <div className="p-10 text-center">Bienvenue sur Pet Foster Connect</div>;
 
 function App() {
-  useEffect(() => {}, []);
-
   return (
-    <div className="App">
-      <Header />
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      
+      {/* Route de détails animal */}
+      {/* Plus tard on mettra : "/animaux/:id" */}
+      <Route path="/animaux/1" element={<AnimalDetail />} />
+    </Routes>
   );
 }
 
