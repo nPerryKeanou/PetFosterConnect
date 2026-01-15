@@ -1,8 +1,7 @@
 // src/users/users.controller.ts
 import { Controller, Get, Post, Put, Delete, Param, Body, UsePipes } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { RegisterSchema } from "../../../../packages/shared-types/src/user.schema";
-import type { RegisterDto } from "../../../../packages/shared-types/src/user.schema";
+import { RegisterSchema, type RegisterDto } from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
 
 @Controller("users")
