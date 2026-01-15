@@ -3,6 +3,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { UsersModule } from "./users/users.module";
 
 /**
  * MODULE RACINE (ROOT MODULE)
@@ -17,7 +18,8 @@ import { AppService } from "./app.service";
     ConfigModule.forRoot({
       isGlobal: true, // Recommandé : rend le .env accessible dans tous les futurs modules
     }),
-    PrismaModule
+    PrismaModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

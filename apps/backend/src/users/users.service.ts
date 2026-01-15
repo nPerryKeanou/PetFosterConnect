@@ -1,53 +1,59 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import * as argon2 from "argon2";
+import { RegisterDto, UserRole } from "@projet/shared-types";
 
 @Injectable()
 export class UsersService {
-    //declaration d'une propriété prisma
-    constructor(private prisma: PrismaService) {}
+  // declaration d'une propriété prisma
+  constructor(private prisma: PrismaService) {}
 
-    // creation de de fonction create 
-    async create(
-        data: { 
-            email: string; 
-            password: string; 
-            role: string; 
-            phone_number?: string; 
-            address?: string }) 
-        {
+  // Utilise le DTO au lieu de re-déclarer les types { email: string... }
+  async create(data: RegisterDto) {
     const passwordHash = await argon2.hash(data.password);
-    return this.prisma.user.create({
-        data: { 
-        email: data.email, 
-        password:passwordHash, 
-        role: data.role, 
-        phone_number: data.phone_number, 
-        address: data.address 
-        },
+
+    return this.prisma.pfcUser.create({
+      // Vérifie si c'est pfc_user ou pfcUser avec ton IDE
+      data: {
+        email: data.email,
+        password: passwordHash,
+        // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
+        role: data.role as UserRole,
+        phone_number: data.phone_number,
+        address: data.address,
+      },
     });
+  }
+  // creation de la fonction trouver tous les users
+  findAll() {
+    return this.prisma.pfcUser.findMany();
+  }
+  // creation de la fonction trouver un user
+  findOne(id: number) {
+    return this.prisma.pfcUser.findUnique({ where: { id } });
+  }
+
+  // Utilise Partial<RegisterDto> pour l'update
+  async update(id: number, data: Partial<RegisterDto>) {
+    const updateData = { ...data }; // Copie pour ne pas muter l'objet
+
+    if (updateData.password) {
+      updateData.password = await argon2.hash(updateData.password);
     }
-    //creation de la fonction trouver tous les users
-    findAll() {
-    return this.prisma.user.findMany();
-    }
-    //creation de la fonction trouver tous un user
-    findOne(id: number) {
-    return this.prisma.user.findUnique({ where: { id } });
+    
+    // Si le rôle est mis à jour, on le cast aussi
+    if (updateData.role) {
+        (updateData as any).role = updateData.role as UserRole;
     }
 
-    // creation de la fonction pour modifier un user
-    async update(id: number, data: any) {
-        // modification du mot de passe
-    if (data.password) {
-        data.password = await argon2.hash(data.password);
-        delete data.password;
-    }
-    return this.prisma.user.update({ where: { id }, data });
-    }
+    return this.prisma.pfcUser.update({ 
+        where: { id }, 
+        data: updateData 
+    });
+  }
 
-    // suppression d'un user
-    remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
-    }
+  // suppression d'un user
+  remove(id: number) {
+    return this.prisma.pfcUser.delete({ where: { id } });
+  }
 }
