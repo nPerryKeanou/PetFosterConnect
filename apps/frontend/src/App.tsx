@@ -3,12 +3,15 @@ import Footer from "./components/Footer.tsx";
 import Header from "./components/Header.tsx";
 import About from "./pages/About.tsx";
 import AnimalDetail from "./pages/AnimalDetail";
+import AnimalList from "./pages/AnimalList";
 import AuthPage from "./pages/AuthPage";
 import Legal from "./pages/Legal";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 // Fausse page d'accueil pour l'instant pour ne pas avoir d'erreur
-const Home = () => <div className="p-10 text-center">Bienvenue sur Pet Foster Connect</div>;
+const Home = () => (
+  <div className="p-10 text-center">Bienvenue sur Pet Foster Connect</div>
+);
 
 function App() {
   return (
@@ -31,6 +34,7 @@ function App() {
           {/* Routes Authentification */}
           <Route path="/connexion" element={<AuthPage />} />
           <Route path="/inscription" element={<AuthPage />} />
+          <Route path="/animaux" element={<AnimalList />} />
         </Routes>
       </div>
 
