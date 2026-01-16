@@ -7,16 +7,14 @@ export class ZodPipe implements PipeTransform {
   constructor(private schema: ZodType) {}
 
   transform(value: unknown, metadata: ArgumentMetadata) {
-    // On ignore les décorateurs personnalisés pour ne pas valider n'importe quoi
-    if (metadata.type === "custom") {
+    // Si ce n'est pas le body, on laisse passer sans valider
+    if (metadata.type !== 'body') {
       return value;
     }
 
     try {
-      // Zod valide et parse les données
       return this.schema.parse(value);
     } catch (error) {
-      // En cas d'erreur, on renvoie une 400 propre
       throw new BadRequestException({
         message: "Validation failed",
         errors: error,

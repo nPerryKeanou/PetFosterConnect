@@ -52,3 +52,14 @@ export const LoginSchema = z.object({
 });
 
 export type LoginDto = z.infer<typeof LoginSchema>;
+
+// UPDATE : Mise à jour du compte (User)
+export const UpdateUserSchema = UserSchema.pick({
+  email: true,
+  password: true,
+  phone_number: true,
+  address: true,
+  // role: true, // À décommenter seulement si un admin peut changer le rôle
+}).partial(); // .partial() rend tous les champs optionnels
+
+export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;

@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import * as argon2 from "argon2";
-import { RegisterDto, UserRole } from "@projet/shared-types";
+import { RegisterDto } from "@projet/shared-types";
+import { UserRole } from "@prisma/client"; // On utilise l'Enum Prisma
 
 @Injectable()
 export class UsersService {
@@ -54,6 +55,10 @@ export class UsersService {
 
   // suppression d'un user
   remove(id: number) {
-    return this.prisma.pfcUser.delete({ where: { id } });
+    // Soft Delete (Préférence par rapport au delete physique)
+    return this.prisma.pfcUser.update({
+        where: { id },
+        data: { deleted_at: new Date() }
+    });
   }
 }
