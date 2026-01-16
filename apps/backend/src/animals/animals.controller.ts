@@ -17,7 +17,7 @@ export class AnimalsController {
   @Post()
   @UsePipes(new ZodPipe(CreateAnimalSchema))
   create(@Body() createAnimalDto: CreateAnimalDto) {
-    const mockUserId = 1; // Simulation en attendant l'Auth
+    const mockUserId = 4; // Simulation en attendant l'Auth. a changer a chaque de creat animal. À chaque fois que tu lances npx prisma db seed, regarde la fin du message dans ton terminal. Il t'affichera : Refuge (Email: ...) ID : X. C'est ce X que tu recopies dans ton code.
     return this.animalsService.create(createAnimalDto, mockUserId);
   }
 

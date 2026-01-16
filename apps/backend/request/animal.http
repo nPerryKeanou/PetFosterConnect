@@ -3,87 +3,88 @@
 ### =========================================================================
 
 @baseUrl = http://localhost:3001
-@animalId = 1
-
-### HEALTH CHECK
-# Vérifie si l'API est lancé ET si la connexion à PostgreSQL (docker) fonctionne.
-GET http://localhost:3001/health
+@animalId = 13 
+## modofier l'id manuellement selon l'id en DB car le seed recrée à chaquoi fois des nouveaux id.
+### 🔍 HEALTH CHECK
+# Vérifie si l'API est lancée ET si la connexion à PostgreSQL fonctionne.
+GET {{baseUrl}}/health
 
 ###
 
 ### 1. RÉCUPÉRER TOUS LES ANIMAUX
-# Sert à vérifier si Boby (du seed) est bien là
 GET {{baseUrl}}/animals
 Accept: application/json
 
 ###
 
 ### 2. CRÉER UN NOUVEL ANIMAL (LUNA LE CHAT)
-# On utilise species_id: 2 (Chat) et on laisse le mockUserId = 1 s'occuper du reste
+# species_id: 2 pour Chat (selon tes vérifications DBeaver)
 POST {{baseUrl}}/animals
 Content-Type: application/json
 
 {
   "name": "Luna",
-  "age": "1 an",
+  "species_id": 8,
   "sex": "female",
+  "breed": "Siamois",
+  "birth_date": "2023-01-16T00:00:00Z",
   "weight": 4.2,
-  "height": 25,
   "description": "Une petite chatte très calme et propre.",
-  "animal_status": "available",
-  "photos": ["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba"],
-  "accept_other_animals": true,
-  "accept_children": true,
-  "need_garden": false,
-  "species_id": 2
+  "is_available": true
 }
 
 ###
 
 ### 3. RÉCUPÉRER UN ANIMAL PRÉCIS (PAR SON ID)
-# Remplace @animalId en haut ou change le 1 ici si nécessaire
 GET {{baseUrl}}/animals/{{animalId}}
 Accept: application/json
 
 ###
 
 ### 4. MODIFIER UN ANIMAL (PATCH)
-# Test du "Partial Update" : on ne change que le poids et le statut
+# On change le poids et on peut changer le nom
 PATCH {{baseUrl}}/animals/{{animalId}}
 Content-Type: application/json
 
 {
-  "weight": 14.5,
-  "animal_status": "foster_care"
+  "weight": 14.22,
+  "name": "Boby le Grand"
 }
 
 ###
 
-### 5. TEST DE SÉCURITÉ/VALIDATION (DOIT ÉCHOUER - 400 BAD REQUEST)
-# Ici, on teste si Zod bloque bien un "sex" invalide (alien)
+### 5. TEST DE VALIDATION (DOIT ÉCHOUER - 400 BAD REQUEST)
+# Le sexe "alien" n'existe pas dans l'Enum
 POST {{baseUrl}}/animals
 Content-Type: application/json
 
 {
   "name": "Petit Gris",
-  "sex": "alien",
-  "species_id": 1
+  "sex": "ALIEN",
+  "species_id": 1,
+  "breed": "Inconnu",
+  "birth_date": "2024-01-01T00:00:00Z",
+  "weight": 5.0,
+  "is_available": true
 }
 
 ###
 
-### 6. TEST DE SÉCURITÉ (DOIT ÉCHOUER - 400 BAD REQUEST)
-# Ici, on teste l'oubli d'un champ obligatoire (name est absent)
+### 6. TEST DE VALIDATION (DOIT ÉCHOUER - 400 BAD REQUEST)
+# Ici, le champ obligatoire "name" est absent
 POST {{baseUrl}}/animals
 Content-Type: application/json
 
 {
-  "sex": "male",
-  "species_id": 1
+  "sex": "MALE",
+  "species_id": 1,
+  "breed": "Inconnu",
+  "birth_date": "2024-01-01T00:00:00Z",
+  "weight": 5.0,
+  "is_available": true
 }
 
 ###
 
-### 7. SUPPRIMER UN ANIMAL (SOFT DELETE)
-# Cela devrait mettre à jour 'deleted_at' en base sans supprimer la ligne
+### 7. SUPPRIMER UN ANIMAL
 DELETE {{baseUrl}}/animals/{{animalId}}
