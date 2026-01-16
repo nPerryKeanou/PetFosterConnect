@@ -25,8 +25,8 @@ const ShelterCard = ({ shelter_name, description, pfc_user_id, /*logo_url */}: S
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-gray-600 ">
-              <span className="font-semiBold text-start">Description :</span>
+          <p className="text-sm text-gray-600 mb-4 text-start">
+              <span className="font-semibold ">Description :</span>
             </p>
           {description && (
             <p className="text-sm text-gray-600 mb-4 text-start">{description}</p>

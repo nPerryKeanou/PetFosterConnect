@@ -23,7 +23,7 @@ const RefugeDetailPage = () => {
 
         
     <div
-            className="border-2 rounded-xl p-6 shadow-md flex gap-6 bg-bgapp font-openSans text-gray-800"
+            className=" border-2 rounded-xl p-6 shadow-md flex flex-col md:flex-row gap-6 bg-bgapp font-openSans text-gray-800"
             style={{ borderColor: "#2D6A4F" }}
         >
         {/* Logo à gauche */}
@@ -42,7 +42,7 @@ const RefugeDetailPage = () => {
 
           {/* Description */}
                 <p className="text-sm text-gray-600 ">
-                    <span className="font-semiBold text-start">Description :</span>
+                    <span className="font-semibold text-start">Description :</span>
                 </p>
             {shelter.description && (
                 <p className="text-gray-800 text-start">{shelter.description}</p>
