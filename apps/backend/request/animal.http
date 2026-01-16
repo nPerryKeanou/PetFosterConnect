@@ -1,0 +1,83 @@
+### =========================================================================
+### TESTS CRUD ANIMAL - PET FOSTER CONNECT
+### =========================================================================
+
+@baseUrl = http://localhost:3001
+@animalId = 1
+
+### 1. RÉCUPÉRER TOUS LES ANIMAUX
+# Sert à vérifier si Boby (du seed) est bien là
+GET {{baseUrl}}/animals
+Accept: application/json
+
+###
+
+### 2. CRÉER UN NOUVEL ANIMAL (LUNA LE CHAT)
+# On utilise species_id: 2 (Chat) et on laisse le mockUserId = 1 s'occuper du reste
+POST {{baseUrl}}/animals
+Content-Type: application/json
+
+{
+  "name": "Luna",
+  "age": "1 an",
+  "sex": "female",
+  "weight": 4.2,
+  "height": 25,
+  "description": "Une petite chatte très calme et propre.",
+  "animal_status": "available",
+  "photos": ["https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba"],
+  "accept_other_animals": true,
+  "accept_children": true,
+  "need_garden": false,
+  "species_id": 2
+}
+
+###
+
+### 3. RÉCUPÉRER UN ANIMAL PRÉCIS (PAR SON ID)
+# Remplace @animalId en haut ou change le 1 ici si nécessaire
+GET {{baseUrl}}/animals/{{animalId}}
+Accept: application/json
+
+###
+
+### 4. MODIFIER UN ANIMAL (PATCH)
+# Test du "Partial Update" : on ne change que le poids et le statut
+PATCH {{baseUrl}}/animals/{{animalId}}
+Content-Type: application/json
+
+{
+  "weight": 14.5,
+  "animal_status": "foster_care"
+}
+
+###
+
+### 5. TEST DE SÉCURITÉ/VALIDATION (DOIT ÉCHOUER - 400 BAD REQUEST)
+# Ici, on teste si Zod bloque bien un "sex" invalide (alien)
+POST {{baseUrl}}/animals
+Content-Type: application/json
+
+{
+  "name": "Petit Gris",
+  "sex": "alien",
+  "species_id": 1
+}
+
+###
+
+### 6. TEST DE SÉCURITÉ (DOIT ÉCHOUER - 400 BAD REQUEST)
+# Ici, on teste l'oubli d'un champ obligatoire (name est absent)
+POST {{baseUrl}}/animals
+Content-Type: application/json
+
+{
+  "sex": "male",
+  "species_id": 1
+}
+
+###
+
+### 7. SUPPRIMER UN ANIMAL (SOFT DELETE)
+# Cela devrait mettre à jour 'deleted_at' en base sans supprimer la ligne
+DELETE {{baseUrl}}/animals/{{animalId}}

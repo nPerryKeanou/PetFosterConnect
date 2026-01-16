@@ -34,10 +34,10 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
-    "@prisma/config":  "^6.19.2",
+    "@prisma/config": "^6.19.2",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.19.7",
     "@types/supertest": "^6.0.2",
     "dotenv": "^17.2.3",
     "globals": "^16.0.0",
@@ -48,7 +48,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.3"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -66,5 +66,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
