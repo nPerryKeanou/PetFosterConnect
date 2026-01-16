@@ -55,12 +55,12 @@ export const mockAnimalList: AnimalWithDetails[] = [
     need_garden: false,
     treatment: "• Vaccinée\n• Stérilisée\n• Suivi vétérinaire régulier",
     species_id: 1,
-    pfc_user_id: 101,
+    pfc_user_id: 102,
     created_at: new Date(),
     species_name: "Chien",
     shelter: {
-      shelter_name: "Refuge Les Amis à 4 Pattes",
-      address: "Béthune, Hauts-de-France",
+      shelter_name: "Refuge de Lille",
+      address: "Lille, Hauts-de-France",
     },
   },
   {
@@ -115,4 +115,59 @@ export const mockAnimalList: AnimalWithDetails[] = [
       address: "Béthune, Hauts-de-France",
     },
   },
+  {
+    id: 5,
+    name: "Nala",
+    age: "2 ans",
+    sex: "female",
+    weight: 12,
+    height: 40,
+    description:
+      "Nala est une chienne douce et affectueuse. Elle adore les câlins et s'entend très bien avec les enfants.",
+    animal_status: "available",
+    photos: [
+      "https://images.unsplash.com/photo-1558788353-f76d92427f16?q=80&w=1000&auto=format&fit=crop",
+    ],
+    accept_children: true,
+    accept_other_animals: true,
+    need_garden: true,
+    treatment: "• Vaccinée\n• Stérilisée\n• Suivi vétérinaire OK",
+    species_id: 1,
+    pfc_user_id: 103,
+    created_at: new Date(),
+    species_name: "Chien",
+    shelter: {
+      shelter_name: "Refuge d'épernay",
+      address: "Epernay, Ardennes",
+    },
+  },
+  {
+    id: 6,
+    name: "Oscar",
+    age: "3 ans",
+    sex: "male",
+    weight: 5,
+    height: 25,
+    description:
+      "Oscar est un chat joueur et curieux. Il aime explorer et se reposer au soleil.",
+    animal_status: "available",
+    photos: [
+      "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=1000&auto=format&fit=crop",
+    ],
+    accept_children: true,
+    accept_other_animals: true,
+    need_garden: false,
+    treatment: "• Vacciné\n• Castré\n• Suivi vétérinaire OK",
+    species_id: 2,
+    pfc_user_id: 103,
+    created_at: new Date(),
+    species_name: "Chat",
+    shelter: {
+      shelter_name: "Refuge d'épernay",
+      address: "Epernay, Ardennes",
+    },
+  },
 ];
+
+
+

@@ -8,16 +8,21 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd apps/backend && npm run start:dev",
-    "dev:frontend": "cd apps/frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd apps/backend && npm run build",
-    "build:frontend": "cd apps/frontend && npm run build",
+    "// --- Build Shared Types First ---": "",
+    "build:shared": "npm run build --workspace=@projet/shared-types",
+    "// --- Backend ---": "",
+    "dev:backend": "npm run build:shared && npm run start:dev --workspace=backend",
+    "build:backend": "npm run build:shared && npm run build --workspace=backend",
+    "// --- Frontend ---": "",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build:frontend": "npm run build:shared && npm run build --workspace=frontend",
+    "// --- Docker & Prisma ---": "",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "prisma:generate": "cd apps/backend && npx prisma generate",
-    "prisma:migrate": "cd apps/backend && npx prisma migrate dev",
-    "prisma:studio": "cd apps/backend && npx prisma studio",
+    "prisma:generate": "npm run prisma generate --workspace=backend",
+    "prisma:migrate": "npm run prisma migrate dev --workspace=backend",
+    "prisma:studio": "npm run prisma studio --workspace=backend",
+    "// --- Quality ---": "",
     "format": "biome format --write .",
     "lint": "biome check .",
     "lint:fix": "biome check --write ."
@@ -25,6 +30,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.11",
     "concurrently": "^8.2.2",
+    "tsc-watch": "^7.2.0",
     "typescript": "^5.3.3"
   },
   "optionalDependencies": {
