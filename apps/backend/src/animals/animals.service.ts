@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateAnimalDto, UpdateAnimalDto } from '@project/shared-types'; 
+import { CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types'; 
 
 @Injectable()
 export class AnimalsService {

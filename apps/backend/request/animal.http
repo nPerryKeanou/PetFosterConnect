@@ -5,6 +5,12 @@
 @baseUrl = http://localhost:3001
 @animalId = 1
 
+### HEALTH CHECK
+# Vérifie si l'API est lancé ET si la connexion à PostgreSQL (docker) fonctionne.
+GET http://localhost:3001/health
+
+###
+
 ### 1. RÉCUPÉRER TOUS LES ANIMAUX
 # Sert à vérifier si Boby (du seed) est bien là
 GET {{baseUrl}}/animals

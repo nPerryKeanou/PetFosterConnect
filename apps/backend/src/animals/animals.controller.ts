@@ -1,7 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UsePipes } from '@nestjs/common';
 import { AnimalsService } from './animals.service';
 import { ZodPipe } from '../common/pipes/zod.pipe';
-import { CreateAnimalSchema, UpdateAnimalSchema, CreateAnimalDto, UpdateAnimalDto } from '@project/shared-types';
+// import type { CreateAnimalSchema, UpdateAnimalSchema, CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types';
+
+// On importe les SCHÉMAS (valeurs) normalement
+import { CreateAnimalSchema, UpdateAnimalSchema } from '@projet/shared-types';
+
+// On importe les DTOS (types) avec 'type'
+import type { CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types';
+
 
 @Controller('animals')
 export class AnimalsController {
