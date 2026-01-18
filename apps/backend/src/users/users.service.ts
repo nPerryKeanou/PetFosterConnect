@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import * as argon2 from "argon2";
-import { RegisterDto } from "@projet/shared-types";
 import { UserRole } from "@prisma/client"; // On utilise l'Enum Prisma
+import { RegisterDto } from "@projet/shared-types";
+import * as argon2 from "argon2";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class UsersService {
@@ -41,15 +41,15 @@ export class UsersService {
     if (updateData.password) {
       updateData.password = await argon2.hash(updateData.password);
     }
-    
+
     // Si le rôle est mis à jour, on le cast aussi
     if (updateData.role) {
-        (updateData as any).role = updateData.role as UserRole;
+      (updateData as any).role = updateData.role as UserRole;
     }
 
-    return this.prisma.pfcUser.update({ 
-        where: { id }, 
-        data: updateData 
+    return this.prisma.pfcUser.update({
+      where: { id },
+      data: updateData,
     });
   }
 
@@ -57,8 +57,20 @@ export class UsersService {
   remove(id: number) {
     // Soft Delete (Préférence par rapport au delete physique)
     return this.prisma.pfcUser.update({
-        where: { id },
-        data: { deleted_at: new Date() }
+      where: { id },
+      data: { deleted_at: new Date() },
     });
+  }
+
+  // Vérifie email + mot de passe
+  async validateUser(email: string, plainPassword: string) {
+    const user = await this.prisma.pfcUser.findUnique({ where: { email } });
+    if (!user) return null;
+
+    // Vérifie le mot de passe avec Argon2
+    const isValid = await argon2.verify(user.password, plainPassword);
+    if (!isValid) return null;
+
+    return user;
   }
 }

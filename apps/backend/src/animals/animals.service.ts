@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types'; 
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class AnimalsService {
@@ -28,7 +28,8 @@ export class AnimalsService {
       where: { id },
       include: { species: true },
     });
-    if (!animal || animal.deleted_at) throw new NotFoundException('Animal non trouvé');
+    if (!animal || animal.deleted_at)
+      throw new NotFoundException("Animal non trouvé");
     return animal;
   }
 
@@ -49,7 +50,6 @@ export class AnimalsService {
     });
   }
 }
-
 
 // import { Injectable } from '@nestjs/common';
 // import { CreateAnimalDto } from './dto/create-animal.dto';

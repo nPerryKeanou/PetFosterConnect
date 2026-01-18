@@ -1,9 +1,8 @@
-import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../auth/authContext";
 
 const Navbar = () => {
-  const [isLoggedIn, _setIsLoggedIn] = useState(false);
-
+  const { isLoggedIn } = useAuth();
   const links = [
     { to: "/", label: "Accueil" },
     { to: "/animaux", label: "Animaux" },
@@ -15,7 +14,9 @@ const Navbar = () => {
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-sm font-medium text-white transition hover:underline ${isActive ? "underline" : ""}`;
+    `text-sm font-medium text-white transition hover:underline ${
+      isActive ? "underline" : ""
+    }`;
 
   return (
     <nav className="flex items-center w-full">
