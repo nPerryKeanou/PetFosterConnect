@@ -60,35 +60,8 @@ datasource db {
 }
 
 // ============================================
-// UTILISATEURS
+// ENUM
 // ============================================
-
-/// Compte utilisateur principal de la plateforme (indépendant du profil)
-model PfcUser {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique @db.VarChar(255)
-  password     String    @db.VarChar(255)
-  role         UserRole
-  phone_number String?   @db.VarChar(20)
-  address      String?   @db.VarChar(255)
-  created_at   DateTime  @default(now()) @db.Timestamptz
-  updated_at   DateTime? @updatedAt @db.Timestamptz
-  deleted_at   DateTime? @db.Timestamptz
-
-  // Relations
-  /// Détails spécifiques si l'utilisateur est un particulier
-  individual_profile IndividualProfile?
-  /// Détails spécifiques si l'utilisateur est un refuge
-  shelter_profile    ShelterProfile?
-  /// Liste des demandes déposées (adoption/FA)
-  applications       Application[]
-  /// Liste des animaux mis en favoris
-  bookmarks          Bookmark[]
-  /// Animaux publiés (Uniquement pour les comptes 'shelter')
-  animals            Animal[] 
-
-  @@map("pfc_user")
-}
 
 /// Détermine les permissions et le type de profil associé
 enum UserRole {
@@ -99,104 +72,12 @@ enum UserRole {
   @@map("user_role")
 }
 
-// ============================================
-// PROFILS
-// ============================================
-
-/// Informations complémentaires pour les comptes 'individual'
-model IndividualProfile {
-  pfc_user_id      Int           @id
-  housing_type     HousingType?
-  surface          Int?          // En m²
-  have_garden      Boolean?
-  have_animals     Boolean?
-  have_children    Boolean?
-  /// Indique si l'utilisateur accepte d'être Famille d'Accueil
-  available_family Boolean?      @default(false) 
-  /// Précisions sur l'emploi du temps pour s'occuper de l'animal
-  available_time   String?       @db.Text
-
-  // Relation
-  user PfcUser @relation(fields: [pfc_user_id], references: [id], onDelete: Cascade)
-
-  @@map("individual_profile")
-}
-
 enum HousingType {
   house
   apartment
   other
 
   @@map("housing_type")
-}
-
-// ============================================
-// REFUGE
-// ============================================
-/// Informations administratives pour les structures professionnelles
-model ShelterProfile {
-  pfc_user_id  Int     @id
-  /// Numéro SIRET obligatoire pour les structures
-  siret        String  @unique @db.VarChar(14)
-  shelter_name String  @db.VarChar(100)
-  description  String? @db.Text
-
-  user PfcUser @relation(fields: [pfc_user_id], references: [id], onDelete: Cascade)
-
-  @@map("shelter_profile")
-}
-
-// ============================================
-// ESPÈCES & ANIMAUX
-// ============================================
-
-/// Référentiel des espèces (Chien, Chat, Lapin, etc.)
-model Species {
-  id         Int       @id @default(autoincrement())
-  name       String    @unique @db.VarChar(50)
-  created_at DateTime  @default(now()) @db.Timestamptz
-  updated_at DateTime? @updatedAt @db.Timestamptz
-  deleted_at DateTime? @db.Timestamptz
-
-  animals Animal[]
-
-  @@map("species")
-}
-
-/// Entité centrale représentant un animal à adopter ou à placer
-model Animal {
-  id                    Int          @id @default(autoincrement())
-  name                  String       @db.VarChar(100)
-  age                   String?      @db.VarChar(50) 
-  sex                   AnimalSex
-  weight                Decimal?     @db.Decimal(5, 2) // Poids en kg
-  height                Int?         // Taille en cm
-  description           String?      @db.Text
-  animal_status         AnimalStatus
-  /// URLs des images stockées (Cloudinary, S3, etc.)
-  photos                Json?        @db.JsonB 
-  accept_other_animals  Boolean?     @default(false)
-  accept_children       Boolean?     @default(false)
-  need_garden           Boolean?     @default(false)
-  /// Historique ou besoins médicaux spécifiques
-  treatment             String?      @db.Text 
-  species_id            Int
-  /// Référence vers l'utilisateur (refuge) créateur de l'annonce
-  pfc_user_id           Int 
-  created_at            DateTime     @default(now()) @db.Timestamptz
-  updated_at            DateTime?    @updatedAt @db.Timestamptz
-  deleted_at            DateTime?    @db.Timestamptz
-
-  // Relations
-  species      Species       @relation(fields: [species_id], references: [id], onDelete: Restrict)
-  shelter      PfcUser       @relation(fields: [pfc_user_id], references: [id], onDelete: Cascade)
-  applications Application[]
-  bookmarks    Bookmark[]
-
-  @@index([species_id])
-  @@index([pfc_user_id])
-  @@index([animal_status])
-  @@map("animal")
 }
 
 enum AnimalSex {
@@ -216,33 +97,6 @@ enum AnimalStatus {
   @@map("animal_status")
 }
 
-// ============================================
-// SUIVI DES DEMANDES
-// ============================================
-
-/// Table de liaison gérant les dossiers d'adoption ou de FA
-model Application {
-  pfc_user_id        Int
-  animal_id          Int
-  /// Lettre de motivation ou message de l'adoptant
-  message            String            @db.Text
-  application_type   ApplicationType
-  application_status ApplicationStatus @default(pending)
-  created_at         DateTime          @default(now()) @db.Timestamptz
-  updated_at         DateTime?         @updatedAt @db.Timestamptz
-  deleted_at         DateTime?         @db.Timestamptz
-
-  // Relations
-  user   PfcUser @relation(fields: [pfc_user_id], references: [id], onDelete: Cascade)
-  animal Animal  @relation(fields: [animal_id], references: [id], onDelete: Cascade)
-
-  /// Clé composée : Un utilisateur ne peut faire qu'une demande par animal
-  @@id([pfc_user_id, animal_id])
-  @@index([animal_id])
-  @@index([application_status])
-  @@map("application")
-}
-
 enum ApplicationType {
   adoption
   foster
@@ -258,20 +112,173 @@ enum ApplicationStatus {
   @@map("application_status")
 }
 
+
+// ============================================
+// UTILISATEURS
+// ============================================
+
+/// Compte utilisateur principal de la plateforme (indépendant du profil)
+model PfcUser {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique @db.VarChar(255)
+  password      String    @db.VarChar(255)
+  role          UserRole
+  phoneNumber   String?   @db.VarChar(20) @map("phone_number")
+  address       String?   @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @db.Timestamptz @map("created_at")
+  updatedAt     DateTime? @updatedAt @db.Timestamptz      @map("updated_at")
+  deletedAt     DateTime? @db.Timestamptz                 @map("deleted_at")
+
+  // Relations
+  /// Détails spécifiques si l'utilisateur est un particulier
+  individualProfile IndividualProfile?
+  /// Détails spécifiques si l'utilisateur est un refuge
+  shelterProfile    ShelterProfile?
+  /// Liste des demandes déposées (adoption/FA)
+  applications       Application[]
+  /// Liste des animaux mis en favoris
+  bookmarks          Bookmark[]
+  /// Animaux publiés (Uniquement pour les comptes 'shelter')
+  animals            Animal[] 
+
+  @@map("pfc_user")
+}
+
+// ============================================
+// PROFILS
+// ============================================
+
+/// Informations complémentaires pour les comptes 'individual'
+model IndividualProfile {
+  pfcUserId         Int           @id             @map("pfc_user_id")
+  housingType      HousingType?                  @map("housing_type")
+  surface           Int?     // En m²
+  haveGarden        Boolean?                      @map("have_garden")
+  haveAnimals       Boolean?                      @map("have_animals")
+  haveChildren      Boolean?                      @map("have_children")
+  /// Indique si l'utilisateur accepte d'être Famille d'Accueil
+  availableFamily Boolean?      @default(false)   @map("available_family")
+  /// Précisions sur l'emploi du temps pour s'occuper de l'animal
+  availableTime   String?       @db.Text          @map("available_time")
+
+  // Relation
+  user PfcUser @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
+
+  @@map("individual_profile")
+}
+
+
+
+// ============================================
+// REFUGE
+// ============================================
+
+model ShelterProfile {
+  pfcUserId     Int     @id                       @map("pfc_user_id")
+  siret         String  @unique @db.VarChar(14)
+  shelterName   String          @db.VarChar(100)  @map("shelter_name")
+  description   String? @db.Text
+
+  user PfcUser @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
+
+  @@map("shelter_profile")
+}
+
+// ============================================
+// ESPÈCES & ANIMAUX
+// ============================================
+
+model Species {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(50)
+  createdAt   DateTime  @default(now()) @db.Timestamptz  @map("created_at")
+  updatedAt   DateTime? @updatedAt @db.Timestamptz       @map("updated_at")
+  deletedAt   DateTime? @db.Timestamptz                  @map("deleted_at")
+
+  animals Animal[]
+
+  @@map("species")
+}
+
+
+model Animal {
+  id                    Int          @id @default(autoincrement())
+  name                  String       @db.VarChar(100)
+  age                   String?      @db.VarChar(50) 
+  sex                   AnimalSex
+  weight                Decimal?     @db.Decimal(4, 2) // Poids en kg
+  height                Int?         // Taille en cm
+  description           String?      @db.Text
+  animalStatus          AnimalStatus @map("animal_status")
+  /// URLs des images stockées (Cloudinary, S3, etc.)
+  photos                Json?        @db.JsonB 
+  acceptOtherAnimals    Boolean?     @default(false)                   @map("accept_other_animals")
+  acceptChildren        Boolean?     @default(false)                   @map("accept_children")
+  needGarden            Boolean?     @default(false)                   @map("need_garden")
+  /// Historique ou besoins médicaux spécifiques
+  treatment             String?      @db.Text
+  speciesId             Int                                            @map("species_id")  
+  /// Référence vers l'utilisateur (refuge) créateur de l'annonce
+  pfcUserId             Int                                            @map("pfc_user_id")
+  createdAt             DateTime     @default(now()) @db.Timestamptz   @map("created_at")
+  updatedAt             DateTime?    @updatedAt @db.Timestamptz        @map("updated_at")
+  deletedAt             DateTime?    @db.Timestamptz                   @map("deleted_at")
+
+  // Relations
+  species      Species       @relation(fields: [speciesId], references: [id], onDelete: Restrict)
+  shelter      PfcUser       @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
+  applications Application[]
+  bookmarks    Bookmark[]
+
+  @@index([speciesId])
+  @@index([pfcUserId])
+  @@index([animalStatus])
+  @@map("animal")
+}
+
+// ============================================
+// SUIVI DES DEMANDES
+// ============================================
+
+/// Table de liaison gérant les dossiers d'adoption ou de FA
+model Application {
+  pfcUserId           Int                                               @map("pfc_user_id")
+  animalId            Int                                               @map("animal_id")
+  /// Lettre de motivation ou message de l'adoptant
+  message             String            @db.Text
+  applicationType    ApplicationType                                   @map("application_type")
+  applicationStatus  ApplicationStatus @default(pending)               @map("application_status")
+  createdAt           DateTime          @default(now()) @db.Timestamptz  @map("created_at")
+  updatedAt           DateTime?         @updatedAt @db.Timestamptz       @map("updated_at")
+  deletedAt           DateTime?         @db.Timestamptz                  @map("deleted_at")
+
+  // Relations
+  user   PfcUser @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
+  animal Animal  @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  /// Clé composée : Un utilisateur ne peut faire qu'une demande par animal
+  @@id([pfcUserId, animalId])
+  @@index([animalId])
+  @@index([applicationStatus])
+  @@map("application")
+}
+
+
+
 // ============================================
 // SYSTÈME DE FAVORIS
 // ============================================
 
 /// Gère les animaux "likés" par les particuliers
 model Bookmark {
-  pfc_user_id Int
-  animal_id   Int
-  created_at  DateTime @default(now()) @db.Timestamptz
+  pfcUserId     Int                                       @map("pfc_user_id")
+  animalId      Int                                       @map("animal_id")
+  createdAt     DateTime @default(now()) @db.Timestamptz  @map("created_at")
 
-  user   PfcUser @relation(fields: [pfc_user_id], references: [id], onDelete: Cascade)
-  animal Animal  @relation(fields: [animal_id], references: [id], onDelete: Cascade)
+  user   PfcUser @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
+  animal Animal  @relation(fields: [animalId], references: [id], onDelete: Cascade)
 
-  @@id([pfc_user_id, animal_id])
-  @@index([animal_id])
+  @@id([pfcUserId, animalId])
+  @@index([animalId])
   @@map("bookmark")
 }
