@@ -131,9 +131,9 @@ model PfcUser {
 
   // Relations
   /// Détails spécifiques si l'utilisateur est un particulier
-  individual_profile IndividualProfile?
+  individualProfile IndividualProfile?
   /// Détails spécifiques si l'utilisateur est un refuge
-  shelter_profile    ShelterProfile?
+  shelterProfile    ShelterProfile?
   /// Liste des demandes déposées (adoption/FA)
   applications       Application[]
   /// Liste des animaux mis en favoris
@@ -151,7 +151,7 @@ model PfcUser {
 /// Informations complémentaires pour les comptes 'individual'
 model IndividualProfile {
   pfcUserId         Int           @id             @map("pfc_user_id")
-  housing_type      HousingType?                  @map("housing_type")
+  housingType      HousingType?                  @map("housing_type")
   surface           Int?     // En m²
   haveGarden        Boolean?                      @map("have_garden")
   haveAnimals       Boolean?                      @map("have_animals")

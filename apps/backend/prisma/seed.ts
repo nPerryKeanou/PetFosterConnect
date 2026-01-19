@@ -1,11 +1,17 @@
-import { PrismaClient, UserRole, AnimalSex, AnimalStatus, ApplicationType, ApplicationStatus, HousingType, Species, PfcUser } from '@prisma/client';
+import { 
+  PrismaClient, 
+  UserRole, 
+  AnimalSex, 
+  AnimalStatus, 
+  HousingType, 
+  Species, 
+  PfcUser 
+} from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🚀 Lancement du Seed "Mega" (5 Refuges x 5 Animaux = 25 total)...');
-
-  // --- 1. NETTOYAGE ---
+  console.log('🧹 Nettoyage de la base de données...');
   await prisma.bookmark.deleteMany();
   await prisma.application.deleteMany();
   await prisma.animal.deleteMany();
@@ -14,85 +20,124 @@ async function main() {
   await prisma.species.deleteMany();
   await prisma.pfcUser.deleteMany();
 
-  // --- 2. ESPÈCES ---
+  // --- 1. CRÉATION DES ESPÈCES ---
   const dog = await prisma.species.create({ data: { name: 'Chien' } });
   const cat = await prisma.species.create({ data: { name: 'Chat' } });
   const rabbit = await prisma.species.create({ data: { name: 'Lapin' } });
-  const speciesList: Species[] = [dog, cat, rabbit];
+  const speciesList = [dog, cat, rabbit];
 
-  // --- 3. REFUGES (5) ---
-  const shelterNames = ['SPA Paris', 'Refuge Saint-Roch', 'L’Ami Fidèle', 'Solana Protection', 'Le Repaire des Griffes'];
+  // --- 2. CRÉATION DE 5 REFUGES ---
   const shelters: PfcUser[] = [];
-  
-  for (let i = 0; i < 5; i++) {
+  const shelterData = [
+    { name: 'SPA Paris', siret: '12345678900011' },
+    { name: 'Refuge Saint-Roch', siret: '12345678900012' },
+    { name: 'L’Ami Fidèle', siret: '12345678900013' },
+    { name: 'Solana Protection', siret: '12345678900014' },
+    { name: 'Le Repaire des Griffes', siret: '12345678900015' }
+  ];
+
+  for (const item of shelterData) {
     const s = await prisma.pfcUser.create({
       data: {
-        email: `contact@refuge-${i + 1}.fr`,
-        password: 'password123',
+        email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
+        password: 'password123', // En prod, utilisez un hash (bcrypt)
         role: UserRole.shelter,
-        shelter_profile: {
+        phoneNumber: '0102030405',
+        address: `Adresse de ${item.name}`,
+        shelterProfile: {
           create: {
-            siret: `1234567890001${i}`,
-            shelter_name: shelterNames[i],
-            description: `Bienvenue au refuge ${shelterNames[i]}. Nous prenons soin de nos pensionnaires avec amour.`,
-          },
-        },
-      },
+            siret: item.siret,
+            shelterName: item.name,
+            description: `Bienvenue chez ${item.name}, nous sauvons des animaux depuis 10 ans.`
+          }
+        }
+      }
     });
     shelters.push(s);
   }
 
-  // --- 4. FAMILLES (5) ---
+  // --- 3. CRÉATION DE 5 FAMILLES (INDIVIDUALS) ---
   for (let i = 1; i <= 5; i++) {
     await prisma.pfcUser.create({
       data: {
         email: `famille.${i}@email.com`,
         password: 'password123',
         role: UserRole.individual,
-        individual_profile: {
+        phoneNumber: `060000000${i}`,
+        address: `${i} rue des Animaux, 75000 Paris`,
+        individualProfile: {
           create: {
-            housing_type: i % 2 === 0 ? HousingType.apartment : HousingType.house,
-            surface: 50 + (i * 15),
-            available_family: true,
-          },
-        },
-      },
+            housingType: i % 2 === 0 ? HousingType.apartment : HousingType.house,
+            surface: 40 + (i * 10),
+            haveGarden: i % 2 !== 0,
+            haveAnimals: i > 2,
+            haveChildren: i === 1 || i === 5,
+            availableFamily: true,
+            availableTime: "Disponible le soir et les week-ends pour de longues balades."
+          }
+        }
+      }
     });
   }
 
-  // --- 5. ANIMAUX (25 total : 5 par refuge) ---
-  const rawData = [
-    { name: 'Boby', desc: 'Très doux, adore jouer avec les enfants.', img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a' },
-    { name: 'Luna', desc: 'Indépendante et calme, cherche un foyer paisible.', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba' },
-    { name: 'Filou', desc: 'Petit lapin énergique qui adore les carottes.', img: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308' },
-    { name: 'Rex', desc: 'Un compagnon fidèle pour de longues randonnées.', img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e' },
-    { name: 'Mimi', desc: 'Une petite boule de poils très câline.', img: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d' },
+  // --- 4. CRÉATION DE 25 ANIMAUX (5 par refuge) ---
+  const animalNames = [
+    'Boby', 'Luna', 'Filou', 'Rex', 'Mimi', 
+    'Oscar', 'Bella', 'Simba', 'Nala', 'Rocky',
+    'Zoe', 'Max', 'Daisy', 'Jack', 'Lola',
+    'Pluto', 'Maya', 'Titi', 'Gribouille', 'Cookie',
+    'Caramel', 'Nitro', 'Shadow', 'Praline', 'Pixel'
   ];
 
-  for (let sIndex = 0; sIndex < shelters.length; sIndex++) {
-    const currentShelter = shelters[sIndex];
-    
-    for (let aIndex = 0; aIndex < 5; aIndex++) {
-      const data = rawData[aIndex]; // On boucle sur nos 5 types d'animaux de base
-      const species = speciesList[aIndex % speciesList.length]; // Alterne Chien/Chat/Lapin
+  const medicalNotes = [
+    "Vaccins à jour. Traitement préventif contre les puces.",
+    "Nécessite un nettoyage régulier des oreilles.",
+    "Sous traitement léger pour les articulations.",
+    "Régime alimentaire spécifique (croquettes médicalisées).",
+    "Stérilisation prévue prochainement."
+  ];
+
+  let animalIndex = 0;
+  for (const shelter of shelters) {
+    for (let i = 0; i < 5; i++) {
+      const currentName = animalNames[animalIndex];
+      const species = speciesList[animalIndex % speciesList.length];
+      
+      // Médication 1 animal sur 2
+      const treatment = animalIndex % 2 === 0 
+        ? medicalNotes[i % medicalNotes.length] 
+        : null;
 
       await prisma.animal.create({
         data: {
-          name: `${data.name} (du refuge ${sIndex + 1})`,
+          name: currentName,
           age: `${Math.floor(Math.random() * 8) + 1} ans`,
-          sex: aIndex % 2 === 0 ? AnimalSex.male : AnimalSex.female,
-          weight: species.name === 'Chien' ? 20.5 : 3.5,
-          description: data.desc,
-          animal_status: AnimalStatus.available,
-          photos: [data.img],
-          species_id: species.id,
-          pfc_user_id: currentShelter.id,
-        },
+          sex: i % 2 === 0 ? AnimalSex.male : AnimalSex.female,
+          weight: species.name === 'Chien' ? 15.5 : 3.5,
+          height: species.name === 'Chien' ? 45 : 25,
+          description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
+          animalStatus: AnimalStatus.available,
+          photos: ["https://placedog.net/500"], // Placeholder
+          acceptOtherAnimals: true,
+          acceptChildren: true,
+          needGarden: species.name === 'Chien',
+          treatment: treatment,
+          speciesId: species.id,
+          pfcUserId: shelter.id
+        }
       });
+      animalIndex++;
     }
   }
 
-  console.log('✅ Base de données prête : 5 refuges, 5 familles, 25 animaux !');
+  console.log('✅ Succès : 5 refuges, 5 familles et 25 animaux créés !');
 }
 
-main().catch(e => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
