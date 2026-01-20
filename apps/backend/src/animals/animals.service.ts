@@ -10,18 +10,22 @@ export class AnimalsService {
     return this.prisma.animal.create({
       data: {
         ...createAnimalDto,
-        pfc_user_id: userId,
+        pfcUserId: userId,
         photos: createAnimalDto.photos as any, // Cast pour JsonB
       },
     });
   }
 
   async findAll() {
-    return this.prisma.animal.findMany({
-      where: { deleted_at: null },
-      include: { species: true },
-    });
-  }
+  return this.prisma.animal.findMany({
+    include: {
+      species: true,
+      shelter: {
+        include: { shelterProfile: true }
+      }
+    }
+  });
+}
 
   async findOne(id: number) {
     const animal = await this.prisma.animal.findUnique({
@@ -53,7 +57,7 @@ export class AnimalsService {
   async remove(id: number) {
     return this.prisma.animal.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: { deletedAt: new Date() },
     });
   }
 }

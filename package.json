@@ -38,6 +38,7 @@
     "@rollup/rollup-linux-x64-gnu": "*"
   },
   "dependencies": {
+    "@esbuild/darwin-arm64": "^0.27.2",
     "zod": "^4.3.5"
   }
 }
