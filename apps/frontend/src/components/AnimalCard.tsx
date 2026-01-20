@@ -57,8 +57,7 @@ const _AnimalCard = ({
           </button> */}
           <button
           type="button"
-          onClick={() => console.log(`Redirection vers le profil de ${name} (ID: ${id})`)}
-          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors duration-200 flex items-center justify-center gap-2"
+          onClick={() => console.log(`Redirection vers le profil de ${name} (ID: ${id})`)} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-95 active:scale-90"
         >
           Plus d'infos
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
