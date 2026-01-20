@@ -10,25 +10,51 @@ export class AnimalsService {
     return this.prisma.animal.create({
       data: {
         ...createAnimalDto,
-        pfc_user_id: userId,
+        pfcUserId: userId,
         photos: createAnimalDto.photos as any, // Cast pour JsonB
       },
     });
   }
 
-  async findAll() {
-    return this.prisma.animal.findMany({
-      where: { deleted_at: null },
-      include: { species: true },
-    });
-  }
+//   async findAll() {
+//   return this.prisma.animal.findMany({
+//     include: {
+//       species: true,
+//       shelter: {
+//         include: { shelterProfile: true }
+//       }
+//     }
+//   });
+// }
+
+// apps/backend/src/animals/animals.service.ts
+
+async findAll() {
+  return this.prisma.animal.findMany({
+    include: {
+      species: true,    // Récupère l'objet Species (id, name, etc.)
+      shelter: {        // Récupère l'utilisateur PfcUser lié
+        include: {
+          shelterProfile: true // Récupère les détails (shelterName, siret, etc.)
+        }
+      }
+    }
+  });
+}
 
   async findOne(id: number) {
     const animal = await this.prisma.animal.findUnique({
       where: { id },
-      include: { species: true },
+      include: { 
+        species: true, // récupère l'espèce 
+      shelter: {       // récupère l'utilisateur qui possède l'animal
+        include: {
+          shelterProfile: true // récupère les infos du refuge (shelterName, etc.)
+        }
+      }
+      },
     });
-    if (!animal || animal.deleted_at)
+    if (!animal || animal.deletedAt)
       throw new NotFoundException("Animal non trouvé");
     return animal;
   }
@@ -46,7 +72,7 @@ export class AnimalsService {
   async remove(id: number) {
     return this.prisma.animal.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: { deletedAt: new Date() },
     });
   }
 }

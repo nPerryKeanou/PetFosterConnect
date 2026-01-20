@@ -20,7 +20,7 @@ export class UsersService {
         password: passwordHash,
         // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
         role: data.role as UserRole,
-        phone_number: data.phone_number,
+        phoneNumber: data.phone_number,
         address: data.address,
       },
     });
@@ -58,7 +58,7 @@ export class UsersService {
     // Soft Delete (Préférence par rapport au delete physique)
     return this.prisma.pfcUser.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: { deletedAt: new Date() },
     });
   }
 

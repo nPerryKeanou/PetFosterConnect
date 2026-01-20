@@ -80,6 +80,21 @@ async function main() {
     });
   }
 
+
+  // --- 3.5. CRÉATION D'UN COMPTE ADMIN ---
+  //ajout de commentaire pour trigger pr
+  console.log('👑 Création du compte administrateur...');
+  await prisma.pfcUser.create({
+    data: {
+      email: 'admin@pfc.fr',
+      password: 'admin-password', // À hacher avec bcrypt plus tard
+      role: UserRole.admin,
+      phoneNumber: '0100000000',
+      address: 'Siège Pet Foster Connect, Paris',
+      // Note : L'admin n'a pas besoin de shelterProfile ni d'individualProfile
+    }
+  });
+
   // --- 4. CRÉATION DE 25 ANIMAUX (5 par refuge) ---
   const animalNames = [
     'Boby', 'Luna', 'Filou', 'Rex', 'Mimi', 
@@ -103,6 +118,13 @@ async function main() {
       const currentName = animalNames[animalIndex];
       const species = speciesList[animalIndex % speciesList.length];
       
+      // On choisit un mot clé en fonction de l'espèce pour avoir des photos cohérentes
+      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
+                      species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
+
+      // L'astuce est le paramètre "lock" : s'il change, l'image change !
+      const randomPhoto = `https://loremflickr.com/400/400/${keyword}?lock=${animalIndex}`;
+
       // Médication 1 animal sur 2
       const treatment = animalIndex % 2 === 0 
         ? medicalNotes[i % medicalNotes.length] 
@@ -117,7 +139,7 @@ async function main() {
           height: species.name === 'Chien' ? 45 : 25,
           description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
           animalStatus: AnimalStatus.available,
-          photos: ["https://placedog.net/500"], // Placeholder
+          photos: [randomPhoto],
           acceptOtherAnimals: true,
           acceptChildren: true,
           needGarden: species.name === 'Chien',
