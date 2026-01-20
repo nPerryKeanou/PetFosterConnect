@@ -82,6 +82,7 @@ async function main() {
 
 
   // --- 3.5. CRÉATION D'UN COMPTE ADMIN ---
+  //ajout de commentaire pour trigger pr
   console.log('👑 Création du compte administrateur...');
   await prisma.pfcUser.create({
     data: {
