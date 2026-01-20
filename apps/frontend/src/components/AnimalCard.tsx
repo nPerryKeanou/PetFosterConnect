@@ -42,7 +42,7 @@ const _AnimalCard = ({
         </div>
 
         <div className="flex justify-between">
-          <button
+          {/* <button
             type="button"
             className="rounded-full bg-secondary px-5 py-2 text-sm font-semibold text-white shadow-md transition"
           >
@@ -54,7 +54,17 @@ const _AnimalCard = ({
             className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-md transition"
           >
             Accueillir
-          </button>
+          </button> */}
+          <button
+          type="button"
+          onClick={() => console.log(`Redirection vers le profil de ${name} (ID: ${id})`)}
+          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors duration-200 flex items-center justify-center gap-2"
+        >
+          Plus d'infos
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
         </div>
       </div>
     </div>
