@@ -16,40 +16,41 @@ export default function AnimalDetail() {
       <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* SECTION PHOTOS */}
-          <div className="space-y-4">
+          <div className="space-y-6">
+            
             {/* Photo principale */}
-            <div className="relative rounded-lg overflow-hidden shadow-md h-[400px]">
-              <img
-                src={animal.photos?.[0] ?? "https://placehold.co/600x400?text=Pas+de+photo"}
-                alt={animal.name}
-                className="w-full h-full object-cover"
+            <div className="relative rounded-xl overflow-hidden shadow-lg h-[500px] lg:h-[600px]">
+              <img 
+                src={animal.photos?.[0] ?? "https://placehold.co/600x600?text=Pas+de+photo"} 
+                alt={animal.name} 
+                className="w-full h-full object-cover object-center"
               />
-
-              {/* Bouton favori */}
-              <button
-                className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group"
+              
+              {/* Bouton favori*/}
+              <button 
+                className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group" 
                 type="button"
                 aria-label="Ajouter aux favoris"
               >
-                <Heart className="w-6 h-6 transition-all duration-300 group-hover:fill-error group-active:scale-90" />
+                <Heart 
+                  className="w-7 h-7 transition-all duration-300 group-hover:fill-error group-active:scale-90" 
+                />
               </button>
             </div>
 
-            {/* Galerie miniatures */}
+            {/* Galerie de miniatures*/}
             <div className="grid grid-cols-3 gap-4">
-              {(animal.photos?.slice(1) ?? []).map(
-                (
-                  photo // .slice(1) ignore le premier élément
-                ) => (
-                  <img
-                    key={photo}
-                    src={photo}
-                    alt={`Vue détaillée`}
-                    className="w-full h-24 object-cover rounded-md cursor-pointer hover:opacity-80 transition"
-                  />
-                )
-              )}
+              {(animal.photos?.slice(1) ?? []).map((photo) => (
+                <div key={photo} className="h-40 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
+                    <img 
+                      src={photo} 
+                      alt={`Vue détaillée`} 
+                      className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-500"
+                    />
+                </div>
+              ))}
             </div>
+            
           </div>
 
           {/* SECTION INFORMATIONS */}
