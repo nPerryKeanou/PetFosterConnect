@@ -26,9 +26,16 @@ export class AnimalsService {
   async findOne(id: number) {
     const animal = await this.prisma.animal.findUnique({
       where: { id },
-      include: { species: true },
+      include: { 
+        species: true, // récupère l'espèce 
+      shelter: {       // récupère l'utilisateur qui possède l'animal
+        include: {
+          shelterProfile: true // récupère les infos du refuge (shelterName, etc.)
+        }
+      }
+      },
     });
-    if (!animal || animal.deleted_at)
+    if (!animal || animal.deletedAt)
       throw new NotFoundException("Animal non trouvé");
     return animal;
   }
