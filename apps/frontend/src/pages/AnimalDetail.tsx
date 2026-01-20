@@ -4,16 +4,51 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
-import { mockAnimal } from "../mocks/animal.mock";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
 export default function AnimalDetail() {
-  const animal = mockAnimal;
+  const API_URL = import.meta.env.VITE_API_URL;
+  const { id } = useParams<{ id: string }>();
+
+  const [animal, setAnimal] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      try {
+        const response = await fetch(`${API_URL}/animals/${Number(id)}`);
+        const data = await response.json();
+        setAnimal(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération :", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnimal();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-semibold text-gray-500 animate-pulse">
+          Chargement de l’animal...
+        </p>
+      </div>
+    );
+  }
+
+  if (!animal) {
+    return <p>Animal introuvable</p>;
+  }
 
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
       <BackBanner to="/animaux" />
-
-      <main className="container mx-auto px-4 py-8 flex-grow">
+      {/* ... ton JSX avec animal.photos, animal.name etc. */}
+          <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* SECTION PHOTOS */}
           <div className="space-y-4">
@@ -39,7 +74,7 @@ export default function AnimalDetail() {
             <div className="grid grid-cols-3 gap-4">
               {(animal.photos?.slice(1) ?? []).map(
                 (
-                  photo // .slice(1) ignore le premier élément
+                  photo:any // .slice(1) ignore le premier élément
                 ) => (
                   <img
                     key={photo}

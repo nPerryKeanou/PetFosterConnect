@@ -50,12 +50,18 @@ export const ShelterProfileSchema = z.object({
 
 export type ShelterProfile = z.infer<typeof ShelterProfileSchema>;
 
+// DTO : Création (Front -> Back)
+export const CreateShelterProfileSchema = ShelterProfileSchema.omit({
+  createdAt: true,
+  updatedAt: true,
+});
+export type CreateShelterProfileDto = z.infer<typeof CreateShelterProfileSchema>;
+
 // DTO : Mise à jour (Front -> Back)
 export const UpdateShelterProfileSchema = ShelterProfileSchema.omit({
-  pfcUserId: true,
-  siret: true, // Le SIRET est une info légale fixe
+  pfcUserId: true, // l'ID ne change pas
+  siret: true,     // info légale fixe
   createdAt: true,
   updatedAt: true,
 }).partial();
-
 export type UpdateShelterProfileDto = z.infer<typeof UpdateShelterProfileSchema>;
