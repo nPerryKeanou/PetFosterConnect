@@ -75,7 +75,7 @@ export default function AnimalDetail() {
 
             {/* Galerie de miniatures*/}
             <div className="grid grid-cols-3 gap-4">
-              {(animal.photos?.slice(1) ?? []).map((photo) => (
+              {(animal.photos?.slice(1) ?? []).map((photo: string) => (
                 <div key={photo} className="h-40 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
                     <img 
                       src={photo} 
