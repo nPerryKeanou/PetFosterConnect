@@ -15,10 +15,10 @@ export class ApplicationsService {
     return this.prisma.application.create({
       data: {
         pfcUserId: userId,
-        animalId: createDto.animal_id,
+        animalId: createDto.animalId,
         message: createDto.message,
         // On cast les enums Zod vers Prisma si nécessaire (souvent compatibles si strings identiques)
-        applicationType: createDto.application_type as ApplicationType,
+        applicationType: createDto.applicationType as ApplicationType,
         applicationStatus: 'pending', // Défaut
       },
     });
