@@ -6,6 +6,7 @@ import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 
 // Pages
+import Home from "./pages/Home.tsx";
 import About from "./pages/About.tsx";
 import AnimalDetail from "./pages/AnimalDetail";
 import AnimalList from "./pages/AnimalList";
@@ -17,10 +18,6 @@ import ShelterDetailPage from "./pages/ShelterDetail.tsx";
 import SheltersPage from "./pages/ShelterList.tsx";
 import DashboardPage from "./pages/admin/DashboardPage.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
-
-const Home = () => (
-  <div className="p-10 text-center">Bienvenue sur Pet Foster Connect</div>
-);
 
 function App() {
   return (
