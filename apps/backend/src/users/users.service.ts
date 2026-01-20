@@ -20,7 +20,7 @@ export class UsersService {
         password: passwordHash,
         // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
         role: data.role as UserRole,
-        phoneNumber: data.phone_number,
+        phoneNumber: data.phoneNumber,
         address: data.address,
       },
     });
