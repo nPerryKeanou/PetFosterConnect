@@ -16,12 +16,27 @@ export class AnimalsService {
     });
   }
 
-  async findAll() {
+//   async findAll() {
+//   return this.prisma.animal.findMany({
+//     include: {
+//       species: true,
+//       shelter: {
+//         include: { shelterProfile: true }
+//       }
+//     }
+//   });
+// }
+
+// apps/backend/src/animals/animals.service.ts
+
+async findAll() {
   return this.prisma.animal.findMany({
     include: {
-      species: true,
-      shelter: {
-        include: { shelterProfile: true }
+      species: true,    // Récupère l'objet Species (id, name, etc.)
+      shelter: {        // Récupère l'utilisateur PfcUser lié
+        include: {
+          shelterProfile: true // Récupère les détails (shelterName, siret, etc.)
+        }
       }
     }
   });
