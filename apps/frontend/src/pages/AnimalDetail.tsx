@@ -40,7 +40,7 @@ export default function AnimalDetail() {
 
             {/* Galerie de miniatures*/}
             <div className="grid grid-cols-3 gap-4">
-              {(animal.photos?.slice(1) ?? []).map((photo) => (
+              {(animal.photos?.slice(1) ?? []).map((photo: string) => (
                 <div key={photo} className="h-40 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
                     <img 
                       src={photo} 
@@ -61,7 +61,7 @@ export default function AnimalDetail() {
                 <h1 className="text-4xl font-bold font-montserrat text-black">{animal.name}</h1>
                 <p className="text-lg text-gray-600">{animal.species_name}</p>
               </div>
-              {animal.animal_status === "available" && (
+              {animal.animalStatus === "available" && (
                 <Badge label="Disponible" variant="success" />
               )}
             </div>
@@ -100,14 +100,14 @@ export default function AnimalDetail() {
             <div className="mt-6 w-full">
               <h2 className="text-xl font-bold text-success mb-3 font-montserrat">Compatibilité</h2>
               <div className="flex flex-wrap gap-3 justify-start">
-                <CompatibilityBadge label="Accepte enfants" isCompatible={animal.accept_children} />
+                <CompatibilityBadge label="Accepte enfants" isCompatible={animal.acceptChildren} />
                 <CompatibilityBadge
                   label="Accepte animaux"
-                  isCompatible={animal.accept_other_animals}
+                  isCompatible={animal.acceptOtherAnimals}
                 />
                 <CompatibilityBadge
-                  label={animal.need_garden ? "Jardin requis" : "Appartement OK"}
-                  isCompatible={!animal.need_garden}
+                  label={animal.needGarden ? "Jardin requis" : "Appartement OK"}
+                  isCompatible={!animal.needGarden}
                 />
               </div>
             </div>

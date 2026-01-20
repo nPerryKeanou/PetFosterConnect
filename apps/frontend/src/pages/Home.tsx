@@ -41,7 +41,7 @@ export default function Home() {
             <img 
               src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?q=80&w=600&auto=format&fit=crop" 
               alt="Chien et Chat heureux" 
-               className="rounded-2xl shadow-2xl border-4 border-white/20 w-full max-w-md object-cover transform rotate-2 hover:rotate-0 transition duration-500"
+              className="rounded-2xl shadow-2xl border-4 border-white/20 w-full max-w-md object-cover transform rotate-2 hover:rotate-0 transition duration-500"
             />
           </div>
         </div>
