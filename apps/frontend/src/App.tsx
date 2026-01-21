@@ -36,7 +36,7 @@ function App() {
           <Route path="/inscription" element={<AuthPage />} />
           
           <Route path="/animaux" element={<AnimalList />} />
-          <Route path="/animaux/1" element={<AnimalDetail />} />
+          <Route path="/animaux/:id" element={<AnimalDetail />} />
           
           <Route path="/refuges" element={<SheltersPage />} />
           <Route path="/refuges/:id" element={<ShelterDetailPage />} />
