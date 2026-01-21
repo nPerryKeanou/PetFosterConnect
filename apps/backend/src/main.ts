@@ -10,8 +10,10 @@ async function bootstrap() {
 
   // Autoriser les requêtes CORS depuis le frontend
   app.enableCors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173", // Vite
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   app.useGlobalPipes();
