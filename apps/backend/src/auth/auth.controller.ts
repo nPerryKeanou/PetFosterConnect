@@ -1,25 +1,66 @@
-import { Body, Controller, HttpCode, Post, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
+import type { RegisterDto } from "@projet/shared-types";
 import express from "express";
+import { JwtAuthGuard } from "./auth.guard";
 import { AuthService } from "./auth.service";
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {} // ✅ injection
+
   @Post("login")
-  @HttpCode(200)
   async login(
-    @Body() body: { email: string; password: string },
+    @Body() dto: { email: string; password: string },
     @Res({ passthrough: true }) res: express.Response
   ) {
-    const token = await this.authService.login(body.email, body.password);
+    const { user, token } = await this.authService.login(dto);
 
-    // pose le cookie HttpOnly
     res.cookie("access_token", token, {
       httpOnly: true,
       sameSite: "lax",
-      maxAge: 1000 * 60 * 60, // 1h
+      maxAge: 1000 * 60 * 60,
     });
 
-    return { success: true };
+    return user;
+  }
+
+  @Post("logout")
+  logout(@Res({ passthrough: true }) res: express.Response) {
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      sameSite: "lax",
+    });
+
+    return { message: "Déconnexion réussie" };
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req: any) {
+    return req.user;
+  }
+
+  @Post("register")
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: express.Response
+  ) {
+    const { user, token } = await this.authService.register(dto);
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60,
+    });
+
+    return user;
   }
 }

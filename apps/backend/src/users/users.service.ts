@@ -11,13 +11,11 @@ export class UsersService {
 
   // Utilise le DTO au lieu de re-déclarer les types { email: string... }
   async create(data: RegisterDto) {
-    const passwordHash = await argon2.hash(data.password);
-
     return this.prisma.pfcUser.create({
       // Vérifie si c'est pfc_user ou pfcUser avec ton IDE
       data: {
         email: data.email,
-        password: passwordHash,
+        password: data.password,
         // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
         role: data.role as UserRole,
         phoneNumber: data.phoneNumber,
@@ -64,13 +62,19 @@ export class UsersService {
 
   // Vérifie email + mot de passe
   async validateUser(email: string, plainPassword: string) {
-    const user = await this.prisma.pfcUser.findUnique({ where: { email } });
+    const user = await this.findByEmail(email);
     if (!user) return null;
 
-    // Vérifie le mot de passe avec Argon2
     const isValid = await argon2.verify(user.password, plainPassword);
     if (!isValid) return null;
 
     return user;
+  }
+
+  // Recherche d’un user par email
+  async findByEmail(email: string) {
+    return this.prisma.pfcUser.findUnique({
+      where: { email },
+    });
   }
 }
