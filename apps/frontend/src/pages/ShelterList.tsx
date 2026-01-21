@@ -11,7 +11,7 @@ const SheltersPage = () => {
     const fetchShelters = async () => {
       try {
         const res = await fetch(`${API_URL}/shelters`);
-        if (!res.ok) throw new Error(`Erreur HTTP: ${res.status}`);
+        if (!res.ok) throw new Error("Erreur HTTP " + res.status);
         const data = await res.json();
         setShelters(data);
       } catch (err) {
@@ -20,22 +20,17 @@ const SheltersPage = () => {
         setLoading(false);
       }
     };
-
     fetchShelters();
   }, []);
 
-  if (loading) return <p>Chargement des refuges...</p>;
+  if (loading) return <p>Chargement...</p>;
+  if (!shelters.length) return <p>Aucun refuge trouvé</p>;
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6 text-center font-montserrat">
-        Nos refuges partenaires
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-        {shelters.map((Shelter) => (
-          <ShelterCard key={Shelter.pfcUserId} {...Shelter} />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+      {shelters.map((shelter) => (
+        <ShelterCard key={shelter.pfcUserId} {...shelter} />
+      ))}
     </div>
   );
 };
