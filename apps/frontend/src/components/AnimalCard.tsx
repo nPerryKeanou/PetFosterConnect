@@ -74,6 +74,7 @@
 
 
 // AnimalCard.tsx
+import { useNavigate } from "react-router-dom"; // Ajoute cet import
 import type { Animal, Species } from "../../../../packages/shared-types/src/animal.schema";
 
 // On définit le type exact retourné par NestJS + Prisma include
@@ -96,6 +97,8 @@ const AnimalCard = ({
   species,
   shelter,
 }: AnimalWithDetails) => {
+  const navigate = useNavigate(); // Initialise le hook
+
   return (
     <div className="w-72 bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
       <div className="relative h-64 w-full overflow-hidden bg-gray-200">
@@ -125,7 +128,7 @@ const AnimalCard = ({
         </div>
 
         <div className="flex justify-between">
-          <button
+          {/* <button
             type="button"
             onClick={() => console.log(`Redirection vers le profil de ${name} (ID: ${id})`)} 
             className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-95 active:scale-90"
@@ -134,7 +137,15 @@ const AnimalCard = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </button> */}
+            <button
+              type="button"
+                onClick={() => navigate(`/animaux/${id}`)} // <-- On remplace le log par navigate
+                className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all duration-200 hover:scale-95 active:scale-90"
+              >
+                Plus d'infos
+              {/* SVG icon */}
+           </button>
         </div>
       </div>
     </div>

@@ -26,24 +26,55 @@ async function main() {
   const rabbit = await prisma.species.create({ data: { name: 'Lapin' } });
   const speciesList = [dog, cat, rabbit];
 
+  // // --- 2. CRÉATION DE 5 REFUGES ---
+  // const shelters: PfcUser[] = [];
+  // const shelterData = [
+  //   { name: 'SPA Paris', siret: '12345678900011' },
+  //   { name: 'Refuge Saint-Roch', siret: '12345678900012' },
+  //   { name: 'L’Ami Fidèle', siret: '12345678900013' },
+  //   { name: 'Solana Protection', siret: '12345678900014' },
+  //   { name: 'Le Repaire des Griffes', siret: '12345678900015' }
+  // ];
+
+  // for (const item of shelterData) {
+  //   const s = await prisma.pfcUser.create({
+  //     data: {
+  //       email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
+  //       password: 'password123', // En prod, utilisez un hash (bcrypt)
+  //       role: UserRole.shelter,
+  //       phoneNumber: '0102030405',
+  //       address: `refuge de : ${item.name}`,
+  //       shelterProfile: {
+  //         create: {
+  //           siret: item.siret,
+  //           shelterName: item.name,
+  //           description: `Bienvenue chez ${item.name}, nous sauvons des animaux depuis 10 ans.`
+  //         }
+  //       }
+  //     }
+  //   });
+  //   shelters.push(s);
+  // }
+
   // --- 2. CRÉATION DE 5 REFUGES ---
   const shelters: PfcUser[] = [];
   const shelterData = [
-    { name: 'SPA Paris', siret: '12345678900011' },
-    { name: 'Refuge Saint-Roch', siret: '12345678900012' },
-    { name: 'L’Ami Fidèle', siret: '12345678900013' },
-    { name: 'Solana Protection', siret: '12345678900014' },
-    { name: 'Le Repaire des Griffes', siret: '12345678900015' }
+    { name: 'SPA Paris', siret: '12345678900011', address: '39 Boulevard Berthier, 75017 Paris' },
+    { name: 'Refuge Saint-Roch', siret: '12345678900012', address: '12 Rue de l’Espérance, 34000 Montpellier' },
+    { name: 'L’Ami Fidèle', siret: '12345678900013', address: '5 Avenue des Animaux, 69000 Lyon' },
+    { name: 'Solana Protection', siret: '12345678900014', address: '1 bis Rue du Chat, 33000 Bordeaux' },
+    { name: 'Le Repaire des Griffes', siret: '12345678900015', address: '10 Chemin de la Ferme, 59000 Lille' }
   ];
 
   for (const item of shelterData) {
     const s = await prisma.pfcUser.create({
       data: {
         email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
-        password: 'password123', // En prod, utilisez un hash (bcrypt)
+        password: 'password123',
         role: UserRole.shelter,
         phoneNumber: '0102030405',
-        address: `Adresse de ${item.name}`,
+        // Utilise l'adresse définie dans le tableau ci-dessus
+        address: item.address, 
         shelterProfile: {
           create: {
             siret: item.siret,

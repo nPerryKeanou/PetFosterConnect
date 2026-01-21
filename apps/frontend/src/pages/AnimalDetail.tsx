@@ -1,14 +1,37 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Heart } from "lucide-react";
 import BackBanner from "../components/ui/BackBanner";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
-import { mockAnimal } from "../mocks/animal.mock";
+// import { mockAnimal } from "../mocks/animal.mock";
 
 export default function AnimalDetail() {
-  const animal = mockAnimal;
+  // const animal = mockAnimal;
+  const { id } = useParams<{ id: string }>(); // Récupère l'ID dans l'URL
+  const [animal, setAnimal] = useState<any>(null); // State pour l'animal
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/animals/${id}`);
+        const data = await response.json();
+        setAnimal(data);
+      } catch (error) {
+        console.error("Erreur chargement animal:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchAnimal();
+  }, [id]);
+
+  if (loading) return <div className="text-center p-20">Chargement...</div>;
+  if (!animal) return <div className="text-center p-20">Animal non trouvé.</div>;
+  
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
       <BackBanner to="/animaux" />
@@ -20,12 +43,16 @@ export default function AnimalDetail() {
             
             {/* Photo principale */}
             <div className="relative rounded-xl overflow-hidden shadow-lg h-[500px] lg:h-[600px]">
-              <img 
+              {/* <img 
                 src={animal.photos?.[0] ?? "https://placehold.co/600x600?text=Pas+de+photo"} 
                 alt={animal.name} 
                 className="w-full h-full object-cover object-center"
+              /> */}
+              <img 
+                src={Array.isArray(animal.photos) ? animal.photos[0] : "https://placehold.co/600x600"} 
+                alt={animal.name} 
+                className="w-full h-full object-cover"
               />
-              
               {/* Bouton favori*/}
               <button 
                 className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group" 
@@ -59,7 +86,7 @@ export default function AnimalDetail() {
             <div className="flex justify-between items-start mb-2 w-full">
               <div>
                 <h1 className="text-4xl font-bold font-montserrat text-black">{animal.name}</h1>
-                <p className="text-lg text-gray-600">{animal.species_name}</p>
+                <p className="text-lg text-gray-600">{animal.species.name}</p>
               </div>
               {animal.animalStatus === "available" && (
                 <Badge label="Disponible" variant="success" />
@@ -123,8 +150,16 @@ export default function AnimalDetail() {
             {/* Refuge */}
             <div className="mt-6 mb-8 w-full">
               <h2 className="text-xl font-bold text-success mb-1 font-montserrat">Proposé par</h2>
-              <p className="text-sm font-semibold text-gray-900">{animal.shelter.shelter_name}</p>
-              <p className="text-xs text-gray-500">{animal.shelter.address}</p>
+              
+              {/* Nom du refuge */}
+              <p className="text-sm font-semibold text-gray-900">
+                {animal.shelter?.shelterProfile?.shelterName || "Refuge partenaire"}
+              </p>
+              
+              {/* Adresse avec label "Adresse :" */}
+              <p className="text-xs text-gray-500">
+                <span className="font-medium">Adresse :</span> {animal.shelter?.address || "Non communiquée"}
+              </p>
             </div>
 
             {/* Actions */}
