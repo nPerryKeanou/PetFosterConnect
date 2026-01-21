@@ -42,7 +42,7 @@ export type CreateApplicationDto = z.infer<typeof CreateApplicationSchema>;
 
 // UPDATE STATUT : Répondre à une demande (Par le Refuge)
 export const UpdateApplicationStatusSchema = z.object({
-  application_status: ApplicationStatusEnum,
+  applicationStatus: ApplicationStatusEnum,
 });
 
 export type UpdateApplicationStatusDto = z.infer<typeof UpdateApplicationStatusSchema>;

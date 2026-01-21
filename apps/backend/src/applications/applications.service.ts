@@ -77,7 +77,7 @@ export class ApplicationsService {
         },
       },
       data: {
-        applicationStatus: updateDto.application_status as ApplicationStatus,
+        applicationStatus: updateDto.applicationStatus as ApplicationStatus,
       },
     });
   }
