@@ -60,11 +60,11 @@ async function main() {
   console.log('🏢 Création des Refuges...');
   const shelters: PfcUser[] = [];
   const shelterData = [
-    { name: 'SPA Paris', siret: '12345678900011', city: 'Gennevilliers' },
-    { name: 'Refuge Saint-Roch', siret: '12345678900012', city: 'Béthune' },
-    { name: 'L’Ami Fidèle', siret: '12345678900013', city: 'Lyon' },
-    { name: 'Solana Protection', siret: '12345678900014', city: 'Marseille' },
-    { name: 'Le Repaire des Griffes', siret: '12345678900015', city: 'Nantes' }
+    { name: 'SPA Paris', siret: '12345678900011', address: 'Gennevilliers, Île-de-France' },
+    { name: 'Refuge Saint-Roch', siret: '12345678900012', address: 'Béthune, Hauts-de-France' },
+    { name: 'L’Ami Fidèle', siret: '12345678900013', address: 'Lyon, Auvergne-Rhône-Alpes' },
+    { name: 'Solana Protection', siret: '12345678900014', address: 'Marseille, Provence-Alpes-Côte d\'Azur' },
+    { name: 'Le Repaire des Griffes', siret: '12345678900015', address: 'Nantes, Pays de la Loire' }
   ];
 
   for (const item of shelterData) {
@@ -74,7 +74,7 @@ async function main() {
         password: passwordHash,
         role: UserRole.shelter,
         phoneNumber: '0102030405',
-        address: `${item.city}, France`, // Champ address du User
+        address: item.address,
         shelterProfile: {
           create: {
             siret: item.siret,
