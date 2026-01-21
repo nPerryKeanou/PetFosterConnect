@@ -10,6 +10,7 @@ type Props = {
     haveGarden: boolean;
     haveAnimals: boolean;
     haveChildren: boolean;
+    isFosterFamily: boolean;
   };
   onChange: (field: keyof Props["formData"], value: any) => void;
 };
@@ -95,6 +96,7 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
           />
           Enfants
         </label>
+        
       </div>
     </div>
   );

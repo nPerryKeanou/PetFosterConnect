@@ -14,11 +14,11 @@ export class UsersService {
 
   // --- Création d'un utilisateur ---
   async create(data: RegisterDto) {
+    const hashedPassword = await argon2.hash(data.password);
     return this.prisma.pfcUser.create({
       data: {
         email: data.email,
-        password: data.password,
-        // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
+        password: hashedPassword,
         role: data.role as UserRole,
         phoneNumber: data.phoneNumber,
         address: data.address,
@@ -34,6 +34,11 @@ export class UsersService {
   // --- Récupérer un utilisateur par ID ---
   findOne(id: number) {
     return this.prisma.pfcUser.findUnique({ where: { id } });
+  }
+
+  // --- Récupérer un utilisateur par email ---
+  async findByEmail(email: string) {
+    return this.prisma.pfcUser.findUnique({ where: { email } });
   }
 
   // --- Mise à jour d'un utilisateur ---

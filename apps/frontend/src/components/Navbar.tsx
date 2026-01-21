@@ -1,17 +1,19 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
-import { id } from "zod/locales";
+
+
 
 const Navbar = () => {
-  const { isLoggedIn, logout } = useAuth();
+
+  const { isLoggedIn, logout, user } = useAuth();
   const links = [
     { to: "/", label: "Accueil" },
     { to: "/animaux", label: "Animaux" },
     { to: "/refuges", label: "Refuges" },
   ];
 
-  if (isLoggedIn) {
-    links.push({ to: `/user/${id}/profil`, label: "Profil" });
+  if (isLoggedIn && user) {
+    links.push({ to: `/user/${user.id}/profil`, label: "Profil" });
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

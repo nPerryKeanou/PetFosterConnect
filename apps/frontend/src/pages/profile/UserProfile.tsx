@@ -17,7 +17,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) return;
-      const res = await fetch(`${API_URL}/users/${id}/profile`);
+      const res = await fetch(`${API_URL}/users/${id}/profil`);
       const data = await res.json();
       setUser(data);
 
@@ -31,7 +31,9 @@ export default function UserProfilePage() {
           haveGarden: data.individualProfile.haveGarden ?? false,
           haveAnimals: data.individualProfile.haveAnimals ?? false,
           haveChildren: data.individualProfile.haveChildren ?? false,
+          isFosterFamily: data.individualProfile.isFosterFamily ?? false, 
         });
+      
       } else if (data.role === "shelter" && data.shelterProfile) {
         setFormData({
           email: data.email ?? "",
@@ -53,25 +55,33 @@ export default function UserProfilePage() {
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  let endpoint = "";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let endpoint = "";
+  if (user.role === "individual") {
+    endpoint = `${API_URL}/users/${user.id}/individual-profile`;
+  } else {
+    endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
+  }
 
-    if (user.role === "individual") {
-      endpoint = `${API_URL}/users/${user.id}/individual-profile`;
-    } else {
-      endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
-    }
+  const res = await fetch(endpoint, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
 
-    await fetch(endpoint, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+  if (!res.ok) {
+    console.error("Erreur API:", await res.text());
+    return;
+  }
 
-    setIsEditing(false);
-  };
+  const updated = await res.json();
+  
+  setUser({ ...user, ...updated });
+  setIsEditing(false);
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

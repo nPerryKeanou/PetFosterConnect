@@ -38,10 +38,6 @@
     "@rollup/rollup-linux-x64-gnu": "*"
   },
   "dependencies": {
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
     "zod": "^4.3.5"
   }
 }

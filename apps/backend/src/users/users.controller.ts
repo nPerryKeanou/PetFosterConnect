@@ -38,7 +38,7 @@ export class UsersController {
   }
 
   // --- Profils enrichis ---
-  @Get(":id/profile")
+  @Get(":id/profil")
   getProfile(@Param("id") id: string) {
     return this.usersService.getProfile(Number(id));
   }
@@ -46,20 +46,20 @@ export class UsersController {
   // --- Mise à jour du profil individuel ---
   @Put(":id/individual-profile")
   @UsePipes(new ZodPipe(UpdateIndividualProfileSchema))
-  updateIndividualProfile(
+  async updateIndividualProfile(
     @Param("id") id: string,
-    @Body() body: UpdateIndividualProfileDto
+    @Body() updateDto: UpdateIndividualProfileDto
   ) {
-    return this.usersService.updateIndividualProfile(Number(id), body);
+    return this.usersService.updateIndividualProfile(Number(id), updateDto);
   }
 
   // --- Mise à jour du profil refuge ---
   @Put(":id/shelter-profile")
   @UsePipes(new ZodPipe(UpdateShelterProfileSchema))
-  updateShelterProfile(
+  async updateShelterProfile(
     @Param("id") id: string,
-    @Body() body: UpdateShelterProfileDto
+    @Body() updateDto: UpdateShelterProfileDto,
   ) {
-    return this.usersService.updateShelterProfile(Number(id), body);
+    return this.usersService.updateShelterProfile(Number(id), updateDto);
   }
 }

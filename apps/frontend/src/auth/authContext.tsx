@@ -7,34 +7,34 @@ import {
 } from "react";
 import { api } from "../api/api";
 
-// Définition du type du contexte
 interface AuthContextType {
   isLoggedIn: boolean;
   setIsLoggedIn: (val: boolean) => void;
   logout: () => Promise<void>;
+  user: any | null; // ajoute l'utilisateur
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Provider à envelopper autour de ton App
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [_user, _setUserrr] = useState(null);
+  const [user, setUser] = useState<any | null>(null);
 
   const logout = async () => {
-    await api.post("/auth/logout"); // supprime le cookie
+    await api.post("/auth/logout");
     setIsLoggedIn(false);
+    setUser(null);
   };
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await api.get("/auth/me", {
-          withCredentials: true,
-        });
+        const res = await api.get("/auth/me", { withCredentials: true });
         setIsLoggedIn(true);
+        setUser(res.data); // stocke l'utilisateur
       } catch {
         setIsLoggedIn(false);
+        setUser(null);
       }
     };
 
@@ -42,13 +42,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, logout, user }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-// Hook pour utiliser le contexte facilement
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
