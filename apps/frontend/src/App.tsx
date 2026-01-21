@@ -18,6 +18,7 @@ import ShelterDetailPage from "./pages/ShelterDetail.tsx";
 import SheltersPage from "./pages/ShelterList.tsx";
 import DashboardPage from "./pages/admin/DashboardPage.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import UserProfilePage from "./pages/profile/UserProfile.tsx";
 
 function App() {
   return (
@@ -41,6 +42,9 @@ function App() {
           <Route path="/refuges" element={<SheltersPage />} />
           <Route path="/refuges/:id" element={<ShelterDetailPage />} />
           <Route path="/refuges/:id/animaux" element={<ShelterAnimalPage />} />
+
+          <Route path="/user/:id/profil" element={<UserProfilePage />} />
+
         </Route>
 
         {/* ZONE ADMIN */}

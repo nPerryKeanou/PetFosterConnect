@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import { id } from "zod/locales";
 
 const Navbar = () => {
   const { isLoggedIn } = useAuth();
@@ -10,7 +11,7 @@ const Navbar = () => {
   ];
 
   if (isLoggedIn) {
-    links.push({ to: "/profil", label: "Profil" });
+    links.push({ to: `/user/${id}/profil`, label: "Profil" });
   }
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

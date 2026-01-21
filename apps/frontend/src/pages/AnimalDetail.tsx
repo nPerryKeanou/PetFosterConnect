@@ -158,7 +158,7 @@ export default function AnimalDetail() {
             {/* Refuge */}
             <div className="mt-6 mb-8 w-full">
               <h2 className="text-xl font-bold text-success mb-1 font-montserrat">Proposé par</h2>
-              <p className="text-sm font-semibold text-gray-900">{animal.shelter.shelter_name}</p>
+              <p className="text-sm font-semibold text-gray-900">{animal.shelter.shelterName}</p>
               <p className="text-xs text-gray-500">{animal.shelter.address}</p>
             </div>
 
