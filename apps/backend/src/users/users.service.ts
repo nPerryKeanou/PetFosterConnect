@@ -14,12 +14,11 @@ export class UsersService {
 
   // --- Création d'un utilisateur ---
   async create(data: RegisterDto) {
-    const passwordHash = await argon2.hash(data.password);
-
     return this.prisma.pfcUser.create({
       data: {
         email: data.email,
-        password: passwordHash,
+        password: data.password,
+        // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
         role: data.role as UserRole,
         phoneNumber: data.phoneNumber,
         address: data.address,
@@ -65,7 +64,7 @@ export class UsersService {
 
   // --- Validation login (email + mot de passe) ---
   async validateUser(email: string, plainPassword: string) {
-    const user = await this.prisma.pfcUser.findUnique({ where: { email } });
+    const user = await this.findByEmail(email);
     if (!user) return null;
 
     const isValid = await argon2.verify(user.password, plainPassword);

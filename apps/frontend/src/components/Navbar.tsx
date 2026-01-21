@@ -3,7 +3,7 @@ import { useAuth } from "../auth/authContext";
 import { id } from "zod/locales";
 
 const Navbar = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const links = [
     { to: "/", label: "Accueil" },
     { to: "/animaux", label: "Animaux" },
@@ -18,6 +18,10 @@ const Navbar = () => {
     `text-sm font-medium text-white transition hover:underline ${
       isActive ? "underline" : ""
     }`;
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <nav className="flex items-center w-full">
@@ -35,7 +39,8 @@ const Navbar = () => {
       {/* Bouton login/déconnexion à droite */}
       {isLoggedIn ? (
         <NavLink
-          to="/déconnexion"
+          onClick={handleLogout}
+          to="/"
           className="text-sm font-medium text-white transition hover:underline ml-4"
         >
           Déconnexion
