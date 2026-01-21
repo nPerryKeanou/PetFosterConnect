@@ -23,39 +23,8 @@ async function main() {
   // --- 1. CRÉATION DES ESPÈCES ---
   const dog = await prisma.species.create({ data: { name: 'Chien' } });
   const cat = await prisma.species.create({ data: { name: 'Chat' } });
-  const rabbit = await prisma.species.create({ data: { name: 'Lapin' } });
-  const speciesList = [dog, cat, rabbit];
-
-  // // --- 2. CRÉATION DE 5 REFUGES ---
-  // const shelters: PfcUser[] = [];
-  // const shelterData = [
-  //   { name: 'SPA Paris', siret: '12345678900011' },
-  //   { name: 'Refuge Saint-Roch', siret: '12345678900012' },
-  //   { name: 'L’Ami Fidèle', siret: '12345678900013' },
-  //   { name: 'Solana Protection', siret: '12345678900014' },
-  //   { name: 'Le Repaire des Griffes', siret: '12345678900015' }
-  // ];
-
-  // for (const item of shelterData) {
-  //   const s = await prisma.pfcUser.create({
-  //     data: {
-  //       email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
-  //       password: 'password123', // En prod, utilisez un hash (bcrypt)
-  //       role: UserRole.shelter,
-  //       phoneNumber: '0102030405',
-  //       address: `refuge de : ${item.name}`,
-  //       shelterProfile: {
-  //         create: {
-  //           siret: item.siret,
-  //           shelterName: item.name,
-  //           description: `Bienvenue chez ${item.name}, nous sauvons des animaux depuis 10 ans.`
-  //         }
-  //       }
-  //     }
-  //   });
-  //   shelters.push(s);
-  // }
-
+  const speciesList = [dog, cat];
+  
   // --- 2. CRÉATION DE 5 REFUGES ---
   const shelters: PfcUser[] = [];
   const shelterData = [
@@ -146,37 +115,34 @@ async function main() {
   let animalIndex = 0;
   for (const shelter of shelters) {
     for (let i = 0; i < 5; i++) {
-      const currentName = animalNames[animalIndex];
+      const currentName = animalNames[animalIndex % animalNames.length];
       const species = speciesList[animalIndex % speciesList.length];
-      
-      // On choisit un mot clé en fonction de l'espèce pour avoir des photos cohérentes
-      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
-                      species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
+      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 'cat';
 
-      // L'astuce est le paramètre "lock" : s'il change, l'image change !
-      const randomPhoto = `https://loremflickr.com/400/400/${keyword}?lock=${animalIndex}`;
-
-      // Médication 1 animal sur 2
-      const treatment = animalIndex % 2 === 0 
-        ? medicalNotes[i % medicalNotes.length] 
-        : null;
+      // On génère 4 photos totalement uniques en utilisant l'animalIndex
+      // Multiplier par 4 garantit qu'aucun animal ne partage d'ID d'image avec un autre
+      const photos = [
+        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 1}`,
+        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 2}`,
+        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 3}`,
+        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 4}`
+      ];
 
       await prisma.animal.create({
         data: {
           name: currentName,
           age: `${Math.floor(Math.random() * 8) + 1} ans`,
           sex: i % 2 === 0 ? AnimalSex.male : AnimalSex.female,
-          weight: species.name === 'Chien' ? 15.5 : 3.5,
-          height: species.name === 'Chien' ? 45 : 25,
+          weight: species.name === 'Chien' ? 18.5 : 4.2,
+          height: species.name === 'Chien' ? 55 : 28,
           description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
           animalStatus: AnimalStatus.available,
-          photos: [randomPhoto],
+          photos: photos, // Enregistre le tableau de 4 photos
+          speciesId: species.id,
+          pfcUserId: shelter.id,
           acceptOtherAnimals: true,
           acceptChildren: true,
-          needGarden: species.name === 'Chien',
-          treatment: treatment,
-          speciesId: species.id,
-          pfcUserId: shelter.id
+          needGarden: species.name === 'Chien'
         }
       });
       animalIndex++;
