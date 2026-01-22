@@ -34,13 +34,17 @@ export const UpdateIndividualProfileSchema = IndividualProfileSchema.omit({
   updatedAt: true,
 }).partial(); // Tout est optionnel pour une mise à jour partielle
 
-export type UpdateIndividualProfileDto = z.infer<typeof UpdateIndividualProfileSchema>;
+export type UpdateIndividualProfileDto = z.infer<
+  typeof UpdateIndividualProfileSchema
+>;
 
 // PROFIL REFUGE (Shelter)
 export const ShelterProfileSchema = z.object({
   pfcUserId: z.int().positive(), // Clé étrangère = Clé Primaire (1-1)
 
-  siret: z.string().length(14, { error: "Le SIRET doit faire exactement 14 caractères" }),
+  siret: z
+    .string()
+    .length(14, { error: "Le SIRET doit faire exactement 14 caractères" }),
   shelterName: z.string().min(2).max(100),
   description: z.string().nullable().optional(),
 
@@ -50,12 +54,22 @@ export const ShelterProfileSchema = z.object({
 
 export type ShelterProfile = z.infer<typeof ShelterProfileSchema>;
 
+// DTO : Création (Front -> Back)
+export const CreateShelterProfileSchema = ShelterProfileSchema.omit({
+  createdAt: true,
+  updatedAt: true,
+});
+export type CreateShelterProfileDto = z.infer<
+  typeof CreateShelterProfileSchema
+>;
+
 // DTO : Mise à jour (Front -> Back)
 export const UpdateShelterProfileSchema = ShelterProfileSchema.omit({
-  pfcUserId: true,
-  siret: true, // Le SIRET est une info légale fixe
+  pfcUserId: true, // l'ID ne change pas
+  siret: true, // info légale fixe
   createdAt: true,
   updatedAt: true,
 }).partial();
-
-export type UpdateShelterProfileDto = z.infer<typeof UpdateShelterProfileSchema>;
+export type UpdateShelterProfileDto = z.infer<
+  typeof UpdateShelterProfileSchema
+>;

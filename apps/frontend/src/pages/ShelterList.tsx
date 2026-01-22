@@ -29,7 +29,9 @@ const SheltersPage = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
       {shelters.map((shelter) => (
-        <ShelterCard key={shelter.pfcUserId} {...shelter} />
+      <div key={shelter.pfcUserId} className="w-full max-w-sm">
+        <ShelterCard  {...shelter} />
+      </div>
       ))}
     </div>
   );

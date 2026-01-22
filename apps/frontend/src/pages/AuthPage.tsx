@@ -144,10 +144,22 @@ function RegisterForm() {
   } = useForm<RegisterDto>({
     resolver: zodResolver(RegisterSchema),
   });
+  const navigate = useNavigate();
+  const { setIsLoggedIn } = useAuth();
 
-  const onSubmit = (data: RegisterDto) => {
-    console.log("Register Data:", data);
-    // TODO: Appel API POST /auth/register
+  const onSubmit = async (data: RegisterDto) => {
+    console.log("Register data:", data);
+    try {
+      console.log("data: ", data);
+      const _res = await api.post("/auth/register", data);
+
+      setIsLoggedIn(true);
+
+      alert("Compte créé avec succès 🎉");
+      navigate("/");
+    } catch (_err: any) {
+      alert("Erreur lors de l'inscription");
+    }
   };
 
   return (

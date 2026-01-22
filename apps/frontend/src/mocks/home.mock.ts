@@ -27,7 +27,7 @@ export const latestAnimals = [
 
 export const featuredShelters = [
   {
-    id: 1,
+    id: 39,
     name: "Refuge Les Amis à 4 Pattes",
     location: "Béthune, Hauts-de-France",
     image: "https://images.unsplash.com/photo-1548504769-900b70ed1c34?q=80&w=800&auto=format&fit=crop",

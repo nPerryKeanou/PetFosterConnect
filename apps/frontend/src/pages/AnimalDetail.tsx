@@ -39,8 +39,8 @@ export default function AnimalDetail() {
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
       <BackBanner to="/animaux" />
-
-      <main className="container mx-auto px-4 py-8 flex-grow">
+      {/* ... ton JSX avec animal.photos, animal.name etc. */}
+          <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* SECTION PHOTOS */}
         <div className="space-y-4">

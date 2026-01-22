@@ -3,34 +3,63 @@ import { Controller, Get, Post, Put, Delete, Param, Body, UsePipes } from "@nest
 import { UsersService } from "./users.service";
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
+import { UpdateIndividualProfileSchema, UpdateShelterProfileSchema} from "@projet/shared-types";
+import type { UpdateIndividualProfileDto, UpdateShelterProfileDto } from "@projet/shared-types";
 
 @Controller("users")
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-    @Post()
-    @UsePipes(new ZodPipe(sharedTypes.RegisterSchema))
-    create(@Body() body: sharedTypes.RegisterDto) {
-        return this.usersService.create(body);
-    }
+  // --- CRUD de base sur PfcUser ---
+  @Post()
+  @UsePipes(new ZodPipe(sharedTypes.RegisterSchema))
+  create(@Body() body: sharedTypes.RegisterDto) {
+    return this.usersService.create(body);
+  }
 
-    @Get()
-    findAll() {
+  @Get()
+  findAll() {
     return this.usersService.findAll();
-    }
+  }
 
-    @Get(":id")
-    findOne(@Param("id") id: string) {
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.usersService.findOne(Number(id));
-    }
+  }
 
-    @Put(":id")
-    update(@Param("id") id: string, @Body() body: sharedTypes.UpdateUserDto) {
+  @Put(":id")
+  update(@Param("id") id: string, @Body() body: sharedTypes.UpdateUserDto) {
     return this.usersService.update(Number(id), body);
-    }
+  }
 
-    @Delete(":id")
-    remove(@Param("id") id: string) {
+  @Delete(":id")
+  remove(@Param("id") id: string) {
     return this.usersService.remove(Number(id));
-    }
+  }
+
+  // --- Profils enrichis ---
+  @Get(":id/profil")
+  getProfile(@Param("id") id: string) {
+    return this.usersService.getProfile(Number(id));
+  }
+
+  // --- Mise à jour du profil individuel ---
+  @Put(":id/individual-profile")
+  @UsePipes(new ZodPipe(UpdateIndividualProfileSchema))
+  async updateIndividualProfile(
+    @Param("id") id: string,
+    @Body() updateDto: UpdateIndividualProfileDto
+  ) {
+    return this.usersService.updateIndividualProfile(Number(id), updateDto);
+  }
+
+  // --- Mise à jour du profil refuge ---
+  @Put(":id/shelter-profile")
+  @UsePipes(new ZodPipe(UpdateShelterProfileSchema))
+  async updateShelterProfile(
+    @Param("id") id: string,
+    @Body() updateDto: UpdateShelterProfileDto,
+  ) {
+    return this.usersService.updateShelterProfile(Number(id), updateDto);
+  }
 }

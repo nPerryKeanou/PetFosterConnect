@@ -1,48 +1,54 @@
 import { Injectable } from "@nestjs/common";
-import { UserRole } from "@prisma/client"; // On utilise l'Enum Prisma
-import { RegisterDto } from "@projet/shared-types";
+import { UserRole } from "@prisma/client"; 
+import { 
+  RegisterDto, 
+  UpdateIndividualProfileDto, 
+  UpdateShelterProfileDto 
+} from "@projet/shared-types";
 import * as argon2 from "argon2";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class UsersService {
-  // declaration d'une propriété prisma
   constructor(private prisma: PrismaService) {}
 
-  // Utilise le DTO au lieu de re-déclarer les types { email: string... }
+  // --- Création d'un utilisateur ---
   async create(data: RegisterDto) {
-    const passwordHash = await argon2.hash(data.password);
-
+    const hashedPassword = await argon2.hash(data.password);
     return this.prisma.pfcUser.create({
-      // Vérifie si c'est pfc_user ou pfcUser avec ton IDE
       data: {
         email: data.email,
-        password: passwordHash,
-        // On force le typage si Prisma ne le reconnaît pas automatiquement via le DTO
+        password: hashedPassword,
         role: data.role as UserRole,
         phoneNumber: data.phoneNumber,
         address: data.address,
       },
     });
   }
-  // creation de la fonction trouver tous les users
+
+  // --- Récupérer tous les utilisateurs ---
   findAll() {
     return this.prisma.pfcUser.findMany();
   }
-  // creation de la fonction trouver un user
+
+  // --- Récupérer un utilisateur par ID ---
   findOne(id: number) {
     return this.prisma.pfcUser.findUnique({ where: { id } });
   }
 
-  // Utilise Partial<RegisterDto> pour l'update
+  // --- Récupérer un utilisateur par email ---
+  async findByEmail(email: string) {
+    return this.prisma.pfcUser.findUnique({ where: { email } });
+  }
+
+  // --- Mise à jour d'un utilisateur ---
   async update(id: number, data: Partial<RegisterDto>) {
-    const updateData = { ...data }; // Copie pour ne pas muter l'objet
+    const updateData = { ...data };
 
     if (updateData.password) {
       updateData.password = await argon2.hash(updateData.password);
     }
 
-    // Si le rôle est mis à jour, on le cast aussi
     if (updateData.role) {
       (updateData as any).role = updateData.role as UserRole;
     }
@@ -53,24 +59,49 @@ export class UsersService {
     });
   }
 
-  // suppression d'un user
+  // --- Suppression (soft delete) ---
   remove(id: number) {
-    // Soft Delete (Préférence par rapport au delete physique)
     return this.prisma.pfcUser.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
   }
 
-  // Vérifie email + mot de passe
+  // --- Validation login (email + mot de passe) ---
   async validateUser(email: string, plainPassword: string) {
-    const user = await this.prisma.pfcUser.findUnique({ where: { email } });
+    const user = await this.findByEmail(email);
     if (!user) return null;
 
-    // Vérifie le mot de passe avec Argon2
     const isValid = await argon2.verify(user.password, plainPassword);
     if (!isValid) return null;
 
     return user;
+  }
+
+  // --- Récupérer le profil enrichi ---
+  async getProfile(userId: number) {
+    return this.prisma.pfcUser.findUnique({
+      where: { id: userId },
+      include: {
+        individualProfile: true,
+        shelterProfile: true,
+      },
+    });
+  }
+
+  // --- Mise à jour du profil individuel ---
+  async updateIndividualProfile(userId: number, data: UpdateIndividualProfileDto) {
+    return this.prisma.individualProfile.update({
+      where: { pfcUserId: userId },
+      data,
+    });
+  }
+
+  // --- Mise à jour du profil refuge ---
+  async updateShelterProfile(userId: number, data: UpdateShelterProfileDto) {
+    return this.prisma.shelterProfile.update({
+      where: { pfcUserId: userId },
+      data,
+    });
   }
 }
