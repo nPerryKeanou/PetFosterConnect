@@ -93,20 +93,7 @@ const RefugeDetailPage = () => {
               Voir les animaux du refuge
             </Link>
           )}
-
-          <button
-            onClick={handleEdit}
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Modifier
-          </button>
-
-          <button
-            onClick={handleDelete}
-            className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Supprimer
-          </button>
+  
         </div>
       </div>
     </div>
