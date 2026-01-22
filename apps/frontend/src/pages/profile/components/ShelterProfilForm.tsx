@@ -1,3 +1,5 @@
+import { CiSettings } from "react-icons/ci";
+
 type Props = {
   formData: {
     logo: string; // URL renvoyée par le backend
@@ -12,28 +14,9 @@ type Props = {
 };
 
 export default function ShelterProfileForm({ formData, onChange }: Props) {
-  const handleLogoUpload = async (file: File) => {
-    const data = new FormData();
-    data.append("logo", file);
-
-    // ⚡ Appel API vers ton backend
-    const res = await fetch(`/api/users/shelter-logo`, {
-      method: "PUT",
-      body: data,
-    });
-
-    if (res.ok) {
-      const updated = await res.json();
-      // Le backend renvoie l’URL du logo
-      onChange("logo", updated.logo);
-    } else {
-      console.error("Erreur upload logo", await res.text());
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div>
+          {/* Logo affiché depuis une URL */}
         <div className="relative inline-block">
           {formData.logo ? (
             <img
@@ -46,28 +29,27 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
               Non renseigné
             </div>
           )}
-
-          {/* Icône de modification */}
+      
+          {/* Icône engrenage pour modifier le lien */}
           <label
-            htmlFor="logo-upload"
+            htmlFor="logo-link"
             className="absolute top-0 right-0 bg-white rounded-full p-1 shadow cursor-pointer hover:bg-gray-100"
           >
-            📷
+            <CiSettings className="w-5 h-5 text-gray-600" />
           </label>
-          <input
-            id="logo-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                handleLogoUpload(file);
-              }
-            }}
-          />
         </div>
-
+      
+        {/* Champ texte pour saisir l’URL du logo */}
+        <input
+          id="logo-link"
+          type="text"
+          value={formData.logo}
+          onChange={(e) => onChange("logo", e.target.value)}
+          placeholder="Lien vers le logo (URL)"
+          className="border rounded p-2 w-full mt-2"
+        />
+      {/* Email */}
+      <div>
         <label>Email</label>
         <input
           type="email"
@@ -77,6 +59,7 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
         />
       </div>
 
+      {/* Téléphone */}
       <div>
         <label>Téléphone</label>
         <input
@@ -87,6 +70,7 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
         />
       </div>
 
+      {/* Adresse */}
       <div>
         <label>Adresse</label>
         <input
@@ -97,6 +81,7 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
         />
       </div>
 
+      {/* Nom du refuge */}
       <div>
         <label>Nom du refuge</label>
         <input
@@ -107,6 +92,7 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
         />
       </div>
 
+      {/* SIRET */}
       <div>
         <label>SIRET</label>
         <input
@@ -117,6 +103,7 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
         />
       </div>
 
+      {/* Description */}
       <div>
         <label>Description</label>
         <textarea
@@ -128,4 +115,3 @@ export default function ShelterProfileForm({ formData, onChange }: Props) {
     </div>
   );
 }
-

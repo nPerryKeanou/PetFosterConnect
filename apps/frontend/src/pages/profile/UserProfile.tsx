@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import UserCard from "../profile/components/UserCard";
 import IndividualProfileForm from "../profile/components/IndividualProfilForm";
 import ShelterProfileForm from "../profile/components/ShelterProfilForm";
+import PasswordForm from "../profile/components/PasswordForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,6 +34,7 @@ export default function UserProfilePage() {
           haveChildren: data.individualProfile.haveChildren ?? false,
           availableFamily: data.individualProfile.availableFamily ?? false,
           availableTime: data.individualProfile.availableTime ?? "",
+          password: ""
         });
       
       } else if (data.role === "shelter" && data.shelterProfile) {
@@ -44,6 +46,7 @@ export default function UserProfilePage() {
           shelterName: data.shelterProfile.shelterName ?? "",
           siret: data.shelterProfile.siret ?? "",
           description: data.shelterProfile.description ?? "",
+          password: ""
         });
       }
       setLoading(false);
@@ -67,10 +70,12 @@ const handleSubmit = async (e: React.FormEvent) => {
     endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
   }
 
+  const { password, ...profileData } = formData;
+
   const res = await fetch(endpoint, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(formData),
+    body: JSON.stringify(profileData),
   });
 
   if (!res.ok) {
@@ -97,6 +102,12 @@ const handleSubmit = async (e: React.FormEvent) => {
             >
               Modifier
             </button>
+        
+            {/* Bloc mot de passe toujours accessible */}
+            <div className="mt-6 border-t pt-4">
+              <h2 className="text-lg font-semibold">Modifier le mot de passe</h2>
+              <PasswordForm userId={user.id} />
+            </div>
           </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,7 +116,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             ) : (
               <ShelterProfileForm formData={formData} onChange={handleChange} />
             )}
-
+        
             <div className="flex justify-between">
               <button
                 type="button"

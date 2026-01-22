@@ -7,14 +7,16 @@ import { ZodPipe } from "../common/pipes/zod.pipe";
 // ⚡ Import des schémas globaux (runtime)
 import { 
   UpdateUserWithIndividualProfileSchema, 
-  UpdateUserWithShelterProfileSchema 
-} from "../../../../packages/shared-types/src/UpdateUserWithProfilUser.shema";
+  UpdateUserWithShelterProfileSchema,
+  UpdatePasswordSchema 
+} from "@projet/shared-types";
 
 // ⚡ Import des types uniquement pour le typage (compile-time)
 import type { 
   UpdateUserWithIndividualProfileDto, 
-  UpdateUserWithShelterProfileDto 
-} from "../../../../packages/shared-types/src/UpdateUserWithProfilUser.shema";
+  UpdateUserWithShelterProfileDto,
+  UpdatePasswordDto
+} from "@projet/shared-types";
 
 @Controller("users")
 export class UsersController {
@@ -72,4 +74,8 @@ export class UsersController {
   ) {
     return this.usersService.updateShelterProfile(Number(id), updateDto);
   }
+
+  @Put(":id/password") async updatePassword( @Param("id") id: string, @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto ) { return this.usersService.updatePassword(Number(id), dto); }
+  
+  
 }

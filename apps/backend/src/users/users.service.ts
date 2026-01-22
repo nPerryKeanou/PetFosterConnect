@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { UserRole } from "@prisma/client"; 
 import { RegisterDto } from "@projet/shared-types";
-import { UpdateUserWithIndividualProfileDto, UpdateUserWithShelterProfileDto } from "../../../../packages/shared-types/src/UpdateUserWithProfilUser.shema"; 
+import { UpdateUserWithIndividualProfileDto, UpdateUserWithShelterProfileDto ,UpdatePasswordDto } from "@projet/shared-types"; 
 
 
 import * as argon2 from "argon2";
@@ -88,8 +88,29 @@ export class UsersService {
     });
   }
   
-  // --- Mise à jour du profil particulier ---
+    // --- Mise à jour du mot de passe ---
+  async updatePassword(userId: number, dto: UpdatePasswordDto) {
+    try {
+      const user = await this.prisma.pfcUser.findUnique({ where: { id: userId } });
+      if (!user) throw new Error("Utilisateur introuvable");
   
+      const isValid = await argon2.verify(user.password, dto.oldPassword);
+      if (!isValid) throw new Error("Ancien mot de passe incorrect");
+  
+      const hashed = await argon2.hash(dto.newPassword);
+  
+      return await this.prisma.pfcUser.update({
+        where: { id: userId },
+        data: { password: hashed },
+      });
+    } catch (err) {
+      console.error("Erreur updatePassword:", err);
+      throw err;
+    }
+  }
+  
+
+    // --- Mise à jour profil individuel ---
     async updateIndividualProfile(id: number, dto: UpdateUserWithIndividualProfileDto) {
       return this.prisma.pfcUser.update({
         where: { id },
@@ -98,14 +119,25 @@ export class UsersService {
           phoneNumber: dto.phoneNumber,
           address: dto.address,
           individualProfile: {
-            update: {
-              surface: dto.surface,
-              housingType: dto.housingType,
-              haveGarden: dto.haveGarden,
-              haveAnimals: dto.haveAnimals,
-              haveChildren: dto.haveChildren,
-              availableFamily: dto.availableFamily,
-              availableTime: dto.availableTime,
+            upsert: {
+              update: {
+                surface: dto.surface,
+                housingType: dto.housingType,
+                haveGarden: dto.haveGarden,
+                haveAnimals: dto.haveAnimals,
+                haveChildren: dto.haveChildren,
+                availableFamily: dto.availableFamily,
+                availableTime: dto.availableTime,
+              },
+              create: {
+                surface: dto.surface,
+                housingType: dto.housingType,
+                haveGarden: dto.haveGarden,
+                haveAnimals: dto.haveAnimals,
+                haveChildren: dto.haveChildren,
+                availableFamily: dto.availableFamily,
+                availableTime: dto.availableTime,
+              },
             },
           },
         },
@@ -113,23 +145,50 @@ export class UsersService {
       });
     }
   
-    async updateShelterProfile(id: number, dto: UpdateUserWithShelterProfileDto) {
-      return this.prisma.pfcUser.update({
-        where: { id },
-        data: {
-          email: dto.email,
-          phoneNumber: dto.phoneNumber,
-          address: dto.address,
-          shelterProfile: {
-            update: {
-              shelterName: dto.shelterName,
-              description: dto.description,
-              logo: dto.logo,
-            },
-          },
-        },
-        include: { shelterProfile: true },
-      });
-    }
+    // --- Mise à jour profil refuge ---
+ async updateShelterProfile(id: number, dto: UpdateUserWithShelterProfileDto) {
+   const user = await this.prisma.pfcUser.findUnique({
+     where: { id },
+     include: { shelterProfile: true },
+   });
+ 
+   if (!user) {
+     throw new Error("Utilisateur introuvable");
+   }
+ 
+   try {
+     return await this.prisma.pfcUser.update({
+       where: { id },
+       data: {
+         email: dto.email ?? user.email,
+         phoneNumber: dto.phoneNumber ?? user.phoneNumber,
+         address: dto.address ?? user.address,
+         shelterProfile: {
+           upsert: {
+             update: {
+               siret: dto.siret ?? user.shelterProfile?.siret,
+               shelterName: dto.shelterName ?? user.shelterProfile?.shelterName,
+               description: dto.description ?? user.shelterProfile?.description ?? null,
+               logo: dto.logo ?? user.shelterProfile?.logo ?? null,
+             },
+             create: {
+               siret: dto.siret ?? "00000000000000", // ⚡ obligatoire à la création
+               shelterName: dto.shelterName ?? "Nom inconnu",
+               description: dto.description ?? null,
+               logo: dto.logo ?? null,
+             },
+           },
+         },
+       },
+       include: { shelterProfile: true },
+     });
+   } catch (err) {
+     console.error("Erreur Prisma updateShelterProfile:", err);
+     throw new Error("Impossible de mettre à jour le profil refuge");
+   }
+ }
+ 
+ 
   }
-  
+
+    
