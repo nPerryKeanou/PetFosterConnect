@@ -18,10 +18,7 @@ export default function UserCard({ user }: UserCardProps) {
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-md p-6">
       {/* Header */}
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{user.email}</h3>
-
-      user
-      
+      <h3 className="text-xl font-bold text-gray-800 mb-2">{user.email}</h3>   
 
       {/* Infos générales */}
       {user.phoneNumber && (
@@ -62,7 +59,7 @@ export default function UserCard({ user }: UserCardProps) {
           <h4 className="text-md font-bold text-success mb-2">Profil refuge</h4>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>
-              Logo : {user.shelterProfile.logo 
+                {user.shelterProfile.logo 
                 ? <img src={user.shelterProfile.logo} alt="Logo du refuge" className="h-12" /> 
                 : "Non renseigné"}
             </li>
