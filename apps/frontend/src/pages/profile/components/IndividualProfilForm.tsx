@@ -10,7 +10,8 @@ type Props = {
     haveGarden: boolean;
     haveAnimals: boolean;
     haveChildren: boolean;
-    isFosterFamily: boolean;
+    availableFamily: boolean;
+    availableTime?: string;
   };
   onChange: (field: keyof Props["formData"], value: any) => void;
 };
@@ -71,7 +72,7 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
         </select>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex grid grid-cols-1 sm:grid-cols-2 gap-4">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -96,6 +97,28 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
           />
           Enfants
         </label>
+       <label className="flex items-center gap-2">
+         <input
+           type="checkbox"
+           checked={formData.availableFamily}
+           onChange={(e) => onChange("availableFamily", e.target.checked)}
+         />
+         Famille d'accueil
+       </label>
+       
+       {/* Champ conditionnel */}
+       {formData.availableFamily && (
+         <div className="mt-2">
+           <label>Date de disponibilité</label>
+           <input
+             type="date" // ou "text" si tu veux une description libre
+             value={formData.availableTime ?? ""}
+             onChange={(e) => onChange("availableTime", e.target.value)}
+             className="border rounded p-2 w-full"
+           />
+         </div>
+       )}
+       
         
       </div>
     </div>

@@ -31,7 +31,8 @@ export default function UserProfilePage() {
           haveGarden: data.individualProfile.haveGarden ?? false,
           haveAnimals: data.individualProfile.haveAnimals ?? false,
           haveChildren: data.individualProfile.haveChildren ?? false,
-          isFosterFamily: data.individualProfile.isFosterFamily ?? false, 
+          availableFamily: data.individualProfile.availableFamily ?? false,
+          availableTime: data.individualProfile.availableTime ?? "",
         });
       
       } else if (data.role === "shelter" && data.shelterProfile) {

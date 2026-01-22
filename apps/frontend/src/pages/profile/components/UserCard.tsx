@@ -44,6 +44,12 @@ export default function UserCard({ user }: UserCardProps) {
             <li>Animaux : {user.individualProfile.haveAnimals ? "Oui" : "Non"}</li>
             <li>Enfants : {user.individualProfile.haveChildren ? "Oui" : "Non"}</li>
             <li>Famille d’accueil : {user.individualProfile.availableFamily ? "Oui" : "Non"}</li>
+            <li>
+              {user.individualProfile.availableFamily && user.individualProfile.availableTime
+                ? `Disponibilité: ${new Date(user.individualProfile.availableTime).toLocaleDateString("fr-FR")}`
+                : null}
+            </li>
+             
           </ul>
         </div>
       )}
