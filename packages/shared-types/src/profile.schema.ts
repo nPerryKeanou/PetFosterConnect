@@ -47,6 +47,7 @@ export const ShelterProfileSchema = z.object({
     .length(14, { error: "Le SIRET doit faire exactement 14 caractères" }),
   shelterName: z.string().min(2).max(100),
   description: z.string().nullable().optional(),
+  logo: z.url().nullable().optional(),
 
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),

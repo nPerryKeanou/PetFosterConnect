@@ -79,7 +79,8 @@ async function main() {
           create: {
             siret: item.siret,
             shelterName: item.name,
-            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`
+            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`,
+            logo: `https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`,
           }
         }
       }
@@ -147,8 +148,13 @@ async function main() {
       
       // Image cohérente (Chien, Chat ou Lapin)
       const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
-                      species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
-      const randomPhoto = `https://loremflickr.com/500/500/${keyword}?lock=${animalIndex}`;
+                species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
+
+      const photos = [
+        `https://loremflickr.com/500/500/${keyword},pet?lock=${(animalIndex * 10) + 1}`,
+        `https://loremflickr.com/500/500/${keyword},cute?lock=${(animalIndex * 10) + 2}`,
+        `https://loremflickr.com/500/500/${keyword},animal?lock=${(animalIndex * 10) + 3}`
+      ];
 
       const animal = await prisma.animal.create({
         data: {
@@ -160,7 +166,7 @@ async function main() {
           description: `Voici ${currentName}, un adorable ${species.name.toLowerCase()} qui attend sa famille pour la vie. Très affectueux.`,
           
           animalStatus: AnimalStatus.available,
-          photos: [randomPhoto, `https://loremflickr.com/500/500/${keyword}?lock=${animalIndex + 100}`], // Tableau JSON
+          photos: photos, // Tableau JSON
           
           // Critères de matching
           acceptOtherAnimals: i % 3 !== 0, // 2 sur 3 acceptent

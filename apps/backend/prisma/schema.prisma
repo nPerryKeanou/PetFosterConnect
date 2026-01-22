@@ -178,6 +178,7 @@ model ShelterProfile {
   siret         String  @unique @db.VarChar(14)
   shelterName   String          @db.VarChar(100)  @map("shelter_name")
   description   String? @db.Text
+  logo          String?                           @map("logo")
 
   user PfcUser @relation(fields: [pfcUserId], references: [id], onDelete: Cascade)
 
