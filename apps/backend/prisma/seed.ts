@@ -157,9 +157,6 @@ async function main() {
           
           speciesId: species.id,
           pfcUserId: shelter.id,
-          acceptOtherAnimals: true,
-          acceptChildren: true,
-          needGarden: species.name === 'Chien'
         }
       });
       createdAnimals.push(animal);
