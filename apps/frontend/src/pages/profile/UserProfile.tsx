@@ -37,6 +37,7 @@ export default function UserProfilePage() {
       
       } else if (data.role === "shelter" && data.shelterProfile) {
         setFormData({
+          logo: data.shelterProfile.logo ?? "",
           email: data.email ?? "",
           phoneNumber: data.phoneNumber ?? "",
           address: data.address ?? "",

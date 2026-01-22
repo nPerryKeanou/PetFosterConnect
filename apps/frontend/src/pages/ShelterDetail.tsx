@@ -48,7 +48,7 @@ const RefugeDetailPage = () => {
           style={{ borderColor: "#2D6A4F" }}
         >
           <img
-            src={shelter.logoUrl ?? "https://placehold.co/150x150?text=Pas+de+logo"}
+            src={shelter.logo ?? "https://placehold.co/150x150?text=Pas+de+logo"}
             alt={`${shelter.shelterName} logo`}
             className="w-32 h-32 rounded-full object-cover bg-gray-200"
           />

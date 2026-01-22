@@ -124,6 +124,7 @@ export class UsersService {
             update: {
               shelterName: dto.shelterName,
               description: dto.description,
+              logo: dto.logo,
             },
           },
         },
