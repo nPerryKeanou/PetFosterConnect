@@ -72,7 +72,7 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
         </select>
       </div>
 
-      <div className="flex grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"

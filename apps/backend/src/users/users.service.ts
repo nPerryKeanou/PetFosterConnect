@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { UserRole } from "@prisma/client"; 
-import { 
-  RegisterDto, 
-  UpdateIndividualProfileDto, 
-  UpdateShelterProfileDto 
-} from "@projet/shared-types";
+import { RegisterDto } from "@projet/shared-types";
+import { UpdateUserWithIndividualProfileDto, UpdateUserWithShelterProfileDto } from "../../../../packages/shared-types/src/UpdateUserWithProfilUser.shema"; 
+
+
 import * as argon2 from "argon2";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -88,20 +87,48 @@ export class UsersService {
       },
     });
   }
-
-  // --- Mise à jour du profil individuel ---
-  async updateIndividualProfile(userId: number, data: UpdateIndividualProfileDto) {
-    return this.prisma.individualProfile.update({
-      where: { pfcUserId: userId },
-      data,
-    });
+  
+  // --- Mise à jour du profil particulier ---
+  
+    async updateIndividualProfile(id: number, dto: UpdateUserWithIndividualProfileDto) {
+      return this.prisma.pfcUser.update({
+        where: { id },
+        data: {
+          email: dto.email,
+          phoneNumber: dto.phoneNumber,
+          address: dto.address,
+          individualProfile: {
+            update: {
+              surface: dto.surface,
+              housingType: dto.housingType,
+              haveGarden: dto.haveGarden,
+              haveAnimals: dto.haveAnimals,
+              haveChildren: dto.haveChildren,
+              availableFamily: dto.availableFamily,
+              availableTime: dto.availableTime,
+            },
+          },
+        },
+        include: { individualProfile: true },
+      });
+    }
+  
+    async updateShelterProfile(id: number, dto: UpdateUserWithShelterProfileDto) {
+      return this.prisma.pfcUser.update({
+        where: { id },
+        data: {
+          email: dto.email,
+          phoneNumber: dto.phoneNumber,
+          address: dto.address,
+          shelterProfile: {
+            update: {
+              shelterName: dto.shelterName,
+              description: dto.description,
+            },
+          },
+        },
+        include: { shelterProfile: true },
+      });
+    }
   }
-
-  // --- Mise à jour du profil refuge ---
-  async updateShelterProfile(userId: number, data: UpdateShelterProfileDto) {
-    return this.prisma.shelterProfile.update({
-      where: { pfcUserId: userId },
-      data,
-    });
-  }
-}
+  

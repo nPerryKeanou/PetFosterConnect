@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BackBanner from "../components/ui/BackBanner";
 
@@ -8,7 +8,7 @@ const RefugeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   console.log("useParams id côté frontend:", id);
 
-  const navigate = useNavigate();
+
   const [shelter, setShelter] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,23 +31,6 @@ const RefugeDetailPage = () => {
     };
     fetchShelter();
   }, [id]);
-
-  const handleDelete = async () => {
-    if (!window.confirm("Voulez-vous vraiment supprimer ce refuge ?")) return;
-    try {
-      if (!id) return;
-      const res = await fetch(`${API_URL}/shelters/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Erreur suppression");
-      navigate("/refuges");
-    } catch (err) {
-      console.error("Erreur suppression:", err);
-    }
-  };
-
-  const handleEdit = () => {
-    if (!id) return;
-    navigate(`/refuges/${id}/edit`);
-  };
 
   if (loading) return <p>Chargement...</p>;
   if (!shelter) return <p>Refuge introuvable</p>;

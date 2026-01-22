@@ -49,7 +49,7 @@ export default function UserCard({ user }: UserCardProps) {
                 ? `Disponibilité: ${new Date(user.individualProfile.availableTime).toLocaleDateString("fr-FR")}`
                 : null}
             </li>
-             
+
           </ul>
         </div>
       )}
