@@ -2,6 +2,7 @@
 
 type Props = {
   formData: {
+    log:string;
     email: string;
     phoneNumber: string;
     address: string;
