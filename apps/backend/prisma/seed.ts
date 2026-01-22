@@ -35,51 +35,33 @@ async function main() {
   console.log('🐾 Création des Espèces...');
   const dog = await prisma.species.create({ data: { name: 'Chien' } });
   const cat = await prisma.species.create({ data: { name: 'Chat' } });
-  const rabbit = await prisma.species.create({ data: { name: 'Lapin' } });
-  const speciesList = [dog, cat, rabbit];
-
-
-  // ===========================================================
-  // 3. CRÉATION DE L'ADMIN
-  // ===========================================================
-  console.log('👑 Création de l\'Admin...');
-  await prisma.pfcUser.create({
-    data: {
-      email: 'admin@petfoster.com',
-      password: passwordHash,
-      role: UserRole.admin,
-      phoneNumber: '0100000000',
-      address: 'Siège Pet Foster Connect, Paris',
-    }
-  });
-
-
-  // ===========================================================
-  // 4. CRÉATION DES REFUGES (SHELTERS)
-  // ===========================================================
-  console.log('🏢 Création des Refuges...');
+  const speciesList = [dog, cat];
+  
+  // --- 2. CRÉATION DE 5 REFUGES ---
   const shelters: PfcUser[] = [];
   const shelterData = [
-    { name: 'SPA Paris', siret: '12345678900011', address: 'Gennevilliers, Île-de-France' },
-    { name: 'Refuge Saint-Roch', siret: '12345678900012', address: 'Béthune, Hauts-de-France' },
-    { name: 'L’Ami Fidèle', siret: '12345678900013', address: 'Lyon, Auvergne-Rhône-Alpes' },
-    { name: 'Solana Protection', siret: '12345678900014', address: 'Marseille, Provence-Alpes-Côte d\'Azur' },
-    { name: 'Le Repaire des Griffes', siret: '12345678900015', address: 'Nantes, Pays de la Loire' }
+    { name: 'SPA Paris', siret: '12345678900011', address: '39 Boulevard Berthier, 75017 Paris' },
+    { name: 'Refuge Saint-Roch', siret: '12345678900012', address: '12 Rue de l’Espérance, 34000 Montpellier' },
+    { name: 'L’Ami Fidèle', siret: '12345678900013', address: '5 Avenue des Animaux, 69000 Lyon' },
+    { name: 'Solana Protection', siret: '12345678900014', address: '1 bis Rue du Chat, 33000 Bordeaux' },
+    { name: 'Le Repaire des Griffes', siret: '12345678900015', address: '10 Chemin de la Ferme, 59000 Lille' }
   ];
 
   for (const item of shelterData) {
     const s = await prisma.pfcUser.create({
       data: {
-        email: `contact@${item.name.toLowerCase().replace(/\s|’|'/g, '-')}.fr`,
-        password: passwordHash,
+        email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
+        password: 'password123',
         role: UserRole.shelter,
         phoneNumber: '0102030405',
-        address: item.address,
+        // Utilise l'adresse définie dans le tableau ci-dessus
+        address: item.address, 
         shelterProfile: {
           create: {
             siret: item.siret,
             shelterName: item.name,
-            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`
+            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`,
+            logo: `https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`,
           }
         }
       }
@@ -141,26 +123,30 @@ async function main() {
   let animalIndex = 0;
 
   for (const shelter of shelters) {
-    for (let i = 0; i < 5; i++) { // 5 animaux par refuge
-      const currentName = animalNames[animalIndex];
+    for (let i = 0; i < 5; i++) {
+      const currentName = animalNames[animalIndex % animalNames.length];
       const species = speciesList[animalIndex % speciesList.length];
       
       // Image cohérente (Chien, Chat ou Lapin)
       const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
-                      species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
-      const randomPhoto = `https://loremflickr.com/500/500/${keyword}?lock=${animalIndex}`;
+                species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
+
+      const photos = [
+        `https://loremflickr.com/500/500/${keyword},pet?lock=${(animalIndex * 10) + 1}`,
+        `https://loremflickr.com/500/500/${keyword},cute?lock=${(animalIndex * 10) + 2}`,
+        `https://loremflickr.com/500/500/${keyword},animal?lock=${(animalIndex * 10) + 3}`
+      ];
 
       const animal = await prisma.animal.create({
         data: {
           name: currentName,
           age: `${Math.floor(Math.random() * 10) + 1} ans`,
           sex: i % 2 === 0 ? AnimalSex.male : AnimalSex.female,
-          weight: species.name === 'Chien' ? 15.5 : 4.2, // Decimal géré comme number en JS
-          height: species.name === 'Chien' ? 55 : 25,
-          description: `Voici ${currentName}, un adorable ${species.name.toLowerCase()} qui attend sa famille pour la vie. Très affectueux.`,
-          
+          weight: species.name === 'Chien' ? 18.5 : 4.2,
+          height: species.name === 'Chien' ? 55 : 28,
+          description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
           animalStatus: AnimalStatus.available,
-          photos: [randomPhoto, `https://loremflickr.com/500/500/${keyword}?lock=${animalIndex + 100}`], // Tableau JSON
+          photos: photos, // Tableau JSON
           
           // Critères de matching
           acceptOtherAnimals: i % 3 !== 0, // 2 sur 3 acceptent
@@ -170,7 +156,10 @@ async function main() {
           treatment: treatmentsList[i % treatmentsList.length], // Ajout du champ treatment
           
           speciesId: species.id,
-          pfcUserId: shelter.id // Lié au refuge
+          pfcUserId: shelter.id,
+          acceptOtherAnimals: true,
+          acceptChildren: true,
+          needGarden: species.name === 'Chien'
         }
       });
       createdAnimals.push(animal);

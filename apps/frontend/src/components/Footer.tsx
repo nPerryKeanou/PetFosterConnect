@@ -7,7 +7,13 @@ const Footer = () => {
 
   return (
     <footer className="w-full bg-secondary">
-      <div className="mx-0 flex w-full items-center justify-between px-6 py-3">
+      <div
+        className="
+        mx-0 w-full px-6 py-3
+        flex flex-col items-center gap-4
+        md:flex-row md:justify-between md:gap-0
+      "
+      >
         {/* Logo + nom */}
         <div className="flex items-center gap-3 text-white font-semibold">
           <img src={logo} alt="Pet Foster Connect" className="h-8 w-8" />
@@ -15,7 +21,12 @@ const Footer = () => {
         </div>
 
         {/* Liens centraux */}
-        <nav className="flex gap-6 text-sm">
+        <nav
+          className="
+          flex flex-col items-center gap-2 text-sm
+          md:flex-row md:gap-6
+        "
+        >
           <NavLink to="/mentions-legales" className={linkClass}>
             Mentions légales
           </NavLink>
@@ -30,7 +41,7 @@ const Footer = () => {
         {/* Bouton contact */}
         <NavLink
           to="/contact"
-          className={({ isActive }: { isActive: boolean }) =>
+          className={({ isActive }) =>
             `text-sm font-medium text-white transition hover:underline ${
               isActive ? "underline" : ""
             }`

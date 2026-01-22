@@ -1,48 +1,40 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Heart } from "lucide-react";
 import BackBanner from "../components/ui/BackBanner";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+// import { mockAnimal } from "../mocks/animal.mock";
 
 export default function AnimalDetail() {
-  const API_URL = import.meta.env.VITE_API_URL;
-  const { id } = useParams<{ id: string }>();
-
-  const [animal, setAnimal] = useState<any | null>(null);
+  // const animal = mockAnimal;
+  const { id } = useParams<{ id: string }>(); // Récupère l'ID dans l'URL
+  const [animal, setAnimal] = useState<any>(null); // State pour l'animal
   const [loading, setLoading] = useState(true);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`${API_URL}/animals/${Number(id)}`);
+        const response = await fetch(`http://localhost:3001/animals/${id}`);
         const data = await response.json();
         setAnimal(data);
+        if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
       } catch (error) {
-        console.error("Erreur lors de la récupération :", error);
+        console.error("Erreur chargement animal:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAnimal();
+    if (id) fetchAnimal();
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl font-semibold text-gray-500 animate-pulse">
-          Chargement de l’animal...
-        </p>
-      </div>
-    );
-  }
-
-  if (!animal) {
-    return <p>Animal introuvable</p>;
-  }
+  if (loading) return <div className="text-center p-20">Chargement...</div>;
+  if (!animal) return <div className="text-center p-20">Animal non trouvé.</div>;
+  
+  const photoArray = Array.isArray(animal.photos) ? animal.photos : [];
 
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
@@ -51,41 +43,39 @@ export default function AnimalDetail() {
           <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* SECTION PHOTOS */}
-          <div className="space-y-6">
-            
-            {/* Photo principale */}
-            <div className="relative rounded-xl overflow-hidden shadow-lg h-[500px] lg:h-[600px]">
-              <img 
-                src={animal.photos?.[0] ?? "https://placehold.co/600x600?text=Pas+de+photo"} 
-                alt={animal.name} 
-                className="w-full h-full object-cover object-center"
-              />
-              
-              {/* Bouton favori*/}
-              <button 
-                className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group" 
-                type="button"
-                aria-label="Ajouter aux favoris"
-              >
-                <Heart 
-                  className="w-7 h-7 transition-all duration-300 group-hover:fill-error group-active:scale-90" 
-                />
-              </button>
-            </div>
+        <div className="space-y-4">
+            <div className="relative rounded-xl overflow-hidden shadow-lg h-[500px] lg:h-[600px] bg-gray-200">
+    <img 
+      src={selectedPhoto || (Array.isArray(animal.photos) ? animal.photos[0] : "https://placehold.co/600x600")} 
+      alt={animal.name} 
+      className="w-full h-full object-cover transition-all duration-500"
+    />
 
-            {/* Galerie de miniatures*/}
-            <div className="grid grid-cols-3 gap-4">
-              {(animal.photos?.slice(1) ?? []).map((photo: string) => (
-                <div key={photo} className="h-40 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition">
-                    <img 
-                      src={photo} 
-                      alt={`Vue détaillée`} 
-                      className="w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-500"
-                    />
-                </div>
+    {/* Retour du bouton favori cliquable */}
+    <button 
+      className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group" 
+      type="button"
+      onClick={() => console.log("Ajouté aux favoris !")}
+      aria-label="Ajouter aux favoris"
+    >
+      <Heart 
+        className="w-7 h-7 transition-all duration-300 group-hover:fill-error group-active:scale-90" 
+      />
+    </button>
+  </div>
+
+            {/* Miniatures cliquables */}
+            <div className="grid grid-cols-4 gap-4">
+              {photoArray.map((photo: string, index: number) => (
+                <button 
+                  key={index} 
+                  onClick={() => setSelectedPhoto(photo)}
+                  className={`h-24 rounded-lg overflow-hidden border-4 transition-all ${selectedPhoto === photo ? 'border-success scale-95' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                >
+                  <img src={photo} alt={`Miniature ${index}`} className="w-full h-full object-cover" />
+                </button>
               ))}
             </div>
-            
           </div>
 
           {/* SECTION INFORMATIONS */}
@@ -94,7 +84,7 @@ export default function AnimalDetail() {
             <div className="flex justify-between items-start mb-2 w-full">
               <div>
                 <h1 className="text-4xl font-bold font-montserrat text-black">{animal.name}</h1>
-                <p className="text-lg text-gray-600">{animal.species_name}</p>
+                <p className="text-lg text-gray-600">{animal.species.name}</p>
               </div>
               {animal.animalStatus === "available" && (
                 <Badge label="Disponible" variant="success" />
@@ -158,8 +148,16 @@ export default function AnimalDetail() {
             {/* Refuge */}
             <div className="mt-6 mb-8 w-full">
               <h2 className="text-xl font-bold text-success mb-1 font-montserrat">Proposé par</h2>
-              <p className="text-sm font-semibold text-gray-900">{animal.shelter.shelterName}</p>
-              <p className="text-xs text-gray-500">{animal.shelter.address}</p>
+              
+              {/* Nom du refuge */}
+              <p className="text-sm font-semibold text-gray-900">
+                {animal.shelter?.shelterProfile?.shelterName || "Refuge partenaire"}
+              </p>
+              
+              {/* Adresse avec label "Adresse :" */}
+              <p className="text-xs text-gray-500">
+                <span className="font-medium">Adresse :</span> {animal.shelter?.address || "Non communiquée"}
+              </p>
             </div>
 
             {/* Actions */}
