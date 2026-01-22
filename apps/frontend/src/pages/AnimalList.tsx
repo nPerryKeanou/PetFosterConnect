@@ -51,7 +51,7 @@ const AnimalList = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
           {/* React boucle automatiquement sur le nombre d'objets reçus de la BDD */}
           {animals.map((animal) => (
-            <Link to={`/animals/${animal.id}`} key={animal.id}>
+            <Link to={`/animaux/${animal.id}`} key={animal.id}>
                 <AnimalCard {...animal} />
               </Link>
           ))}

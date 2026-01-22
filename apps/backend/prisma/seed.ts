@@ -60,7 +60,8 @@ async function main() {
           create: {
             siret: item.siret,
             shelterName: item.name,
-            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`
+            description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`,
+            logo: `https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`,
           }
         }
       }
@@ -125,18 +126,18 @@ async function main() {
     for (let i = 0; i < 5; i++) {
       const currentName = animalNames[animalIndex % animalNames.length];
       const species = speciesList[animalIndex % speciesList.length];
-      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 'cat';
+      
+      // Image cohérente (Chien, Chat ou Lapin)
+      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
+                species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
 
-      // On génère 4 photos totalement uniques en utilisant l'animalIndex
-      // Multiplier par 4 garantit qu'aucun animal ne partage d'ID d'image avec un autre
       const photos = [
-        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 1}`,
-        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 2}`,
-        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 3}`,
-        `https://loremflickr.com/600/600/${keyword}?lock=${(animalIndex * 4) + 4}`
+        `https://loremflickr.com/500/500/${keyword},pet?lock=${(animalIndex * 10) + 1}`,
+        `https://loremflickr.com/500/500/${keyword},cute?lock=${(animalIndex * 10) + 2}`,
+        `https://loremflickr.com/500/500/${keyword},animal?lock=${(animalIndex * 10) + 3}`
       ];
 
-      await prisma.animal.create({
+      const animal = await prisma.animal.create({
         data: {
           name: currentName,
           age: `${Math.floor(Math.random() * 10) + 1} ans`,
@@ -145,7 +146,15 @@ async function main() {
           height: species.name === 'Chien' ? 55 : 28,
           description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
           animalStatus: AnimalStatus.available,
-          photos: photos, // Enregistre le tableau de 4 photos
+          photos: photos, // Tableau JSON
+          
+          // Critères de matching
+          acceptOtherAnimals: i % 3 !== 0, // 2 sur 3 acceptent
+          acceptChildren: true,
+          needGarden: species.name === 'Chien' && i % 2 === 0, // 1 chien sur 2 a besoin d'un jardin
+
+          treatment: treatmentsList[i % treatmentsList.length], // Ajout du champ treatment
+          
           speciesId: species.id,
           pfcUserId: shelter.id,
           acceptOtherAnimals: true,
