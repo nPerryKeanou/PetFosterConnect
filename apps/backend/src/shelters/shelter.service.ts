@@ -12,6 +12,11 @@ export class ShelterService {
 
   async findAll() {
     return this.prisma.shelterProfile.findMany({
+      where: {
+        user: {
+          deletedAt: null,
+        },
+      },
       include: {
         user: { include: { animals: true } },
       },
@@ -19,15 +24,17 @@ export class ShelterService {
   }
 
   async findOne(id: number) {
-    console.log("Service id reçu:", id);
     const shelter = await this.prisma.shelterProfile.findUnique({
-      where: { pfcUserId: id }, // ⚠️ Prisma attend pfcUserId comme clé primaire
+      where: { pfcUserId: id },
       include: {
         user: { include: { animals: true } },
       },
     });
 
-    if (!shelter) throw new NotFoundException("Refuge introuvable");
+    if (!shelter || shelter.user.deletedAt) {
+      throw new NotFoundException("Refuge introuvable");
+    }
+
     return shelter;
   }
 
