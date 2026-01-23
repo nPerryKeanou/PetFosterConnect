@@ -42,7 +42,7 @@ async findAll() {
   });
 }
 
-  async findOne(id: number) {
+  async findOne(id: number, userId?: number) {
     const animal = await this.prisma.animal.findUnique({
       where: { id },
       include: { 
@@ -56,8 +56,28 @@ async findAll() {
     });
     if (!animal || animal.deletedAt)
       throw new NotFoundException("Animal non trouvé");
-    return animal;
+
+    // Si un userId est fourni, on vérifie si un favori existe
+  let isBookmarked = false;
+  if (userId) {
+    const bookmark = await this.prisma.bookmark.findUnique({
+      where: {
+        pfcUserId_animalId: {
+          pfcUserId: userId,
+          animalId: id,
+        },
+      },
+    });
+    isBookmarked = !!bookmark;
   }
+    // On retourne l'animal avec l'information supplémentaire
+  return {
+    ...animal,
+    isBookmarked,
+  };
+}
+
+  
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     return this.prisma.animal.update({
