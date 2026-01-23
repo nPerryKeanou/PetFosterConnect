@@ -141,20 +141,21 @@ function RegisterForm() {
     register,
     handleSubmit,
     formState: { errors },
+    watch, // 👈 permet de surveiller les valeurs
   } = useForm<RegisterDto>({
     resolver: zodResolver(RegisterSchema),
   });
+
   const navigate = useNavigate();
   const { setIsLoggedIn } = useAuth();
 
+  // 👀 on surveille la valeur du champ "role"
+  const selectedRole = watch("role");
+
   const onSubmit = async (data: RegisterDto) => {
-    console.log("Register data:", data);
     try {
-      console.log("data: ", data);
       const _res = await api.post("/auth/register", data);
-
       setIsLoggedIn(true);
-
       alert("Compte créé avec succès 🎉");
       navigate("/");
     } catch (_err: any) {
@@ -178,19 +179,24 @@ function RegisterForm() {
         error={errors.password?.message}
       />
 
-      <Input
-          label="Siret"
-          type="text"
-          {...register("siret")}
-          error={errors.siret?.message}
-        />
+      {/* Champs conditionnels */}
+      {selectedRole === "shelter" && (
+        <>
+          <Input
+            label="Siret"
+            type="text"
+            {...register("siret")}
+            error={errors.siret?.message}
+          />
 
-      <Input
-          label="Nom du refuge"
-          type="text"
-          {...register("shelterName")}
-          error={errors.shelterName?.message}
-        />
+          <Input
+            label="Nom du refuge"
+            type="text"
+            {...register("shelterName")}
+            error={errors.shelterName?.message}
+          />
+        </>
+      )}
 
       <div className="flex flex-col gap-2">
         <fieldset className="flex flex-col gap-2">
