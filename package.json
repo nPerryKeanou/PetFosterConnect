@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@nestjs/mapped-types": "*",
+    "react-icons": "^5.5.0",
     "zod": "^4.3.5"
   }
 }

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams ,useNavigate} from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CreateAnimalSchema } from "@projet/shared-types";
 import { api } from "../../api/api";
@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AnimalForm() {
   const { id } = useParams<{ id: string }>();
-
+  const navigate = useNavigate()
   const [species, setSpecies] = useState<{ id: number; name: string }[]>([]);
 
   const [formData, setFormData] = useState<any>({
@@ -61,7 +61,7 @@ export default function AnimalForm() {
 
       const payload = { ...parsed, pfcUserId: Number(id) };
 
-      await api.post(`${API_URL}/animals`, payload, { withCredentials: true });
+      await api.post(`/animals`, payload);
 
       alert("Animal créé avec succès 🎉");
     } catch (err) {
@@ -207,7 +207,7 @@ export default function AnimalForm() {
                   type="checkbox"
                   checked={formData.acceptOtherAnimals}
                   onChange={(e) => handleChange("acceptOtherAnimals", e.target.checked)}
-                /> Accepte autres animaux
+                />  Ok autres animaux
               </label>
 
               <label>
@@ -215,7 +215,7 @@ export default function AnimalForm() {
                   type="checkbox"
                   checked={formData.acceptChildren}
                   onChange={(e) => handleChange("acceptChildren", e.target.checked)}
-                /> Accepte enfants
+                />  Ok enfants
               </label>
 
               <label>
@@ -240,9 +240,11 @@ export default function AnimalForm() {
 
           {/* BOUTONS */}
           <div className="md:col-span-2 flex justify-between mt-6">
-            <button type="button" className="bg-gray-400 text-white px-4 py-2 rounded">
-              Annuler
+            <button type="button" onClick={() => navigate(-1)} 
+            className="bg-gray-400 text-white px-4 py-2 rounded" > 
+            Annuler 
             </button>
+
             <button type="submit" className="bg-primary text-white px-4 py-2 rounded">
               Sauvegarder
             </button>
