@@ -1,64 +1,66 @@
-import type { Animal } from "../../../../packages/shared-types/src/animal.schema";
+import { useNavigate } from "react-router-dom";
+import type { Animal, Species } from "../../../../packages/shared-types/src/animal.schema";
 
-// Type étendu pour l'affichage (simule une réponse API avec jointures)
 type AnimalWithDetails = Animal & {
-  species_name: string;
+  species: Species;
   shelter: {
-    shelter_name: string;
-    address: string;
+    address: string | null;
+    shelterProfile: {
+      shelterName: string;
+      description: string | null;
+    } | null;
   };
 };
 
-const _AnimalCard = ({
+const AnimalCard = ({
+  id,
   name,
   photos,
   age,
-  species_name,
+  species,
   shelter,
 }: AnimalWithDetails) => {
+  const navigate = useNavigate();
+
+  // On extrait l'image une seule fois de manière sécurisée
+  const mainPhoto = Array.isArray(photos) && photos.length > 0 
+    ? (photos[0] as string) 
+    : "https://via.placeholder.com/400x300?text=Pas+de+photo";  
+
   return (
     <div className="w-72 bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
-      <div className="relative h-64 w-full overflow-hidden bg-gray-200">
+      <div className="relative h-64 w-full overflow-hidden bg-gray-100">
         <img
-          src={photos?.[0] ?? "placeholder-image-url"}
-          alt={name}
+          src={mainPhoto}
+          alt={`Photo de ${name}`}
           className="w-full h-full object-cover"
+          loading="lazy"
         />
       </div>
 
       <div className="p-4">
         <h3 className="text-xl font-bold text-gray-800 mb-2">{name}</h3>
-
-        <div className="space-y-1 mb-3">
+        <div className="space-y-1 mb-4">
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Espèce :</span> {species_name}
+            <span className="font-medium text-gray-800">Espèce :</span> {species?.name || 'Inconnue'}
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Âge :</span> {age}
+            <span className="font-medium text-gray-800">Âge :</span> {age || 'Non précisé'}
           </p>
           <p className="text-sm text-gray-600">
-            <span className="font-medium">Refuge :</span> {shelter.shelter_name}
+            <span className="font-medium text-gray-800">Refuge :</span> {shelter?.shelterProfile?.shelterName || 'Chargement...'}
           </p>
         </div>
-
-        <div className="flex justify-between">
-          <button
-            type="button"
-            className="rounded-full bg-secondary px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Adopter
-          </button>
-
-          <button
-            type="button"
-            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Accueillir
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate(`/animaux/${id}`)}
+          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:scale-[0.98] active:scale-95"
+        >
+          Plus d'infos
+        </button>
       </div>
     </div>
   );
 };
 
-export default _AnimalCard;
+export default AnimalCard;

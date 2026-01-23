@@ -1,5 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { LoginDto, RegisterDto } from "@projet/shared-types";
+import * as argon2 from "argon2";
 import { UsersService } from "../users/users.service";
 
 @Injectable()
@@ -24,11 +26,42 @@ export class AuthService {
     );
   }
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.validateUser(email, password);
-    if (!user) throw new UnauthorizedException("Invalid credentials");
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user)
+      throw new UnauthorizedException("Email ou mot de passe incorrect");
 
-    const payload = { sub: user.id, email: user.email };
-    return this.jwtService.sign(payload); // génère un JWT
+    const isValid = await argon2.verify(user.password, dto.password);
+    console.log("Password valid:", user.password, dto.password, isValid);
+    if (!isValid)
+      throw new UnauthorizedException("Email ou mot de passe incorrect");
+
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return { user, token };
+  }
+
+  async register(dto: RegisterDto) {
+    console.log("Registering user:", dto);
+
+    const user = await this.usersService.create({
+      email: dto.email,
+      password: dto.password,
+      role: dto.role,
+      siret: dto.siret ? dto.siret : "",
+      shelterName: dto.shelterName ? dto.shelterName: ""
+    });
+
+    const token = this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return { user, token };
   }
 }

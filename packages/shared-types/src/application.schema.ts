@@ -10,20 +10,20 @@ export type ApplicationStatus = z.infer<typeof ApplicationStatusEnum>;
 // APPLICATION (Demande)
 export const ApplicationSchema = z.object({
   // Clé Primaire Composite (User + Animal)
-  pfc_user_id: z.int().positive(), // Le candidat (FK)
-  animal_id: z.int().positive(), // L'animal (FK)
+  pfcUserId: z.int().positive(), // Le candidat (FK)
+  animalId: z.int().positive(), // L'animal (FK)
 
   message: z
     .string()
     .min(20, { error: "La motivation doit faire au moins 20 caractères" })
     .max(2000), // Limite raisonnable pour la BDD
 
-  application_type: ApplicationTypeEnum, // Adoption ou FA
-  application_status: ApplicationStatusEnum.default("pending"), // En attente par défaut
+  applicationType: ApplicationTypeEnum, // Adoption ou FA
+  applicationStatus: ApplicationStatusEnum.default("pending"), // En attente par défaut
 
-  created_at: z.date(),
-  updated_at: z.date().nullable().optional(),
-  deleted_at: z.date().nullable().optional(), // Archivage (Soft Delete)
+  createdAt: z.date(),
+  updatedAt: z.date().nullable().optional(),
+  deletedAt: z.date().nullable().optional(), // Archivage (Soft Delete)
 });
 
 export type Application = z.infer<typeof ApplicationSchema>;
@@ -32,9 +32,9 @@ export type Application = z.infer<typeof ApplicationSchema>;
 
 // CREATE : Créer une demande (Envoyé par le candidat)
 export const CreateApplicationSchema = ApplicationSchema.pick({
-  animal_id: true, // Obligatoire
+  animalId: true, // Obligatoire
   message: true, // Lettre de motivation
-  application_type: true, // "Je veux l'adopter" ou "Je veux l'accueillir"
+  applicationType: true, // "Je veux l'adopter" ou "Je veux l'accueillir"
 });
 //! Note : pfc_user_id n'est pas envoyé par le front, il est extrait du Token JWT
 
@@ -42,7 +42,7 @@ export type CreateApplicationDto = z.infer<typeof CreateApplicationSchema>;
 
 // UPDATE STATUT : Répondre à une demande (Par le Refuge)
 export const UpdateApplicationStatusSchema = z.object({
-  application_status: ApplicationStatusEnum,
+  applicationStatus: ApplicationStatusEnum,
 });
 
 export type UpdateApplicationStatusDto = z.infer<typeof UpdateApplicationStatusSchema>;

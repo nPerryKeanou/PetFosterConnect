@@ -14,12 +14,12 @@ export class ApplicationsService {
   async create(userId: number, createDto: CreateApplicationDto) {
     return this.prisma.application.create({
       data: {
-        pfc_user_id: userId,
-        animal_id: createDto.animal_id,
+        pfcUserId: userId,
+        animalId: createDto.animalId,
         message: createDto.message,
         // On cast les enums Zod vers Prisma si nécessaire (souvent compatibles si strings identiques)
-        application_type: createDto.application_type as ApplicationType,
-        application_status: 'pending', // Défaut
+        applicationType: createDto.applicationType as ApplicationType,
+        applicationStatus: 'pending', // Défaut
       },
     });
   }
@@ -28,13 +28,13 @@ export class ApplicationsService {
   findAllSent(userId: number) {
     return this.prisma.application.findMany({
       where: { 
-        pfc_user_id: userId,
-        deleted_at: null // On exclut les archivées
+        pfcUserId: userId,
+        deletedAt: null // On exclut les archivées
       },
       include: {
         animal: true, // On veut voir pour quel animal on a postulé
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -44,9 +44,9 @@ export class ApplicationsService {
     return this.prisma.application.findMany({
       where: {
         animal: {
-          pfc_user_id: shelterId // Le propriétaire de l'animal
+          pfcUserId: shelterId // Le propriétaire de l'animal
         },
-        deleted_at: null
+        deletedAt: null
       },
       include: {
         animal: {
@@ -54,11 +54,11 @@ export class ApplicationsService {
         },
         user: { 
           include: {
-            individual_profile: true // Pour voir les critères (jardin, enfants...) du candidat
+            individualProfile: true // Pour voir les critères (jardin, enfants...) du candidat
           }
         }
       },
-      orderBy: { created_at: 'desc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -71,13 +71,13 @@ export class ApplicationsService {
     return this.prisma.application.update({
       where: {
         // Syntaxe Prisma pour clé composite @@id([pfc_user_id, animal_id])
-        pfc_user_id_animal_id: {
-          pfc_user_id: candidateId,
-          animal_id: animalId,
+        pfcUserId_animalId: {
+          pfcUserId: candidateId,
+          animalId: animalId,
         },
       },
       data: {
-        application_status: updateDto.application_status as ApplicationStatus,
+        applicationStatus: updateDto.applicationStatus as ApplicationStatus,
       },
     });
   }
@@ -86,13 +86,13 @@ export class ApplicationsService {
   remove(candidateId: number, animalId: number) {
     return this.prisma.application.update({
       where: {
-        pfc_user_id_animal_id: {
-          pfc_user_id: candidateId,
-          animal_id: animalId,
+        pfcUserId_animalId: {
+          pfcUserId: candidateId,
+          animalId: animalId,
         },
       },
       data: {
-        deleted_at: new Date(),
+        deletedAt: new Date(),
       },
     });
   }

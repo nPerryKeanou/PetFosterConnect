@@ -19,15 +19,15 @@ export const UserSchema = z.object({
     .regex(/[0-9]/, { error: "Un chiffre requis" })
     .regex(/[^a-zA-Z0-9]/, { error: "Un caractère spécial requis" }),
   role: UserRoleEnum,
-  phone_number: z
+  phoneNumber: z
     .string()
     .regex(/^\+?[0-9]{10,15}$/, { error: "Numéro de téléphone invalide" })
     .optional(),
     
   address: z.string().max(255).optional(),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
-  deleted_at: z.date().nullable().optional(), // Archivage (Soft Delete)
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  deletedAt: z.date().nullable().optional(), // Archivage (Soft Delete)
 });
 
 export type User = z.infer<typeof UserSchema>;
@@ -39,8 +39,12 @@ export const RegisterSchema = UserSchema.pick({
   email: true,
   password: true,
   role: true,
-  phone_number: true,
+  phoneNumber: true,
   address: true,
+}).extend({
+  // Champs optionnels (uniquement si role === 'shelter')
+  siret: z.string().length(14).optional().or(z.literal("")),
+  shelterName: z.string().min(2).optional().or(z.literal("")),
 });
 
 export type RegisterDto = z.infer<typeof RegisterSchema>;
@@ -57,9 +61,22 @@ export type LoginDto = z.infer<typeof LoginSchema>;
 export const UpdateUserSchema = UserSchema.pick({
   email: true,
   password: true,
-  phone_number: true,
+  phoneNumber: true,
   address: true,
-  // role: true, // À décommenter seulement si un admin peut changer le rôle
-}).partial(); // .partial() rend tous les champs optionnels
+  deletedAt: true, // Permet d'envoyer null pour restaurer
+}).partial();
 
 export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+
+
+export const UpdatePasswordSchema = z.object({
+  oldPassword: z.string().min(1, { message: "Ancien mot de passe requis" }),
+  newPassword: z
+    .string()
+    .min(12, { message: "Le mot de passe doit faire au moins 12 caractères" })
+    .regex(/[A-Z]/, { message: "Une majuscule requise" })
+    .regex(/[0-9]/, { message: "Un chiffre requis" })
+    .regex(/[^a-zA-Z0-9]/, { message: "Un caractère spécial requis" }),
+});
+
+export type UpdatePasswordDto = z.infer<typeof UpdatePasswordSchema>;

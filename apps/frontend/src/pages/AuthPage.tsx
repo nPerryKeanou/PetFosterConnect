@@ -12,6 +12,8 @@ import { api } from "../api/api";
 import { useAuth } from "../auth/authContext";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
+import InputPassword from "../components/ui/InputPassword";
+
 
 export default function AuthPage() {
   const location = useLocation();
@@ -73,9 +75,11 @@ export default function AuthPage() {
 }
 
 // LOGIN
+// LOGIN
 function LoginForm() {
-  const { setIsLoggedIn } = useAuth();
+  const { setIsLoggedIn, setUser } = useAuth();
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -86,12 +90,19 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginDto) => {
     try {
-      await api.post("/auth/login", data);
+      // ⚡ 1. Connexion
+      await api.post("/auth/login", data, { withCredentials: true });
 
-      // ✅ connexion réussie
-      setIsLoggedIn(true); // met à jour l'état
-      alert("Connexion réussie !"); // notification
-      navigate("/"); // redirection vers la page d'accueil
+      // ⚡ 2. Met à jour l'état de connexion
+      setIsLoggedIn(true);
+
+      // ⚡ 3. Récupère l'utilisateur immédiatement
+      const me = await api.get("/auth/me", { withCredentials: true });
+      setUser(me.data);
+
+      // ⚡ 4. Feedback + redirection
+      alert("Connexion réussie !");
+      navigate("/");
     } catch (error: any) {
       if (error.response?.status === 401) {
         alert("Email ou mot de passe incorrect !");
@@ -111,9 +122,9 @@ function LoginForm() {
         {...register("email")}
         error={errors.email?.message}
       />
-      <Input
+
+      <InputPassword
         label="Mot de passe"
-        type="password"
         placeholder="••••••••"
         {...register("password")}
         error={errors.password?.message}
@@ -135,19 +146,41 @@ function LoginForm() {
   );
 }
 
+
 // REGISTER
 function RegisterForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<RegisterDto>({
     resolver: zodResolver(RegisterSchema),
   });
 
-  const onSubmit = (data: RegisterDto) => {
-    console.log("Register Data:", data);
-    // TODO: Appel API POST /auth/register
+  const navigate = useNavigate();
+  const { setIsLoggedIn, setUser } = useAuth(); // ⚡ ajoute setUser
+
+  const selectedRole = watch("role");
+
+  const onSubmit = async (data: RegisterDto) => {
+    try {
+      // ⚡ 1. Création du compte
+      await api.post("/auth/register", data, { withCredentials: true });
+
+      // ⚡ 2. Met à jour l'état
+      setIsLoggedIn(true);
+
+      // ⚡ 3. Récupère l'utilisateur immédiatement
+      const me = await api.get("/auth/me", { withCredentials: true });
+      setUser(me.data);
+
+      // ⚡ 4. Feedback + redirection
+      alert("Compte créé avec succès 🎉");
+      navigate("/");
+    } catch (_err: any) {
+      alert("Erreur lors de l'inscription");
+    }
   };
 
   return (
@@ -159,12 +192,30 @@ function RegisterForm() {
         error={errors.email?.message}
       />
 
-      <Input
+      <InputPassword
         label="Mot de passe"
-        type="password"
         {...register("password")}
         error={errors.password?.message}
       />
+
+      {/* Champs conditionnels */}
+      {selectedRole === "shelter" && (
+        <>
+          <Input
+            label="Siret"
+            type="text"
+            {...register("siret")}
+            error={errors.siret?.message}
+          />
+
+          <Input
+            label="Nom du refuge"
+            type="text"
+            {...register("shelterName")}
+            error={errors.shelterName?.message}
+          />
+        </>
+      )}
 
       <div className="flex flex-col gap-2">
         <fieldset className="flex flex-col gap-2">

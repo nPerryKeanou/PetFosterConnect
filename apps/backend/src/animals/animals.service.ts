@@ -1,79 +1,104 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { PrismaService } from "../prisma/prisma.service";
+import { Prisma } from "@prisma/client";
+
+
+// Animal avec relations species + shelterProfile
+type AnimalWithRelations = Prisma.AnimalGetPayload<{
+  include: { species: true; shelter: { include: { shelterProfile: true } } };
+}>;
+
+// Animal enrichi avec isBookmarked
+type AnimalWithBookmark = AnimalWithRelations & { isBookmarked: boolean };
+
 
 @Injectable()
 export class AnimalsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createAnimalDto: CreateAnimalDto, userId: number) {
-    return this.prisma.animal.create({
-      data: {
-        ...createAnimalDto,
-        pfc_user_id: userId,
-        photos: createAnimalDto.photos as any, // Cast pour JsonB
+  async create(dto: CreateAnimalDto, userId: number) {
+    const data: Prisma.AnimalCreateInput = {
+      name: dto.name,
+      age: dto.age,
+      description: dto.description,
+      sex: dto.sex,
+      weight: dto.weight ? new Prisma.Decimal(dto.weight) : null,
+      height: dto.height,
+      animalStatus: dto.animalStatus,
+      photos: dto.photos,
+      acceptOtherAnimals: dto.acceptOtherAnimals,
+      acceptChildren: dto.acceptChildren,
+      needGarden: dto.needGarden,
+      treatment: dto.treatment,
+      shelter: { connect: { id: userId } },   // relation vers PfcUser
+      species: { connect: { id: dto.speciesId } }, // relation vers Species
+    };
+  
+    return this.prisma.animal.create({ data });
+  }
+  
+  
+
+  async findAll(includeDeleted = false) {
+    return this.prisma.animal.findMany({
+      where: { deletedAt: includeDeleted ? undefined : null },
+      include: {
+        species: true,
+        shelter: { include: { shelterProfile: true } },
       },
     });
   }
 
-  async findAll() {
-    return this.prisma.animal.findMany({
-      where: { deleted_at: null },
-      include: { species: true },
-    });
-  }
+ async findOne(id: number, userId?: number): Promise<AnimalWithBookmark> {
+   const animal = await this.prisma.animal.findUnique({
+     where: { id },
+     include: {
+       species: true,
+       shelter: { include: { shelterProfile: true } },
+       bookmarks: userId ? { where: { pfcUserId: userId } } : false,
+     },
+   });
+ 
+   if (!animal || animal.deletedAt) {
+     throw new NotFoundException(`Animal ${id} non trouvé ou supprimé`);
+   }
+ 
+   const isBookmarked = !!animal.bookmarks?.length;
+ 
+   // On supprime bookmarks du retour si tu veux éviter de l’exposer
+   const { bookmarks, ...rest } = animal;
+ 
+   return { ...rest, isBookmarked };
+ }
+ 
+async findAllByShelter(userId: number) {
+  return this.prisma.animal.findMany({
+    where: { pfcUserId: userId },
+    include: {
+      species: true,
+      shelter: { include: { shelterProfile: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+}
 
-  async findOne(id: number) {
-    const animal = await this.prisma.animal.findUnique({
-      where: { id },
-      include: { species: true },
-    });
-    if (!animal || animal.deleted_at)
-      throw new NotFoundException("Animal non trouvé");
-    return animal;
-  }
+
+
+
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
-    return this.prisma.animal.update({
-      where: { id },
-      data: {
-        ...updateAnimalDto,
-        photos: updateAnimalDto.photos as any,
-      },
+    const data: any = {};
+    Object.entries(updateAnimalDto).forEach(([key, value]) => {
+      if (value !== undefined) data[key] = value;
     });
+    return this.prisma.animal.update({ where: { id }, data });
   }
 
   async remove(id: number) {
     return this.prisma.animal.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: { deletedAt: new Date() },
     });
   }
 }
-
-// import { Injectable } from '@nestjs/common';
-// import { CreateAnimalDto } from './dto/create-animal.dto';
-// import { UpdateAnimalDto } from './dto/update-animal.dto';
-
-// @Injectable()
-// export class AnimalsService {
-//   create(createAnimalDto: CreateAnimalDto) {
-//     return 'This action adds a new animal';
-//   }
-
-//   findAll() {
-//     return `This action returns all animals`;
-//   }
-
-//   findOne(id: number) {
-//     return `This action returns a #${id} animal`;
-//   }
-
-//   update(id: number, updateAnimalDto: UpdateAnimalDto) {
-//     return `This action updates a #${id} animal`;
-//   }
-
-//   remove(id: number) {
-//     return `This action removes a #${id} animal`;
-//   }
-// }
