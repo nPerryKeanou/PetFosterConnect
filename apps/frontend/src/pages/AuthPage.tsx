@@ -178,6 +178,20 @@ function RegisterForm() {
         error={errors.password?.message}
       />
 
+      <Input
+          label="Siret"
+          type="text"
+          {...register("siret")}
+          error={errors.siret?.message}
+        />
+
+      <Input
+          label="Nom du refuge"
+          type="text"
+          {...register("shelterName")}
+          error={errors.shelterName?.message}
+        />
+
       <div className="flex flex-col gap-2">
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium text-gray-700">

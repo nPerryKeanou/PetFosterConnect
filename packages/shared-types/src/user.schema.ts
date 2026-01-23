@@ -41,6 +41,10 @@ export const RegisterSchema = UserSchema.pick({
   role: true,
   phoneNumber: true,
   address: true,
+}).extend({
+  // Champs optionnels (uniquement si role === 'shelter')
+  siret: z.string().length(14).optional().or(z.literal("")),
+  shelterName: z.string().min(2).optional().or(z.literal("")),
 });
 
 export type RegisterDto = z.infer<typeof RegisterSchema>;

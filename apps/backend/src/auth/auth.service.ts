@@ -47,12 +47,13 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     console.log("Registering user:", dto);
-    const hashedPassword = await argon2.hash(dto.password);
 
     const user = await this.usersService.create({
       email: dto.email,
-      password: hashedPassword,
+      password: dto.password,
       role: dto.role,
+      siret: dto.siret ? dto.siret : "",
+      shelterName: dto.shelterName ? dto.shelterName: ""
     });
 
     const token = this.jwtService.sign({

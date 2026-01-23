@@ -14,15 +14,34 @@ export class UsersService {
   // --- Création d'un utilisateur ---
   async create(data: RegisterDto) {
     const hashedPassword = await argon2.hash(data.password);
-    return this.prisma.pfcUser.create({
-      data: {
+    // Préparation des données de base
+      const userData: any = {
         email: data.email,
         password: hashedPassword,
         role: data.role as UserRole,
         phoneNumber: data.phoneNumber,
         address: data.address,
-      },
-    });
+      };
+    
+      // Si c'est un refuge, on crée le profil lié immédiatement
+      if (data.role === 'shelter') {
+        if (!data.siret || !data.shelterName) {
+          throw new Error("Le SIRET et le nom du refuge sont obligatoires pour un compte Association.");
+        }
+    
+        userData.shelterProfile = {
+          create: {
+            siret: data.siret,
+            shelterName: data.shelterName,
+            description: "Nouveau refuge inscrit",
+          },
+        };
+      }
+    
+      // Création atomique (User + Profil en une seule transaction)
+      return this.prisma.pfcUser.create({
+        data: userData,
+      });
   }
 
   // --- Récupérer tous les utilisateurs ---
