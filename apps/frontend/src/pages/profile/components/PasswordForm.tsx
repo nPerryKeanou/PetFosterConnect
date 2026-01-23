@@ -13,6 +13,7 @@ export default function PasswordForm({ userId }: Props) {
     newPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,15 +32,16 @@ export default function PasswordForm({ userId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div >
-        <label>Ancien mot de passe</label>
-        <input
-          type="password"
-          value={formData.oldPassword}
-          onChange={(e) => setFormData({ ...formData, oldPassword: e.target.value })}
-          className="border rounded p-2 w-full"
-        />
-      </div>
+      <div className="relative"> 
+        <label>Ancien mot de passe</label> 
+        <input type={showOldPassword ? "text" : "password"} 
+        value={formData.oldPassword} 
+        onChange={(e) => setFormData({ ...formData, oldPassword: e.target.value }) }
+        className="border rounded p-2 w-full pr-10" 
+        /> 
+        <button type="button" 
+        onClick={() => setShowOldPassword(!showOldPassword)} 
+        className="absolute right-2 top-8 text-gray-600 hover:text-gray-800" > {showOldPassword ? ( <HiEyeOff className="w-5 h-5" /> ) : ( <HiEye className="w-5 h-5" /> )} </button> </div> 
 
       <div className="relative">
         <label>Nouveau mot de passe</label>

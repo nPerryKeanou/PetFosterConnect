@@ -12,6 +12,8 @@ import { api } from "../api/api";
 import { useAuth } from "../auth/authContext";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
+import InputPassword from "../components/ui/InputPassword";
+
 
 export default function AuthPage() {
   const location = useLocation();
@@ -111,13 +113,14 @@ function LoginForm() {
         {...register("email")}
         error={errors.email?.message}
       />
-      <Input
+      <InputPassword
         label="Mot de passe"
-        type="password"
         placeholder="••••••••"
         {...register("password")}
         error={errors.password?.message}
       />
+      
+      
 
       <div className="text-right">
         <Link
@@ -172,12 +175,12 @@ function RegisterForm() {
         error={errors.email?.message}
       />
 
-      <Input
+      <InputPassword
         label="Mot de passe"
-        type="password"
         {...register("password")}
         error={errors.password?.message}
       />
+      
 
       {/* Champs conditionnels */}
       {selectedRole === "shelter" && (
