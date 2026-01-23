@@ -3,14 +3,42 @@ import { UserCircle, PawPrint, Home, LogOut } from "lucide-react";
 import { CiFolderOn } from "react-icons/ci"; 
 import { LuPlus } from "react-icons/lu";
 import { useAuth } from "../../auth/authContext";
+import BurgerMenu from "../ui/BurgerMenu";
+import { useState } from "react";
 
 export default function UserSidebarLayout() {
   const { user, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col justify-between">
+    <div className="flex h-screen relative">
+
+      {/* Burger menu (mobile only) */}
+      <BurgerMenu onOpen={() => setIsOpen(true)} />
+
+      {/* Sidebar responsive */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 
+          flex flex-col justify-between h-screen
+          transform transition-transform duration-300
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:static md:translate-x-0
+        `}
+      >
+        {/* Bouton fermer (mobile only) */}
+        <button
+          className="md:hidden absolute top-4 right-4"
+          onClick={() => setIsOpen(false)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"
+            className="w-7 h-7">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <div>
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-xl font-bold font-montserrat text-primary">
@@ -23,6 +51,7 @@ export default function UserSidebarLayout() {
             <NavLink
               to={`/user/${user?.id}/profil`}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+              onClick={() => setIsOpen(false)}
             >
               <UserCircle className="w-5 h-5" />
               Mon Profil
@@ -34,26 +63,27 @@ export default function UserSidebarLayout() {
                 <NavLink
                   to={`/user/${user?.id}/animaux`}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
                 >
                   <PawPrint className="w-5 h-5" />
                   Mes Animaux
                 </NavLink>
 
-                {/* Sous-menu Créer un animal */}
                 <div className="ml-8">
                   <NavLink
                     to={`/user/${user?.id}/profil/animaux/creer`}
                     className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
+                    onClick={() => setIsOpen(false)}
                   >
                     <LuPlus className="w-5 h-5"/>
                     Ajouter un animal
                   </NavLink>
                 </div>
 
-                {/* Demandes reçues avec CiFolderOn */}
                 <NavLink
                   to={`/user/${user?.id}/demandes-recus`}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  onClick={() => setIsOpen(false)}
                 >
                   <CiFolderOn className="w-5 h-5" /> 
                   Demandes reçues
@@ -66,6 +96,7 @@ export default function UserSidebarLayout() {
               <NavLink
                 to={`/user/${user?.id}/demandes`}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                onClick={() => setIsOpen(false)}
               >
                 <CiFolderOn className="w-5 h-5" />
                 Mes Demandes
@@ -79,6 +110,7 @@ export default function UserSidebarLayout() {
           <NavLink
             to="/"
             className="flex items-center gap-3 px-4 py-2 text-sm text-gray-500 hover:text-secondary transition rounded-md hover:bg-gray-100"
+            onClick={() => setIsOpen(false)}
           >
             <Home size={18} />
             <span>Retour au site</span>
@@ -86,7 +118,10 @@ export default function UserSidebarLayout() {
 
           <button
             type="button"
-            onClick={logout}
+            onClick={() => {
+              logout();
+              setIsOpen(false);
+            }}
             className="flex items-center gap-3 px-4 py-2 text-sm text-error hover:bg-red-50 w-full rounded-lg transition font-medium"
           >
             <LogOut size={18} />
@@ -94,6 +129,14 @@ export default function UserSidebarLayout() {
           </button>
         </div>
       </aside>
+
+      {/* Overlay (mobile only) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Contenu principal */}
       <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">

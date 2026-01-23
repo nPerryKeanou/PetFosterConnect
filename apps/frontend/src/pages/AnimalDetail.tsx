@@ -7,6 +7,10 @@ import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
 import { useAuth } from "../auth/authContext"; // ✅ pour récupérer user
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import QRCode from "qrcode";
+import SiteLogo from "../../public/Logo.png";
 
 export default function AnimalDetail() {
   const { userId, id } = useParams<{ userId: string; id: string }>();
@@ -80,7 +84,64 @@ export default function AnimalDetail() {
   console.log("animal.shelter.pfcUserId:", animal.shelter?.pfcUserId);
   console.log("isShelterOwner:", isShelterOwner);
   
+      const exportToPDF = async () => {
+
+        const pdf = new jsPDF("p", "mm", "a4");
+        
+        
+          const logoWidth = 40;
+          const logoX = (pdf.internal.pageSize.getWidth() - logoWidth) / 2;
+        
+          pdf.addImage(SiteLogo, "PNG", logoX, 10, logoWidth, 40);
+
+        const element = document.getElementById("animal-detail");
+        if (!element) return;
+      
+        // 1. Masquer les boutons
+        const buttons = document.querySelectorAll(".no-print");
+        buttons.forEach((btn) => (btn as HTMLElement).style.display = "none");
+      
+        // 2. Capturer la fiche
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+        });
+      
+        // 3. Réafficher les boutons
+        buttons.forEach((btn) => (btn as HTMLElement).style.display = "");
+      
+        const imgData = canvas.toDataURL("image/png");
+      
     
+        const pageWidth = pdf.internal.pageSize.getWidth();
+      
+        // 4. Générer le QR code (URL publique de l’animal)
+        const animalUrl = `${window.location.origin}/animaux/${animal.id}`;
+        const qrData = await QRCode.toDataURL(animalUrl);
+      
+        // 5. Logo du refuge
+        const logoUrl = animal.shelter?.shelterProfile?.logoUrl;
+      
+        // 6. Ajouter le logo centré
+        if (logoUrl) {
+          const logoWidth = 40;
+          const logoX = (pageWidth - logoWidth) / 2;
+          pdf.addImage(logoUrl, "PNG", logoX, 10, logoWidth, 40);
+        }
+      
+        // 7. Ajouter le QR code en bas à droite
+        pdf.addImage(qrData, "PNG", pageWidth - 40 - 10, 250, 40, 40);
+      
+        // 8. Ajouter la fiche centrée
+        const imgWidth = pageWidth * 0.9;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const x = (pageWidth - imgWidth) / 2;
+      
+        pdf.addImage(imgData, "PNG", x, 60, imgWidth, imgHeight);
+      
+        pdf.save(`animal-${animal.name}.pdf`);
+      };
+      
     
 
   return (
@@ -88,7 +149,7 @@ export default function AnimalDetail() {
       {/* BackBanner visible uniquement pour les visiteurs */}
       {!isShelterOwner && <BackBanner to="/animaux" />}
       <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div id="animal-detail" className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           
           {/* SECTION PHOTOS */}
           <div className="space-y-4">
@@ -187,7 +248,7 @@ export default function AnimalDetail() {
             </div>
   
             {/* Actions */}
-            <div className="border-t-2 border-gray-300 pt-6 flex flex-col gap-4 w-full mt-auto">
+            <div className="border-t-2 border-gray-300 pt-6 flex flex-col gap-4 w-full mt-auto no-print">
               {isShelterOwner ? (
                 <Button
                   variant="primary"
@@ -218,6 +279,14 @@ export default function AnimalDetail() {
                   </form>
                 </>
               )}
+              {/* Bouton Export PDF */}
+                <button
+                  onClick={exportToPDF}
+                  className="bg-primary text-white px-4 py-2 rounded"
+                >
+                  Exporter en PDF
+                </button>
+              
             </div>
           </div>
         </div>
