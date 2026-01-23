@@ -9,12 +9,22 @@ import type { CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types';
 export class AnimalsController {
   constructor(private readonly animalsService: AnimalsService) {}
 
+<<<<<<< HEAD
   @Post()
   @UsePipes(new ZodPipe(CreateAnimalSchema))
   create(@Body() createAnimalDto: CreateAnimalDto) {
     const mockUserId = 4; // Simulation en attendant l'Auth. a changer a chaque de creat animal. À chaque fois que tu lances npx prisma db seed, regarde la fin du message dans ton terminal. Il t'affichera : Refuge (Email: ...) ID : X. C'est ce X que tu recopies dans ton code.
     return this.animalsService.create(createAnimalDto, mockUserId);
   }
+=======
+  create(@Body() createAnimalDto: CreateAnimalDto, @Req() req: any) {
+    const userId = req.user.id; // injecté par ton guard JWT
+    return this.animalsService.create(createAnimalDto, userId);
+  }
+  
+ 
+ 
+>>>>>>> 6527953 (animalform a corriger)
 
   @Get()
   findAll() {

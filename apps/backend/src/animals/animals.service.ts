@@ -11,10 +11,11 @@ export class AnimalsService {
       data: {
         ...createAnimalDto,
         pfcUserId: userId,
-        photos: createAnimalDto.photos as any, // Cast pour JsonB
+        photos: createAnimalDto.photos as any,
       },
     });
   }
+  
 
 async findAll(includeDeleted = false) {
   return this.prisma.animal.findMany({
