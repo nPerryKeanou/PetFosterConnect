@@ -9,6 +9,7 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { UsersModule } from "./users/users.module";
 import { ShelterModule } from "./shelters/shelter.module";
 import { ApplicationsModule } from "./applications/applications.module";
+import { BookmarksModule } from './bookmarks/bookmarks.module';
 
 /**
  * MODULE RACINE (ROOT MODULE)
@@ -28,7 +29,8 @@ import { ApplicationsModule } from "./applications/applications.module";
     AnimalsModule,
     AuthModule,
     ShelterModule,
-    ApplicationsModule
+    ApplicationsModule,
+    BookmarksModule
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

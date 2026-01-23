@@ -38,6 +38,7 @@
     "@rollup/rollup-linux-x64-gnu": "*"
   },
   "dependencies": {
+    "@nestjs/mapped-types": "*",
     "zod": "^4.3.5"
   }
 }

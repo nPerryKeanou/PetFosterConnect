@@ -44,7 +44,7 @@ export default function AnimalDetail() {
     try {
       const response = await fetch(`http://localhost:3001/bookmarks/toggle`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", },
         body: JSON.stringify({ animalId: Number(id) }),
         credentials: "include", // ESSENTIEL pour envoyer le cookie access_token
       });

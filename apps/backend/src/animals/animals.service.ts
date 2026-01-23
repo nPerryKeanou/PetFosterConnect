@@ -16,19 +16,6 @@ export class AnimalsService {
     });
   }
 
-//   async findAll() {
-//   return this.prisma.animal.findMany({
-//     include: {
-//       species: true,
-//       shelter: {
-//         include: { shelterProfile: true }
-//       }
-//     }
-//   });
-// }
-
-// apps/backend/src/animals/animals.service.ts
-
 async findAll() {
   return this.prisma.animal.findMany({
     include: {
@@ -42,42 +29,46 @@ async findAll() {
   });
 }
 
-  async findOne(id: number, userId?: number) {
-    const animal = await this.prisma.animal.findUnique({
-      where: { id },
-      include: { 
-        species: true, // récupère l'espèce 
-      shelter: {       // récupère l'utilisateur qui possède l'animal
-        include: {
-          shelterProfile: true // récupère les infos du refuge (shelterName, etc.)
-        }
-      }
-      },
-    });
-    if (!animal || animal.deletedAt)
-      throw new NotFoundException("Animal non trouvé");
+/**
+   * Trouve un animal et vérifie si l'utilisateur l'a mis en favori.
+   */
+async findOne(id: number, userId?: number) {
+  // 1. On cherche l'animal
+  const animal = await this.prisma.animal.findUnique({
+    where: { id: Number(id) },
+    include: { 
+      species: true, 
+      shelter: { include: { shelterProfile: true } } 
+    },
+  });
 
-    // Si un userId est fourni, on vérifie si un favori existe
+  if (!animal || animal.deletedAt)
+    throw new NotFoundException("Animal non trouvé");
+
+  // 2. Initialisation de l'état du favori
   let isBookmarked = false;
+  // 3. Si un utilisateur est connecté, on vérifie l'existence d'un bookmark en base
   if (userId) {
-    const bookmark = await this.prisma.bookmark.findUnique({
+    // On récupère TOUS les favoris de l'utilisateur pour voir ce qui se passe
+  const allUserBookmarks = await this.prisma.bookmark.findMany({
+    where: { pfcUserId: Number(userId) }
+  });
+  
+    // On force la recherche par les champs individuels
+    const bookmark = await this.prisma.bookmark.findFirst({
       where: {
-        pfcUserId_animalId: {
-          pfcUserId: userId,
-          animalId: id,
-        },
+        pfcUserId: Number(userId),
+        animalId: Number(id),
       },
     });
+
+  // Si bookmark existe, on passe isBookmarked à true
     isBookmarked = !!bookmark;
   }
-    // On retourne l'animal avec l'information supplémentaire
-  return {
-    ...animal,
-    isBookmarked,
-  };
+  const result = { ...animal, isBookmarked };
+  //4. On retourne l'animal fusionné avec l'info du favori
+  return result;
 }
-
-  
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     return this.prisma.animal.update({
@@ -96,30 +87,3 @@ async findAll() {
     });
   }
 }
-
-// import { Injectable } from '@nestjs/common';
-// import { CreateAnimalDto } from './dto/create-animal.dto';
-// import { UpdateAnimalDto } from './dto/update-animal.dto';
-
-// @Injectable()
-// export class AnimalsService {
-//   create(createAnimalDto: CreateAnimalDto) {
-//     return 'This action adds a new animal';
-//   }
-
-//   findAll() {
-//     return `This action returns all animals`;
-//   }
-
-//   findOne(id: number) {
-//     return `This action returns a #${id} animal`;
-//   }
-
-//   update(id: number, updateAnimalDto: UpdateAnimalDto) {
-//     return `This action updates a #${id} animal`;
-//   }
-
-//   remove(id: number) {
-//     return `This action removes a #${id} animal`;
-//   }
-// }

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookmarksController } from './bookmarks.controller';
-import { BookmarksService } from './bookmarks.service';
+import { BookMarksService } from './bookmarks.service';
 
 describe('BookmarksController', () => {
   let controller: BookmarksController;
@@ -8,7 +8,7 @@ describe('BookmarksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BookmarksController],
-      providers: [BookmarksService],
+      providers: [BookMarksService],
     }).compile();
 
     controller = module.get<BookmarksController>(BookmarksController);
