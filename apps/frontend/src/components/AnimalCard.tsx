@@ -66,6 +66,7 @@ const AnimalCard = ({
           <p className="text-sm text-gray-600"><span className="font-medium">Refuge :</span> {shelter?.shelterProfile?.shelterName}</p>
         </div>
         <button
+          type="button"
           onClick={() => navigate(`/animaux/${id}`)}
           className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:scale-95"
         >

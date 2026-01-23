@@ -26,6 +26,12 @@ export class AnimalsController {
     return this.animalsService.findAll();
   }
 
+  // ROUTE SPECIALE ADMIN
+  @Get('admin/all')
+  findAllAdmin() {
+    return this.animalsService.findAll(true); // true = inclure les supprimés
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.animalsService.findOne(id);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { Users, LayoutDashboard, LogOut, Home, Menu, X } from "lucide-react";
+import { Users, LayoutDashboard, LogOut, Home, Menu, X, PawPrint } from "lucide-react";
 import logo from "../../assets/Logo.png";
 
 export default function AdminLayout() {
@@ -34,9 +34,14 @@ export default function AdminLayout() {
           <span>Dashboard</span>
         </NavLink>
         
-        <NavLink to="/admin/users" className={getLinkClass} onClick={closeMobileMenu}>
+        <NavLink to="/admin/utilisateurs" className={getLinkClass} onClick={closeMobileMenu}>
           <Users size={20} />
           <span>Utilisateurs</span>
+        </NavLink>
+
+        <NavLink to="/admin/animaux" className={getLinkClass} onClick={closeMobileMenu}>
+          <PawPrint size={20} />
+          <span>Animaux</span>
         </NavLink>
       </nav>
 

@@ -1,5 +1,5 @@
 // src/users/users.controller.ts
-import { Controller, Get, Post, Put, Delete, Param, Body, UsePipes } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Put, Delete, Param, Body, UsePipes } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
@@ -39,7 +39,7 @@ export class UsersController {
     return this.usersService.findOne(Number(id));
   }
 
-  @Put(":id")
+  @Patch(":id")
   update(@Param("id") id: string, @Body() body: sharedTypes.UpdateUserDto) {
     return this.usersService.update(Number(id), body);
   }

@@ -1,13 +1,13 @@
-import { 
-  PrismaClient, 
-  UserRole, 
-  AnimalSex, 
-  AnimalStatus, 
-  HousingType, 
-  ApplicationType, 
+import {
+  PrismaClient,
+  UserRole,
+  AnimalSex,
+  AnimalStatus,
+  HousingType,
+  ApplicationType,
   ApplicationStatus,
   PfcUser,
-  Animal 
+  Animal
 } from '@prisma/client';
 import * as argon2 from 'argon2';
 
@@ -16,7 +16,9 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Démarrage du Seed...');
 
-  // 1. NETTOYAGE (Ordre inverse des dépendances pour éviter les erreurs FK)
+  // ===========================================================
+  // 1. NETTOYAGE DE LA BASE (ordre inverse des dépendances)
+  // ===========================================================
   console.log('🧹 Nettoyage de la base de données...');
   await prisma.bookmark.deleteMany();
   await prisma.application.deleteMany();
@@ -26,19 +28,41 @@ async function main() {
   await prisma.species.deleteMany();
   await prisma.pfcUser.deleteMany();
 
-  // Hash du mot de passe par défaut (pour tous les comptes de test)
+  // ===========================================================
+  // 2. MOT DE PASSE PAR DÉFAUT (HASHÉ)
+  // ===========================================================
   const passwordHash = await argon2.hash('Password123!');
 
   // ===========================================================
-  // 2. CRÉATION DES DONNÉES DE RÉFÉRENCE (ESPÈCES)
+  // 3. CRÉATION DE L'ADMIN
+  // ===========================================================
+  console.log('👑 Création de l’Admin...');
+  await prisma.pfcUser.create({
+    data: {
+      email: 'admin@pfc.fr',
+      password: passwordHash,
+      role: UserRole.admin,
+      phoneNumber: '0999999999',
+      address: 'Siège PFC - Paris'
+    }
+  });
+
+  // ===========================================================
+  // 4. DONNÉES DE RÉFÉRENCE (ESPÈCES)
   // ===========================================================
   console.log('🐾 Création des Espèces...');
   const dog = await prisma.species.create({ data: { name: 'Chien' } });
   const cat = await prisma.species.create({ data: { name: 'Chat' } });
-  const speciesList = [dog, cat];
-  
-  // --- 2. CRÉATION DE 5 REFUGES ---
+  const rabbit = await prisma.species.create({ data: { name: 'Lapin' } });
+
+  const speciesList = [dog, cat, rabbit];
+
+  // ===========================================================
+  // 5. CRÉATION DES REFUGES
+  // ===========================================================
+  console.log('🏥 Création des Refuges...');
   const shelters: PfcUser[] = [];
+
   const shelterData = [
     { name: 'SPA Paris', siret: '12345678900011', address: '39 Boulevard Berthier, 75017 Paris' },
     { name: 'Refuge Saint-Roch', siret: '12345678900012', address: '12 Rue de l’Espérance, 34000 Montpellier' },
@@ -48,35 +72,34 @@ async function main() {
   ];
 
   for (const item of shelterData) {
-    const s = await prisma.pfcUser.create({
+    const shelter = await prisma.pfcUser.create({
       data: {
         email: `contact@${item.name.toLowerCase().replace(/\s/g, '-')}.fr`,
-        password: 'password123',
+        password: passwordHash,
         role: UserRole.shelter,
         phoneNumber: '0102030405',
-        // Utilise l'adresse définie dans le tableau ci-dessus
-        address: item.address, 
+        address: item.address,
         shelterProfile: {
           create: {
             siret: item.siret,
             shelterName: item.name,
             description: `Bienvenue chez ${item.name}. Nous œuvrons pour le bien-être animal depuis plus de 10 ans.`,
-            logo: `https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`,
+            logo: `https://api.dicebear.com/7.x/initials/svg?seed=${item.name}`
           }
         }
       }
     });
-    shelters.push(s);
+    shelters.push(shelter);
   }
 
-
   // ===========================================================
-  // 5. CRÉATION DES FAMILLES (INDIVIDUALS)
+  // 6. CRÉATION DES FAMILLES (INDIVIDUALS)
   // ===========================================================
   console.log('🏠 Création des Familles...');
   const individuals: PfcUser[] = [];
+
   for (let i = 1; i <= 5; i++) {
-    const ind = await prisma.pfcUser.create({
+    const individual = await prisma.pfcUser.create({
       data: {
         email: `famille.${i}@email.com`,
         password: passwordHash,
@@ -86,37 +109,38 @@ async function main() {
         individualProfile: {
           create: {
             housingType: i % 2 === 0 ? HousingType.apartment : HousingType.house,
-            surface: 40 + (i * 15),
-            haveGarden: i % 2 !== 0, // Maison = Jardin
+            surface: 40 + i * 15,
+            haveGarden: i % 2 !== 0,
             haveAnimals: i > 2,
             haveChildren: i === 1 || i === 5,
             availableFamily: true,
-            availableTime: "Disponible le soir en semaine et les week-ends pour de longues balades."
+            availableTime: 'Disponible le soir en semaine et les week-ends.'
           }
         }
       }
     });
-    individuals.push(ind);
+    individuals.push(individual);
   }
 
-
   // ===========================================================
-  // 6. CRÉATION DES ANIMAUX
+  // 7. CRÉATION DES ANIMAUX
   // ===========================================================
-  console.log('🐶 Création des Animaux...');
+  console.log('🐶🐱🐰 Création des Animaux...');
   const animalNames = [
-    'Boby', 'Luna', 'Filou', 'Rex', 'Mimi', 'Oscar', 'Bella', 'Simba', 'Nala', 'Rocky',
-    'Zoe', 'Max', 'Daisy', 'Jack', 'Lola', 'Pluto', 'Maya', 'Titi', 'Gribouille', 'Cookie',
+    'Boby', 'Luna', 'Filou', 'Rex', 'Mimi',
+    'Oscar', 'Bella', 'Simba', 'Nala', 'Rocky',
+    'Zoe', 'Max', 'Daisy', 'Jack', 'Lola',
+    'Pluto', 'Maya', 'Titi', 'Gribouille', 'Cookie',
     'Caramel', 'Nitro', 'Shadow', 'Praline', 'Pixel'
   ];
 
   const treatmentsList = [
-    "Vaccins à jour. Traitement préventif contre les puces effectué le 10/01.",
-    "Nécessite un nettoyage des oreilles une fois par semaine. Traitement otite en cours.",
-    "Léger souffle au cœur, pas de traitement lourd mais éviter les efforts intenses.",
-    "Régime alimentaire spécifique (croquettes hypoallergéniques).",
-    "Aucun traitement en cours. En pleine forme !",
-    "Stérilisation prévue le mois prochain."
+    'Vaccins à jour.',
+    'Traitement antiparasitaire récent.',
+    'Suivi vétérinaire léger requis.',
+    'Régime alimentaire spécifique.',
+    'Aucun traitement en cours.',
+    'Stérilisation prévue.'
   ];
 
   const createdAnimals: Animal[] = [];
@@ -124,52 +148,49 @@ async function main() {
 
   for (const shelter of shelters) {
     for (let i = 0; i < 5; i++) {
-      const currentName = animalNames[animalIndex % animalNames.length];
+      const name = animalNames[animalIndex % animalNames.length];
       const species = speciesList[animalIndex % speciesList.length];
-      
-      // Image cohérente (Chien, Chat ou Lapin)
-      const keyword = species.name.toLowerCase() === 'chien' ? 'dog' : 
-                species.name.toLowerCase() === 'chat' ? 'cat' : 'rabbit';
 
-      const photos = [
-        `https://loremflickr.com/500/500/${keyword},pet?lock=${(animalIndex * 10) + 1}`,
-        `https://loremflickr.com/500/500/${keyword},cute?lock=${(animalIndex * 10) + 2}`,
-        `https://loremflickr.com/500/500/${keyword},animal?lock=${(animalIndex * 10) + 3}`
-      ];
+      const keyword =
+        species.name === 'Chien' ? 'dog' :
+        species.name === 'Chat' ? 'cat' : 'rabbit';
 
       const animal = await prisma.animal.create({
         data: {
-          name: currentName,
+          name,
           age: `${Math.floor(Math.random() * 10) + 1} ans`,
           sex: i % 2 === 0 ? AnimalSex.male : AnimalSex.female,
-          weight: species.name === 'Chien' ? 18.5 : 4.2,
-          height: species.name === 'Chien' ? 55 : 28,
-          description: `Voici ${currentName}, un adorable compagnon en attente d'une famille.`,
+          weight:
+            species.name === 'Chien' ? 18.5 :
+            species.name === 'Chat' ? 4.2 : 2.3,
+          height:
+            species.name === 'Chien' ? 55 :
+            species.name === 'Chat' ? 28 : 25,
+          description: `Voici ${name}, un adorable ${species.name.toLowerCase()} en attente d'une famille.`,
           animalStatus: AnimalStatus.available,
-          photos: photos, // Tableau JSON
-          
-          // Critères de matching
-          acceptOtherAnimals: i % 3 !== 0, // 2 sur 3 acceptent
+          photos: [
+            `https://loremflickr.com/500/500/${keyword}?lock=${animalIndex * 3 + 1}`,
+            `https://loremflickr.com/500/500/${keyword},cute?lock=${animalIndex * 3 + 2}`,
+            `https://loremflickr.com/500/500/${keyword},pet?lock=${animalIndex * 3 + 3}`
+          ],
+          acceptOtherAnimals: i % 3 !== 0,
           acceptChildren: true,
-          needGarden: species.name === 'Chien' && i % 2 === 0, // 1 chien sur 2 a besoin d'un jardin
-
-          treatment: treatmentsList[i % treatmentsList.length], // Ajout du champ treatment
-          
+          needGarden: species.name === 'Chien' && i % 2 === 0,
+          treatment: treatmentsList[i % treatmentsList.length],
           speciesId: species.id,
-          pfcUserId: shelter.id,
+          pfcUserId: shelter.id
         }
       });
+
       createdAnimals.push(animal);
       animalIndex++;
     }
   }
 
-
   // ===========================================================
-  // 7. CRÉATION DES FAVORIS (BOOKMARKS)
+  // 8. CRÉATION DES FAVORIS
   // ===========================================================
   console.log('❤️ Création des Favoris...');
-  // La famille 1 aime l'animal 1 et 2
   await prisma.bookmark.create({
     data: { pfcUserId: individuals[0].id, animalId: createdAnimals[0].id }
   });
@@ -177,46 +198,41 @@ async function main() {
     data: { pfcUserId: individuals[0].id, animalId: createdAnimals[1].id }
   });
 
-
   // ===========================================================
-  // 8. CRÉATION DES DEMANDES (APPLICATIONS)
+  // 9. CRÉATION DES DEMANDES
   // ===========================================================
   console.log('📝 Création des Demandes...');
-  
-  // Demande d'ADOPTION (En attente)
   await prisma.application.create({
     data: {
-      pfcUserId: individuals[1].id, // Famille 2
-      animalId: createdAnimals[2].id, // Animal 3
-      message: "Bonjour, nous avons eu un coup de cœur pour cet animal. Nous vivons en maison.",
+      pfcUserId: individuals[1].id,
+      animalId: createdAnimals[2].id,
+      message: 'Nous avons eu un coup de cœur.',
       applicationType: ApplicationType.adoption,
       applicationStatus: ApplicationStatus.pending
     }
   });
 
-  // Demande de FA (Acceptée)
   await prisma.application.create({
     data: {
-      pfcUserId: individuals[2].id, // Famille 3
-      animalId: createdAnimals[3].id, // Animal 4
-      message: "Je suis disponible pour accueillir cet animal le temps qu'il trouve une famille.",
+      pfcUserId: individuals[2].id,
+      animalId: createdAnimals[3].id,
+      message: 'Disponible en famille d’accueil.',
       applicationType: ApplicationType.foster,
       applicationStatus: ApplicationStatus.approved
     }
   });
 
-  // Demande REFUSÉE
   await prisma.application.create({
     data: {
-      pfcUserId: individuals[3].id, // Famille 4
-      animalId: createdAnimals[4].id, // Animal 5
-      message: "Je le veux !",
+      pfcUserId: individuals[3].id,
+      animalId: createdAnimals[4].id,
+      message: 'Je le veux !',
       applicationType: ApplicationType.adoption,
       applicationStatus: ApplicationStatus.rejected
     }
   });
 
-  console.log('✅ Seed terminé avec succès ! Base prête.');
+  console.log('✅ Seed terminé avec succès !');
 }
 
 main()
