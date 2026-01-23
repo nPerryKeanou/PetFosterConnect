@@ -16,7 +16,7 @@ export class AnimalsService {
     });
   }
 
-async findAll() {
+async findAll(includeDeleted = false) {
   return this.prisma.animal.findMany({
     where: {
       deletedAt: includeDeleted ? undefined : null,
