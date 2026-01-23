@@ -14,13 +14,21 @@ export default function AnimalDetail() {
   const [animal, setAnimal] = useState<any>(null); // State pour l'animal
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/animals/${id}`);
+        // Ajout de credentials: "include" pour savoir si l'USER connecté a cet animal en favori
+        // Note: Le backend devra peut-être renvoyer un champ "isBookmarked" dans l'objet animal
+        const response = await fetch(`http://localhost:3001/animals/${id}`, {
+          credentials: "include"
+        });
         const data = await response.json();
         setAnimal(data);
+        // Si ton backend renvoie l'info, on l'initialise ici
+        // Sinon, on peut faire un second fetch vers /bookmarks/me pour vérifier
+        if (data.isBookmarked !== undefined) setIsFavorite(data.isBookmarked);
         if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
       } catch (error) {
         console.error("Erreur chargement animal:", error);
@@ -30,6 +38,27 @@ export default function AnimalDetail() {
     };
     if (id) fetchAnimal();
   }, [id]);
+
+  // NOUVEAU : Fonction de Toggle
+  const handleToggleFavorite = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/bookmarks/toggle`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ animalId: Number(id) }),
+        credentials: "include", // ESSENTIEL pour envoyer le cookie access_token
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsFavorite(data.bookmarked); // Ton backend renvoie { bookmarked: true/false }
+      } else if (response.status === 401) {
+        alert("Vous devez être connecté pour ajouter des favoris !");
+      }
+    } catch (error) {
+      console.error("Erreur toggle favori:", error);
+    }
+  };
 
   if (loading) return <div className="text-center p-20">Chargement...</div>;
   if (!animal) return <div className="text-center p-20">Animal non trouvé.</div>;
@@ -45,24 +74,27 @@ export default function AnimalDetail() {
           {/* SECTION PHOTOS */}
         <div className="space-y-4">
             <div className="relative rounded-xl overflow-hidden shadow-lg h-[500px] lg:h-[600px] bg-gray-200">
-    <img 
-      src={selectedPhoto || (Array.isArray(animal.photos) ? animal.photos[0] : "https://placehold.co/600x600")} 
-      alt={animal.name} 
-      className="w-full h-full object-cover transition-all duration-500"
-    />
-
-    {/* Retour du bouton favori cliquable */}
-    <button 
-      className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition text-error shadow-sm group" 
-      type="button"
-      onClick={() => console.log("Ajouté aux favoris !")}
-      aria-label="Ajouter aux favoris"
-    >
-      <Heart 
-        className="w-7 h-7 transition-all duration-300 group-hover:fill-error group-active:scale-90" 
-      />
-    </button>
-  </div>
+              <img 
+                src={selectedPhoto || (Array.isArray(animal.photos) ? animal.photos[0] : "https://placehold.co/600x600")} 
+                alt={animal.name} 
+                className="w-full h-full object-cover transition-all duration-500"
+              />
+                {/* Retour du bouton favori cliquable */}
+                <button 
+                  className="absolute top-4 right-4 bg-white/90 p-3 rounded-full hover:bg-white transition shadow-md group" 
+                  type="button"
+                  onClick={handleToggleFavorite}
+                  aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+                >
+                <Heart 
+                  className={`w-7 h-7 transition-all duration-300 ${
+                    isFavorite 
+                    ? "fill-error text-error scale-110" 
+                    : "text-gray-400 group-hover:text-error"
+                  }`} 
+                />
+              </button>
+            </div>
 
             {/* Miniatures cliquables */}
             <div className="grid grid-cols-4 gap-4">
