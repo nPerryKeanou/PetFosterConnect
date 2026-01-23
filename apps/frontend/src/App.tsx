@@ -21,9 +21,7 @@ import DashboardPage from "./pages/admin/DashboardPage.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminAnimals from "./pages/admin/AdminAnimals";
 import UserProfilePage from "./pages/profile/UserProfile.tsx";
-import AnimalForm from "./pages/profile/AnimalForm.tsx"
-// import UserAnimalsPage from "./pages/profile/UserAnimalsPage.tsx";
-// import UserRequestsPage from "./pages/profile/UserRequestsPage.tsx";
+import AnimalForm from "./pages/profile/AnimalForm";
 
 function App() {
   return (
@@ -49,16 +47,16 @@ function App() {
             <Route path="/user/:id/profil" element={<UserProfilePage />} />
             <Route path="/user/:id/profil/animaux/creer" element={<AnimalForm />} />
           </Route>
+        </Route>
 
-         {/* ZONE ADMIN */}
-           {/* Ces routes ont la Sidebar Admin */}
-            <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<DashboardPage />} />
-            <Route path="utilisateurs" element={<AdminUsers />} />
-            <Route path="animaux" element={<AdminAnimals />} />
-          </Route>
-        
-        </Routes>
+        {/* ZONE ADMIN */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="utilisateurs" element={<AdminUsers />} />
+          <Route path="animaux" element={<AdminAnimals />} />
+        </Route>
+
+      </Routes>
     </AuthProvider>
   );
 }
