@@ -42,7 +42,7 @@ export default function UserSidebarLayout() {
                 {/* Sous-menu Créer un animal */}
                 <div className="ml-8">
                   <NavLink
-                    to={`/user/${user?.id}/animaux/creer`}
+                    to={`/user/${user?.id}/profil/animaux/creer`}
                     className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
                   >
                     <LuPlus className="w-5 h-5"/>

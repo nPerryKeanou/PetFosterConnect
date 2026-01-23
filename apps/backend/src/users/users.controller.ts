@@ -52,8 +52,11 @@ export class UsersController {
   // --- Profils enrichis ---
   @Get(":id/profil")
   getProfile(@Param("id") id: string) {
-    return this.usersService.getProfile(Number(id));
+    const userId = Number(id);
+    console.log("Controller param reçu:", id, "Number(id):", userId);
+    return this.usersService.getProfile(userId);
   }
+  
 
   // --- Mise à jour du profil individuel ---
   @Put(":id/individual-profile")
@@ -75,7 +78,9 @@ export class UsersController {
     return this.usersService.updateShelterProfile(Number(id), updateDto);
   }
 
-  @Put(":id/password") async updatePassword( @Param("id") id: string, @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto ) { return this.usersService.updatePassword(Number(id), dto); }
+  @Put(":id/password") async updatePassword( @Param("id") id: string,
+  @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto ) 
+  { return this.usersService.updatePassword(Number(id), dto); }
   
   
 }

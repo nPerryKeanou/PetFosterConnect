@@ -75,9 +75,11 @@ export default function AuthPage() {
 }
 
 // LOGIN
+// LOGIN
 function LoginForm() {
-  const { setIsLoggedIn } = useAuth();
+  const { setIsLoggedIn, setUser } = useAuth();
   const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -88,12 +90,19 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginDto) => {
     try {
-      await api.post("/auth/login", data);
+      // ⚡ 1. Connexion
+      await api.post("/auth/login", data, { withCredentials: true });
 
-      // ✅ connexion réussie
-      setIsLoggedIn(true); // met à jour l'état
-      alert("Connexion réussie !"); // notification
-      navigate("/"); // redirection vers la page d'accueil
+      // ⚡ 2. Met à jour l'état de connexion
+      setIsLoggedIn(true);
+
+      // ⚡ 3. Récupère l'utilisateur immédiatement
+      const me = await api.get("/auth/me", { withCredentials: true });
+      setUser(me.data);
+
+      // ⚡ 4. Feedback + redirection
+      alert("Connexion réussie !");
+      navigate("/");
     } catch (error: any) {
       if (error.response?.status === 401) {
         alert("Email ou mot de passe incorrect !");
@@ -113,14 +122,13 @@ function LoginForm() {
         {...register("email")}
         error={errors.email?.message}
       />
+
       <InputPassword
         label="Mot de passe"
         placeholder="••••••••"
         {...register("password")}
         error={errors.password?.message}
       />
-      
-      
 
       <div className="text-right">
         <Link
@@ -138,27 +146,36 @@ function LoginForm() {
   );
 }
 
+
 // REGISTER
 function RegisterForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch, // 👈 permet de surveiller les valeurs
+    watch,
   } = useForm<RegisterDto>({
     resolver: zodResolver(RegisterSchema),
   });
 
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useAuth();
+  const { setIsLoggedIn, setUser } = useAuth(); // ⚡ ajoute setUser
 
-  // 👀 on surveille la valeur du champ "role"
   const selectedRole = watch("role");
 
   const onSubmit = async (data: RegisterDto) => {
     try {
-      const _res = await api.post("/auth/register", data);
+      // ⚡ 1. Création du compte
+      await api.post("/auth/register", data, { withCredentials: true });
+
+      // ⚡ 2. Met à jour l'état
       setIsLoggedIn(true);
+
+      // ⚡ 3. Récupère l'utilisateur immédiatement
+      const me = await api.get("/auth/me", { withCredentials: true });
+      setUser(me.data);
+
+      // ⚡ 4. Feedback + redirection
       alert("Compte créé avec succès 🎉");
       navigate("/");
     } catch (_err: any) {
@@ -180,7 +197,6 @@ function RegisterForm() {
         {...register("password")}
         error={errors.password?.message}
       />
-      
 
       {/* Champs conditionnels */}
       {selectedRole === "shelter" && (

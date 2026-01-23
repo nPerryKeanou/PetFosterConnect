@@ -21,6 +21,7 @@ import DashboardPage from "./pages/admin/DashboardPage.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminAnimals from "./pages/admin/AdminAnimals";
 import UserProfilePage from "./pages/profile/UserProfile.tsx";
+import AnimalForm from "./pages/profile/AnimalForm";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           {/* ESPACE UTILISATEUR */}
           <Route element={<UserSidebarLayout />}>
             <Route path="/user/:id/profil" element={<UserProfilePage />} />
+            <Route path="/user/:id/profil/animaux/creer" element={<AnimalForm />} />
           </Route>
         </Route>
 

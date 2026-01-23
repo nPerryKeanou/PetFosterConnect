@@ -98,6 +98,9 @@ export class UsersService {
 
   // --- Récupérer le profil enrichi ---
   async getProfile(userId: number) {
+    if (!userId || isNaN(userId)) {
+      throw new Error("Invalid userId");
+    }
     return this.prisma.pfcUser.findUnique({
       where: { id: userId },
       include: {
@@ -106,6 +109,8 @@ export class UsersService {
       },
     });
   }
+  
+  
   
     // --- Mise à jour du mot de passe ---
   async updatePassword(userId: number, dto: UpdatePasswordDto) {

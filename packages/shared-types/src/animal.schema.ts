@@ -28,21 +28,21 @@ export const AnimalSchema = z.object({
   // Caractéristiques physiques
   sex: AnimalSexEnum,
   weight: z.number().nullable().optional(),
-  height: z.int().nullable().optional(),
+  height: z.number().nullable().optional(),
 
   // Gestion et Médias
   animalStatus: AnimalStatusEnum.default("available"),
   photos: z.array(z.url()).nullable().optional(), // JSONB -> Tableau URLs
 
   // Critères de Matching
-  acceptOtherAnimals: z.boolean().default(true),
-  acceptChildren: z.boolean().default(true),
+  acceptOtherAnimals: z.boolean().default(false),
+  acceptChildren: z.boolean().default(false),
   needGarden: z.boolean().default(false),
   treatment: z.string().nullable().optional(),
 
   // Clés étrangères
-  speciesId: z.int().positive(),
-  pfcUserId: z.int().positive(),
+  speciesId: z.number().positive(),
+  pfcUserId: z.number().positive(),
 
   // Dates
   createdAt: z.date(),

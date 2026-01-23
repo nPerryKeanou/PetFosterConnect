@@ -11,7 +11,8 @@ interface AuthContextType {
   isLoggedIn: boolean;
   setIsLoggedIn: (val: boolean) => void;
   logout: () => Promise<void>;
-  user: any | null; // ajoute l'utilisateur
+  user: any | null;
+  setUser: (user: any | null) => void; // 👈 expose setUser
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
 
   const logout = async () => {
-    await api.post("/auth/logout");
+    await api.post("/auth/logout", {}, { withCredentials: true });
     setIsLoggedIn(false);
     setUser(null);
   };
@@ -31,18 +32,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const res = await api.get("/auth/me", { withCredentials: true });
         setIsLoggedIn(true);
-        setUser(res.data); // stocke l'utilisateur
+        setUser(res.data); // ⚡ stocke l'utilisateur
       } catch {
         setIsLoggedIn(false);
         setUser(null);
       }
     };
 
-    checkAuth();
+    checkAuth(); // 👈 exécute la fonction
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, logout, user }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, setIsLoggedIn, logout, user, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
