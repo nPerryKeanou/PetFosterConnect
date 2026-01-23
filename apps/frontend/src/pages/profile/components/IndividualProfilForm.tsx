@@ -12,6 +12,7 @@ type Props = {
     haveChildren: boolean;
     availableFamily: boolean;
     availableTime?: string;
+    
   };
   onChange: (field: keyof Props["formData"], value: any) => void;
 };
@@ -72,7 +73,7 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
         </select>
       </div>
 
-      <div className="flex grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -116,6 +117,12 @@ export default function IndividualProfileForm({ formData, onChange }: Props) {
              onChange={(e) => onChange("availableTime", e.target.value)}
              className="border rounded p-2 w-full"
            />
+
+         
+
+
+
+
          </div>
        )}
        

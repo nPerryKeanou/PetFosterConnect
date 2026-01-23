@@ -1,28 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, Search, RotateCcw } from "lucide-react";
 import Badge from "../../components/ui/Badge";
-
-// TYPES & MOCK
-type User = {
-  id: number;
-  email: string;
-  role: "individual" | "shelter" | "admin";
-  created_at: string;
-  deleted_at: string | null;
-};
-
-const mockUsers: User[] = [
-  { id: 1, email: "admin@pfc.com", role: "admin", created_at: "2024-01-01", deleted_at: null },
-  { id: 2, email: "refuge@spa.com", role: "shelter", created_at: "2024-01-10", deleted_at: null },
-  { id: 3, email: "jean.dupont@gmail.com", role: "individual", created_at: "2024-02-14", deleted_at: null },
-  { id: 4, email: "marie.curie@science.fr", role: "individual", created_at: "2024-02-15", deleted_at: null },
-  { id: 5, email: "spammer@evil.com", role: "individual", created_at: "2024-02-15", deleted_at: "2024-02-16" },
-];
+import Loader from "../../components/ui/Loader";
+import { api } from "../../api/api";
+import type { User } from "@projet/shared-types";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+
+  // Fetch
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get<User[]>("/users");
+        setUsers(res.data);
+      } catch (error) {
+        console.error("Erreur chargement users:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // LOGIQUE DE FILTRAGE
   const filteredUsers = users.filter((user) => {
@@ -31,16 +33,33 @@ export default function AdminUsers() {
     return matchesSearch && matchesRole;
   });
 
-  // ACTIONS
-  const handleDelete = (id: number) => {
-    if (confirm("Bannir cet utilisateur ?")) {
-      setUsers(users.map(u => u.id === id ? { ...u, deleted_at: new Date().toISOString() } : u));
+  // ACTION : BANNIR (Soft Delete)
+  const handleDelete = async (id: number) => {
+    if (confirm("Voulez-vous vraiment bannir cet utilisateur ?")) {
+      try {
+        await api.delete(`/users/${id}`);
+        // Mise à jour
+        setUsers(users.map(u => u.id === id ? { ...u, deletedAt: new Date() } : u));
+      } catch (error) {
+        alert("Erreur lors de la suppression");
+      }
     }
   };
 
-  const handleRestore = (id: number) => {
-    setUsers(users.map(u => u.id === id ? { ...u, deleted_at: null } : u));
+  // ACTION : RESTAURER
+  const handleRestore = async (id: number) => {
+    if (confirm("Restaurer cet utilisateur ?")) {
+      try {
+        // On envoie deletedAt: null (nécessite que le DTO Back l'autorise)
+        await api.patch(`/users/${id}`, { deletedAt: null });
+        setUsers(users.map(u => u.id === id ? { ...u, deletedAt: null } : u));
+      } catch (error) {
+        alert("Erreur lors de la restauration");
+      }
+    }
   };
+
+  if (loading) return <Loader text="Chargement des utilisateurs..." />;
 
   return (
     <div className="space-y-6">
@@ -50,8 +69,6 @@ export default function AdminUsers() {
 
       {/* BARRE D'OUTILS */}
       <div className="bg-white p-4 rounded-lg shadow-sm flex flex-col sm:flex-row gap-4">
-        
-        {/* Recherche */}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input 
@@ -62,8 +79,6 @@ export default function AdminUsers() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        {/* Filtre */}
         <select 
           className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-primary cursor-pointer"
           value={roleFilter}
@@ -99,38 +114,37 @@ export default function AdminUsers() {
                     <Badge 
                       label={user.role} 
                       className={
-                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                        user.role === 'shelter' ? 'bg-blue-100 text-blue-800' : 
-                        'bg-gray-100 text-gray-800'
+                        user.role === 'admin' ? 'text-purple-700' :
+                        user.role === 'shelter' ? 'text-orange-700' :
+                        'text-blue-700'
                       }
                     />
                   </td>
-                  <td className="px-6 py-4 hidden sm:table-cell text-gray-500">{user.created_at}</td>
+                  <td className="px-6 py-4 hidden sm:table-cell text-gray-500">
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
+                  </td>
                   <td className="px-6 py-4">
-                    {user.deleted_at ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                        Banni
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                        Actif
-                      </span>
-                    )}
+                    <Badge 
+                      label={user.deletedAt ? "Banni" : "Actif"} 
+                      variant={user.deletedAt ? "error" : "success"}
+                    />
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {user.deleted_at ? (
-                      <button type="button"
-                        onClick={() => handleRestore(user.id)}
-                        className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors"
-                        title="Restaurer"
+                    {user.deletedAt ? (
+                      <button 
+                        type="button"
+                        onClick={() => user.id && handleRestore(user.id)}
+                        className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors inline-flex items-center gap-1"
+                        title="Restaurer l'utilisateur"
                       >
-                        <RotateCcw className="w-5 h-5" />
+                        <RotateCcw className="w-4 h-4" /> Restaurer
                       </button>
                     ) : (
-                      <button type="button"
-                        onClick={() => handleDelete(user.id)}
+                      <button 
+                        type="button"
+                        onClick={() => user.id && handleDelete(user.id)}
                         className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-full transition-colors"
-                        title="Bannir"
+                        title="Bannir l'utilisateur"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

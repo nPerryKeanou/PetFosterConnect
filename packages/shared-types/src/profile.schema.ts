@@ -67,7 +67,6 @@ export type CreateShelterProfileDto = z.infer<
 // DTO : Mise à jour (Front -> Back)
 export const UpdateShelterProfileSchema = ShelterProfileSchema.omit({
   pfcUserId: true, // l'ID ne change pas
-  siret: true, // info légale fixe
   createdAt: true,
   updatedAt: true,
 }).partial();

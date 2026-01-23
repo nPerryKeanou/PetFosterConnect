@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import BackBanner from "../components/ui/BackBanner";
 
@@ -8,7 +8,7 @@ const RefugeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   console.log("useParams id côté frontend:", id);
 
-  const navigate = useNavigate();
+
   const [shelter, setShelter] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,23 +32,6 @@ const RefugeDetailPage = () => {
     fetchShelter();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm("Voulez-vous vraiment supprimer ce refuge ?")) return;
-    try {
-      if (!id) return;
-      const res = await fetch(`${API_URL}/shelters/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Erreur suppression");
-      navigate("/refuges");
-    } catch (err) {
-      console.error("Erreur suppression:", err);
-    }
-  };
-
-  const handleEdit = () => {
-    if (!id) return;
-    navigate(`/refuges/${id}/edit`);
-  };
-
   if (loading) return <p>Chargement...</p>;
   if (!shelter) return <p>Refuge introuvable</p>;
 
@@ -65,7 +48,7 @@ const RefugeDetailPage = () => {
           style={{ borderColor: "#2D6A4F" }}
         >
           <img
-            src={shelter.logoUrl ?? "https://placehold.co/150x150?text=Pas+de+logo"}
+            src={shelter.logo ?? "https://placehold.co/150x150?text=Pas+de+logo"}
             alt={`${shelter.shelterName} logo`}
             className="w-32 h-32 rounded-full object-cover bg-gray-200"
           />
@@ -93,20 +76,7 @@ const RefugeDetailPage = () => {
               Voir les animaux du refuge
             </Link>
           )}
-
-          <button
-            onClick={handleEdit}
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Modifier
-          </button>
-
-          <button
-            onClick={handleDelete}
-            className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition"
-          >
-            Supprimer
-          </button>
+  
         </div>
       </div>
     </div>

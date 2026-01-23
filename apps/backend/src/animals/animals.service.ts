@@ -18,6 +18,9 @@ export class AnimalsService {
 
 async findAll() {
   return this.prisma.animal.findMany({
+    where: {
+      deletedAt: includeDeleted ? undefined : null,
+    },
     include: {
       species: true,    // Récupère l'objet Species (id, name, etc.)
       shelter: {        // Récupère l'utilisateur PfcUser lié
@@ -71,12 +74,17 @@ async findOne(id: number, userId?: number) {
 }
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
+    const data: any = {};
+
+    Object.entries(updateAnimalDto).forEach(([key, value]) => {
+      if (value !== undefined) {
+        data[key] = value;
+      }
+    });
+
     return this.prisma.animal.update({
       where: { id },
-      data: {
-        ...updateAnimalDto,
-        photos: updateAnimalDto.photos as any,
-      },
+      data,
     });
   }
 

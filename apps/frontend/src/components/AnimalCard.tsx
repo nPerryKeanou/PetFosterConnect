@@ -52,6 +52,7 @@ const AnimalCard = ({
           </p>
         </div>
         <button
+          type="button"
           onClick={() => navigate(`/animaux/${id}`)}
           className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:scale-[0.98] active:scale-95"
         >
