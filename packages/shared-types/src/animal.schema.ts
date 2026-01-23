@@ -69,6 +69,13 @@ export const CreateAnimalSchema = AnimalSchema.omit({
 export type CreateAnimalDto = z.infer<typeof CreateAnimalSchema>;
 
 // UPDATE : Modification d'une fiche
-export const UpdateAnimalSchema = CreateAnimalSchema.partial();
+export const UpdateAnimalSchema = AnimalSchema
+  .omit({
+    id: true,
+    pfcUserId: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .partial();
 
 export type UpdateAnimalDto = z.infer<typeof UpdateAnimalSchema>;

@@ -59,7 +59,7 @@ export const UpdateUserSchema = UserSchema.pick({
   password: true,
   phoneNumber: true,
   address: true,
-  // role: true, // À décommenter seulement si un admin peut changer le rôle
-}).partial(); // .partial() rend tous les champs optionnels
+  deletedAt: true, // Permet d'envoyer null pour restaurer
+}).partial();
 
 export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;

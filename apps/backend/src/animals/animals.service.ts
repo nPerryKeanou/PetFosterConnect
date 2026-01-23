@@ -16,21 +16,11 @@ export class AnimalsService {
     });
   }
 
-//   async findAll() {
-//   return this.prisma.animal.findMany({
-//     include: {
-//       species: true,
-//       shelter: {
-//         include: { shelterProfile: true }
-//       }
-//     }
-//   });
-// }
-
-// apps/backend/src/animals/animals.service.ts
-
-async findAll() {
+async findAll(includeDeleted = false) {
   return this.prisma.animal.findMany({
+    where: {
+      deletedAt: includeDeleted ? undefined : null,
+    },
     include: {
       species: true,    // Récupère l'objet Species (id, name, etc.)
       shelter: {        // Récupère l'utilisateur PfcUser lié
@@ -60,12 +50,17 @@ async findAll() {
   }
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
+    const data: any = {};
+
+    Object.entries(updateAnimalDto).forEach(([key, value]) => {
+      if (value !== undefined) {
+        data[key] = value;
+      }
+    });
+
     return this.prisma.animal.update({
       where: { id },
-      data: {
-        ...updateAnimalDto,
-        photos: updateAnimalDto.photos as any,
-      },
+      data,
     });
   }
 
@@ -76,30 +71,3 @@ async findAll() {
     });
   }
 }
-
-// import { Injectable } from '@nestjs/common';
-// import { CreateAnimalDto } from './dto/create-animal.dto';
-// import { UpdateAnimalDto } from './dto/update-animal.dto';
-
-// @Injectable()
-// export class AnimalsService {
-//   create(createAnimalDto: CreateAnimalDto) {
-//     return 'This action adds a new animal';
-//   }
-
-//   findAll() {
-//     return `This action returns all animals`;
-//   }
-
-//   findOne(id: number) {
-//     return `This action returns a #${id} animal`;
-//   }
-
-//   update(id: number, updateAnimalDto: UpdateAnimalDto) {
-//     return `This action updates a #${id} animal`;
-//   }
-
-//   remove(id: number) {
-//     return `This action removes a #${id} animal`;
-//   }
-// }

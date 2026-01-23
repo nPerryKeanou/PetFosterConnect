@@ -18,6 +18,7 @@ import ShelterDetailPage from "./pages/ShelterDetail.tsx";
 import SheltersPage from "./pages/ShelterList.tsx";
 import DashboardPage from "./pages/admin/DashboardPage.tsx";
 import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import AdminAnimals from "./pages/admin/AdminAnimals";
 import UserProfilePage from "./pages/profile/UserProfile.tsx";
 
 function App() {
@@ -52,7 +53,8 @@ function App() {
         {/* Ces routes ont la Sidebar Admin */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="utilisateurs" element={<AdminUsers />} />
+          <Route path="animaux" element={<AdminAnimals />} />
         </Route>
 
       </Routes>

@@ -91,17 +91,31 @@ export class UsersService {
 
   // --- Mise à jour du profil individuel ---
   async updateIndividualProfile(userId: number, data: UpdateIndividualProfileDto) {
-    return this.prisma.individualProfile.update({
+    return this.prisma.individualProfile.upsert({
       where: { pfcUserId: userId },
-      data,
+      update: data,
+      create: {
+        pfcUserId: userId,
+        ...data,
+        // Valeurs par défaut obligatoires si création
+        haveGarden: data.haveGarden ?? false,
+        haveAnimals: data.haveAnimals ?? false,
+        haveChildren: data.haveChildren ?? false,
+      },
     });
   }
 
   // --- Mise à jour du profil refuge ---
   async updateShelterProfile(userId: number, data: UpdateShelterProfileDto) {
-    return this.prisma.shelterProfile.update({
-      where: { pfcUserId: userId },
-      data,
-    });
+    try {
+      return await this.prisma.shelterProfile.update({
+        where: { pfcUserId: userId },
+        data,
+      });
+    } catch (error) {
+      // Si le profil n'existe pas, on ne peut pas le créer sans SIRET.
+      // On renvoie une erreur ou on ignore.
+      throw new Error("Profil refuge introuvable. Veuillez contacter l'admin pour l'initialisation.");
+    }
   }
 }
