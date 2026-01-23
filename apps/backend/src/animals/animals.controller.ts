@@ -1,14 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UsePipes, UseGuards, Req } from '@nestjs/common';
 import { AnimalsService } from './animals.service';
 import { ZodPipe } from '../common/pipes/zod.pipe';
-// import type { CreateAnimalSchema, UpdateAnimalSchema, CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types';
-
-// On importe les SCHÉMAS (valeurs) normalement
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard'; // Import du nouveau guard
 import { CreateAnimalSchema, UpdateAnimalSchema } from '@projet/shared-types';
-
-// On importe les DTOS (types) avec 'type'
 import type { CreateAnimalDto, UpdateAnimalDto } from '@projet/shared-types';
-
 
 @Controller('animals')
 export class AnimalsController {
@@ -26,15 +21,17 @@ export class AnimalsController {
     return this.animalsService.findAll();
   }
 
-  // ROUTE SPECIALE ADMIN
-  @Get('admin/all')
-  findAllAdmin() {
-    return this.animalsService.findAll(true); // true = inclure les supprimés
-  }
-
+  /**
+   * Récupère un animal par son ID.
+   * Utilise OptionalJwtAuthGuard pour identifier l'utilisateur sans bloquer l'accès aux visiteurs.
+   */
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.animalsService.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {    // On passe l'id de l'user au service s'il existe
+    // Si l'utilisateur est connecté, le Guard remplit req.user
+    const userId = req.user?.id;
+    // On transmet l'ID de l'animal ET l'éventuel ID utilisateur au service
+    return this.animalsService.findOne(id, userId); // <--- Vérifie l'ordre ici
   }
 
   @Patch(':id')
@@ -47,39 +44,3 @@ export class AnimalsController {
     return this.animalsService.remove(id);
   }
 }
-
-
-// import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-// import { AnimalsService } from './animals.service';
-// import { CreateAnimalDto } from './dto/create-animal.dto';
-// import { UpdateAnimalDto } from './dto/update-animal.dto';
-
-// @Controller('animals')
-// export class AnimalsController {
-//   constructor(private readonly animalsService: AnimalsService) {}
-
-//   @Post()
-//   create(@Body() createAnimalDto: CreateAnimalDto) {
-//     return this.animalsService.create(createAnimalDto);
-//   }
-
-//   @Get()
-//   findAll() {
-//     return this.animalsService.findAll();
-//   }
-
-//   @Get(':id')
-//   findOne(@Param('id') id: string) {
-//     return this.animalsService.findOne(+id);
-//   }
-
-//   @Patch(':id')
-//   update(@Param('id') id: string, @Body() updateAnimalDto: UpdateAnimalDto) {
-//     return this.animalsService.update(+id, updateAnimalDto);
-//   }
-
-//   @Delete(':id')
-//   remove(@Param('id') id: string) {
-//     return this.animalsService.remove(+id);
-//   }
-// }

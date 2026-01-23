@@ -16,7 +16,7 @@ export class AnimalsService {
     });
   }
 
-async findAll(includeDeleted = false) {
+async findAll() {
   return this.prisma.animal.findMany({
     where: {
       deletedAt: includeDeleted ? undefined : null,
@@ -32,22 +32,46 @@ async findAll(includeDeleted = false) {
   });
 }
 
-  async findOne(id: number) {
-    const animal = await this.prisma.animal.findUnique({
-      where: { id },
-      include: { 
-        species: true, // récupère l'espèce 
-      shelter: {       // récupère l'utilisateur qui possède l'animal
-        include: {
-          shelterProfile: true // récupère les infos du refuge (shelterName, etc.)
-        }
-      }
+/**
+   * Trouve un animal et vérifie si l'utilisateur l'a mis en favori.
+   */
+async findOne(id: number, userId?: number) {
+  // 1. On cherche l'animal
+  const animal = await this.prisma.animal.findUnique({
+    where: { id: Number(id) },
+    include: { 
+      species: true, 
+      shelter: { include: { shelterProfile: true } } 
+    },
+  });
+
+  if (!animal || animal.deletedAt)
+    throw new NotFoundException("Animal non trouvé");
+
+  // 2. Initialisation de l'état du favori
+  let isBookmarked = false;
+  // 3. Si un utilisateur est connecté, on vérifie l'existence d'un bookmark en base
+  if (userId) {
+    // On récupère TOUS les favoris de l'utilisateur pour voir ce qui se passe
+  const allUserBookmarks = await this.prisma.bookmark.findMany({
+    where: { pfcUserId: Number(userId) }
+  });
+  
+    // On force la recherche par les champs individuels
+    const bookmark = await this.prisma.bookmark.findFirst({
+      where: {
+        pfcUserId: Number(userId),
+        animalId: Number(id),
       },
     });
-    if (!animal || animal.deletedAt)
-      throw new NotFoundException("Animal non trouvé");
-    return animal;
+
+  // Si bookmark existe, on passe isBookmarked à true
+    isBookmarked = !!bookmark;
   }
+  const result = { ...animal, isBookmarked };
+  //4. On retourne l'animal fusionné avec l'info du favori
+  return result;
+}
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     const data: any = {};
