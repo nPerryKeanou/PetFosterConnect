@@ -18,8 +18,7 @@ export default function UserCard({ user }: UserCardProps) {
   return (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-md p-6">
       {/* Header */}
-      <h3 className="text-xl font-bold text-gray-800 mb-2">{user.email}</h3>
-      
+      <h3 className="text-xl font-bold text-gray-800 mb-2">{user.email}</h3>   
 
       {/* Infos générales */}
       {user.phoneNumber && (
@@ -49,7 +48,10 @@ export default function UserCard({ user }: UserCardProps) {
                 ? `Disponibilité: ${new Date(user.individualProfile.availableTime).toLocaleDateString("fr-FR")}`
                 : null}
             </li>
-             
+<<<<<<< HEAD
+
+=======
+>>>>>>> dev
           </ul>
         </div>
       )}
@@ -59,6 +61,11 @@ export default function UserCard({ user }: UserCardProps) {
         <div className="mt-4">
           <h4 className="text-md font-bold text-success mb-2">Profil refuge</h4>
           <ul className="text-sm text-gray-700 space-y-1">
+            <li>
+                {user.shelterProfile.logo 
+                ? <img src={user.shelterProfile.logo} alt="Logo du refuge" className="h-12" /> 
+                : "Non renseigné"}
+            </li>
             <li>Nom du refuge : {user.shelterProfile.shelterName}</li>
             <li>SIRET : {user.shelterProfile.siret}</li>
             <li>Description : {user.shelterProfile.description ?? "Non renseignée"}</li>

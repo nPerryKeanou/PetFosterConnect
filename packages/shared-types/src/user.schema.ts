@@ -63,3 +63,16 @@ export const UpdateUserSchema = UserSchema.pick({
 }).partial();
 
 export type UpdateUserDto = z.infer<typeof UpdateUserSchema>;
+
+
+export const UpdatePasswordSchema = z.object({
+  oldPassword: z.string().min(1, { message: "Ancien mot de passe requis" }),
+  newPassword: z
+    .string()
+    .min(12, { message: "Le mot de passe doit faire au moins 12 caractères" })
+    .regex(/[A-Z]/, { message: "Une majuscule requise" })
+    .regex(/[0-9]/, { message: "Un chiffre requis" })
+    .regex(/[^a-zA-Z0-9]/, { message: "Un caractère spécial requis" }),
+});
+
+export type UpdatePasswordDto = z.infer<typeof UpdatePasswordSchema>;

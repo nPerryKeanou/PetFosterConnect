@@ -3,8 +3,20 @@ import { Controller, Get, Post, Patch, Put, Delete, Param, Body, UsePipes } from
 import { UsersService } from "./users.service";
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
-import { UpdateIndividualProfileSchema, UpdateShelterProfileSchema} from "@projet/shared-types";
-import type { UpdateIndividualProfileDto, UpdateShelterProfileDto } from "@projet/shared-types";
+
+// ⚡ Import des schémas globaux (runtime)
+import { 
+  UpdateUserWithIndividualProfileSchema, 
+  UpdateUserWithShelterProfileSchema,
+  UpdatePasswordSchema 
+} from "@projet/shared-types";
+
+// ⚡ Import des types uniquement pour le typage (compile-time)
+import type { 
+  UpdateUserWithIndividualProfileDto, 
+  UpdateUserWithShelterProfileDto,
+  UpdatePasswordDto
+} from "@projet/shared-types";
 
 @Controller("users")
 export class UsersController {
@@ -45,21 +57,25 @@ export class UsersController {
 
   // --- Mise à jour du profil individuel ---
   @Put(":id/individual-profile")
-  @UsePipes(new ZodPipe(UpdateIndividualProfileSchema))
+  @UsePipes(new ZodPipe(UpdateUserWithIndividualProfileSchema))
   async updateIndividualProfile(
     @Param("id") id: string,
-    @Body() updateDto: UpdateIndividualProfileDto
+    @Body() updateDto: UpdateUserWithIndividualProfileDto
   ) {
     return this.usersService.updateIndividualProfile(Number(id), updateDto);
   }
 
   // --- Mise à jour du profil refuge ---
   @Put(":id/shelter-profile")
-  @UsePipes(new ZodPipe(UpdateShelterProfileSchema))
+  @UsePipes(new ZodPipe(UpdateUserWithShelterProfileSchema))
   async updateShelterProfile(
     @Param("id") id: string,
-    @Body() updateDto: UpdateShelterProfileDto,
+    @Body() updateDto: UpdateUserWithShelterProfileDto,
   ) {
     return this.usersService.updateShelterProfile(Number(id), updateDto);
   }
+
+  @Put(":id/password") async updatePassword( @Param("id") id: string, @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto ) { return this.usersService.updatePassword(Number(id), dto); }
+  
+  
 }

@@ -2,7 +2,7 @@ import type { ShelterProfile } from "../../../../packages/shared-types/src/profi
 import { Link } from "react-router-dom"; 
 
 
-const ShelterCard = ({ shelterName, description, pfcUserId,  /*logo_url */}: ShelterProfile) => {
+const ShelterCard = ({ shelterName, description, pfcUserId, logo}: ShelterProfile) => {
   return (
     <div className="w-full max-w-sm">
       {/* Toute la carte cliquable vers détails */}
@@ -14,25 +14,29 @@ const ShelterCard = ({ shelterName, description, pfcUserId,  /*logo_url */}: She
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity z-10">
           {/* Logo avec fallback */}
           <img
-            src={/*logo_url ?? */"https://placehold.co/200x200?text=Pas+de+logo"}
+            src={logo ?? "https://placehold.co/200x200?text=Pas+de+logo"}
             alt={`${shelterName} logo`}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-75" 
           />
 
           {/* Nom du refuge */}
-          <div className="absolute bottom-4 left-4 z-20 text-white pr-4">
+          <div className="absolute top-4 left-4 z-20 text-white pr-4">
           <h3 className="text-xl font-bold font-montserrat shadow-black drop-shadow-sm leading-tight">
             {shelterName}
           </h3>
           </div>
-        </div>
+          
+          <div className="absolute bottom-4 left-3 z-20 text-white pr-4">
           {/* Description */}
-          <p className="text-sm text-gray-600 ml-4 my-4 text-left">
-              <span className="font-semibold ">Description :</span>
-            </p>
-          {description && (
-            <p className="text-sm text-gray-600 ml-4 mb-4 text-left">{description}</p>
-          )}
+            <p className="text-sm text-white-600 ml-3 my-4 text-left">
+                <span className="font-semibold ">Description :</span>
+              </p>
+            {description && (
+              <p className="text-sm text-white-600 ml-3 mb-4 text-left">{description}</p>
+            )}
+          </div>
+        </div>
+          
         </div>
       </Link>
 
