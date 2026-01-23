@@ -29,6 +29,12 @@ export class AnimalsController {
     return this.animalsService.findOne(id, userId);
   }
 
+  @Get("shelter/:id")
+  async findByShelter(@Param("id") id: string) {
+    return this.animalsService.findAllByShelter(Number(id));
+  }
+  
+
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,

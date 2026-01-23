@@ -3,6 +3,16 @@ import { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
 
+
+// Animal avec relations species + shelterProfile
+type AnimalWithRelations = Prisma.AnimalGetPayload<{
+  include: { species: true; shelter: { include: { shelterProfile: true } } };
+}>;
+
+// Animal enrichi avec isBookmarked
+type AnimalWithBookmark = AnimalWithRelations & { isBookmarked: boolean };
+
+
 @Injectable()
 export class AnimalsService {
   constructor(private prisma: PrismaService) {}
@@ -40,24 +50,42 @@ export class AnimalsService {
     });
   }
 
-  async findOne(id: number, userId?: number) {
-    const animal = await this.prisma.animal.findUnique({
-      where: { id },
-      include: { species: true, shelter: { include: { shelterProfile: true } } },
-    });
+ async findOne(id: number, userId?: number): Promise<AnimalWithBookmark> {
+   const animal = await this.prisma.animal.findUnique({
+     where: { id },
+     include: {
+       species: true,
+       shelter: { include: { shelterProfile: true } },
+       bookmarks: userId ? { where: { pfcUserId: userId } } : false,
+     },
+   });
+ 
+   if (!animal || animal.deletedAt) {
+     throw new NotFoundException(`Animal ${id} non trouvé ou supprimé`);
+   }
+ 
+   const isBookmarked = !!animal.bookmarks?.length;
+ 
+   // On supprime bookmarks du retour si tu veux éviter de l’exposer
+   const { bookmarks, ...rest } = animal;
+ 
+   return { ...rest, isBookmarked };
+ }
+ 
+async findAllByShelter(userId: number) {
+  return this.prisma.animal.findMany({
+    where: { pfcUserId: userId },
+    include: {
+      species: true,
+      shelter: { include: { shelterProfile: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+}
 
-    if (!animal || animal.deletedAt) throw new NotFoundException("Animal non trouvé");
 
-    let isBookmarked = false;
-    if (userId) {
-      const bookmark = await this.prisma.bookmark.findFirst({
-        where: { pfcUserId: userId, animalId: id },
-      });
-      isBookmarked = !!bookmark;
-    }
 
-    return { ...animal, isBookmarked };
-  }
+
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     const data: any = {};

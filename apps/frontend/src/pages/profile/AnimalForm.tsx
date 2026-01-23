@@ -1,4 +1,4 @@
-import { useParams ,useNavigate} from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CreateAnimalSchema } from "@projet/shared-types";
 import { api } from "../../api/api";
@@ -6,24 +6,27 @@ import { api } from "../../api/api";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AnimalForm() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>(); // id du refuge (userId)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const animal = location.state?.animal; // si on vient de "Modifier", on récupère l’animal
+
   const [species, setSpecies] = useState<{ id: number; name: string }[]>([]);
 
   const [formData, setFormData] = useState<any>({
-    name: "",
-    age: "",
-    description: "",
-    sex: "unknown",
-    weight: "",
-    height: "",
-    animalStatus: "available",
-    photos: [],
-    acceptOtherAnimals: false,
-    acceptChildren: false,
-    needGarden: false,
-    treatment: "",
-    speciesId: "",
+    name: animal?.name ?? "",
+    age: animal?.age ?? "",
+    description: animal?.description ?? "",
+    sex: animal?.sex ?? "unknown",
+    weight: animal?.weight ?? "",
+    height: animal?.height ?? "",
+    animalStatus: animal?.animalStatus ?? "available",
+    photos: animal?.photos ?? [],
+    acceptOtherAnimals: animal?.acceptOtherAnimals ?? false,
+    acceptChildren: animal?.acceptChildren ?? false,
+    needGarden: animal?.needGarden ?? false,
+    treatment: animal?.treatment ?? "",
+    speciesId: animal?.species?.id ?? "",
   });
 
   // Charger les espèces
@@ -47,10 +50,8 @@ export default function AnimalForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Conversion finale AVANT Zod
     const parsedData = {
       ...formData,
-      age: formData.age, // reste une string
       weight: formData.weight === "" ? undefined : Number(formData.weight),
       height: formData.height === "" ? undefined : Number(formData.height),
       speciesId: formData.speciesId === "" ? undefined : Number(formData.speciesId),
@@ -59,132 +60,37 @@ export default function AnimalForm() {
     try {
       const parsed = CreateAnimalSchema.parse(parsedData);
 
-      const payload = { ...parsed, pfcUserId: Number(id) };
+      if (animal) {
+        // Mode édition → PATCH
+        await api.patch(`/animals/${animal.id}`, parsed);
+        alert("Animal modifié avec succès 🎉");
+      } else {
+        // Mode création → POST
+        const payload = { ...parsed, pfcUserId: Number(id) };
+        await api.post(`/animals`, payload);
+        alert("Animal créé avec succès 🎉");
+      }
 
-      await api.post(`/animals`, payload);
-
-      alert("Animal créé avec succès 🎉");
+      navigate(-1); // retour à la liste
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la création de l'animal (voir console)");
+      alert("Erreur lors de l'enregistrement (voir console)");
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-4xl">
-        <h2 className="text-2xl font-semibold mb-6">Créer un animal</h2>
-
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* COLONNE GAUCHE */}
+    <div className="bg-bgapp font-openSans text-gray-800">
+      <main className="container mx-auto px-4 py-8 flex-grow">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+          {/* SECTION PHOTOS */}
           <div className="space-y-4">
-
-            <div>
-              <label>Nom *</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                className="border p-2 w-full"
+            <div className="relative rounded-xl overflow-hidden shadow-lg h-[400px] bg-gray-200">
+              <img
+                src={formData.photos[0] || "https://placehold.co/600x600"}
+                alt={formData.name || "Nouvel animal"}
+                className="w-full h-full object-cover"
               />
-            </div>
-
-            <div>
-              <label>Âge</label>
-              <input
-                type="number"
-                value={formData.age}
-                onChange={(e) => handleChange("age", e.target.value)} // PAS Number()
-                className="border p-2 w-full"
-              />
-              
-            </div>
-
-            <div>
-              <label>Poids (kg)</label>
-              <input
-                type="number"
-                step="0.1"
-                value={formData.weight}
-                onChange={(e) =>
-                  handleChange("weight", e.target.value === "" ? "" : Number(e.target.value))
-                }
-                className="border p-2 w-full"
-              />
-            </div>
-
-            <div>
-              <label>Taille (cm)</label>
-              <input
-                type="number"
-                value={formData.height}
-                onChange={(e) =>
-                  handleChange("height", e.target.value === "" ? "" : Number(e.target.value))
-                }
-                className="border p-2 w-full"
-              />
-            </div>
-
-            <div>
-              <label>Sexe</label>
-              <select
-                value={formData.sex}
-                onChange={(e) => handleChange("sex", e.target.value)}
-                className="border p-2 w-full"
-              >
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="unknown">Inconnu</option>
-              </select>
-            </div>
-
-          </div>
-
-          {/* COLONNE DROITE */}
-          <div className="space-y-4">
-
-            <div>
-              <label>Description</label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleChange("description", e.target.value)}
-                className="border p-2 w-full"
-              />
-            </div>
-
-            <div>
-              <label>Statut</label>
-              <select
-                value={formData.animalStatus}
-                onChange={(e) => handleChange("animalStatus", e.target.value)}
-                className="border p-2 w-full"
-              >
-                <option value="available">Disponible</option>
-                <option value="adopted">Adopté</option>
-                <option value="foster_care">Famille d'accueil</option>
-                <option value="unavailable">Indisponible</option>
-              </select>
-            </div>
-
-            <div>
-              <label>Espèce *</label>
-              <select
-                required
-                value={formData.speciesId}
-                onChange={(e) =>
-                  handleChange("speciesId", e.target.value === "" ? "" : Number(e.target.value))
-                }
-                className="border p-2 w-full"
-              >
-                <option value="">-- Sélectionner une espèce --</option>
-                {species.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div>
@@ -200,58 +106,72 @@ export default function AnimalForm() {
                 className="border p-2 w-full"
               />
             </div>
-
-            <div className="flex flex-col gap-2">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formData.acceptOtherAnimals}
-                  onChange={(e) => handleChange("acceptOtherAnimals", e.target.checked)}
-                />  Ok autres animaux
-              </label>
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formData.acceptChildren}
-                  onChange={(e) => handleChange("acceptChildren", e.target.checked)}
-                />  Ok enfants
-              </label>
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formData.needGarden}
-                  onChange={(e) => handleChange("needGarden", e.target.checked)}
-                /> Besoin de jardin
-              </label>
-            </div>
-
-            <div>
-              <label>Traitement médical</label>
-              <input
-                value={formData.treatment}
-                onChange={(e) => handleChange("treatment", e.target.value)}
-                className="border p-2 w-full"
-              />
-            </div>
-
           </div>
 
-          {/* BOUTONS */}
-          <div className="md:col-span-2 flex justify-between mt-6">
-            <button type="button" onClick={() => navigate(-1)} 
-            className="bg-gray-400 text-white px-4 py-2 rounded" > 
-            Annuler 
-            </button>
+          {/* SECTION INFORMATIONS */}
+          <div className="bg-gray-100 p-8 rounded-lg shadow-sm text-left flex flex-col items-start h-full">
+            
+            {/* Infos générales */}
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold text-success mb-2">
+                {animal ? "Modifier l'animal" : "Créer un nouvel animal"}
+              </h2>
+              <input type="text" placeholder="Nom" value={formData.name} onChange={(e)=>handleChange("name",e.target.value)} className="border p-2 w-full mb-2"/>
+              <input type="number" placeholder="Âge" value={formData.age} onChange={(e)=>handleChange("age",e.target.value)} className="border p-2 w-full mb-2"/>
+              <select value={formData.sex} onChange={(e)=>handleChange("sex",e.target.value)} className="border p-2 w-full mb-2">
+                <option value="male">Mâle</option>
+                <option value="female">Femelle</option>
+                <option value="unknown">Inconnu</option>
+              </select>
+              <select value={formData.speciesId} onChange={(e)=>handleChange("speciesId",Number(e.target.value))} className="border p-2 w-full mb-2">
+                <option value="">-- Sélectionner une espèce --</option>
+                {species.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <select value={formData.animalStatus} onChange={(e)=>handleChange("animalStatus",e.target.value)} className="border p-2 w-full">
+                <option value="available">Disponible</option>
+                <option value="adopted">Adopté</option>
+                <option value="foster_care">Famille d'accueil</option>
+                <option value="unavailable">Indisponible</option>
+              </select>
+            </div>
 
-            <button type="submit" className="bg-primary text-white px-4 py-2 rounded">
-              Sauvegarder
-            </button>
+            {/* Caractéristiques physiques */}
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold text-success mb-2">Caractéristiques physiques</h2>
+              <input type="number" placeholder="Poids (kg)" value={formData.weight} onChange={(e)=>handleChange("weight",e.target.value)} className="border p-2 w-full mb-2"/>
+              <input type="number" placeholder="Taille (cm)" value={formData.height} onChange={(e)=>handleChange("height",e.target.value)} className="border p-2 w-full"/>
+            </div>
+
+            {/* Compatibilité */}
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold text-success mb-2">Compatibilité</h2>
+              <label className="mx-1"><input type="checkbox" checked={formData.acceptChildren} onChange={(e)=>handleChange("acceptChildren",e.target.checked)} /> Ok enfants</label>
+              <label className="mx-1"><input type="checkbox" checked={formData.acceptOtherAnimals} onChange={(e)=>handleChange("acceptOtherAnimals",e.target.checked)} /> Ok animaux</label>
+              <label className="mx-1"><input type="checkbox" checked={formData.needGarden} onChange={(e)=>handleChange("needGarden",e.target.checked)} /> Besoin de jardin</label>
+            </div>
+
+            {/* Santé */}
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold text-success mb-2">Soins & Traitements</h2>
+              <input type="text" placeholder="Traitement médical" value={formData.treatment} onChange={(e)=>handleChange("treatment",e.target.value)} className="border p-2 w-full"/>
+            </div>
+
+            {/* Description */}
+            <div className="mb-6 w-full">
+              <h2 className="text-xl font-bold text-success mb-2">Description</h2>
+              <textarea value={formData.description} onChange={(e)=>handleChange("description",e.target.value)} className="border p-2 w-full"/>
+            </div>
+
+            {/* Boutons */}
+            <div className="border-t-2 border-gray-300 pt-6 flex justify-between w-full mt-auto">
+              <button type="button" onClick={()=>navigate(-1)} className="bg-gray-400 text-white px-4 py-2 rounded">Annuler</button>
+              <button type="submit" className="bg-primary text-white px-4 py-2 rounded">
+                Sauvegarder
+              </button>
+            </div>
           </div>
-
         </form>
-      </div>
+      </main>
     </div>
   );
 }

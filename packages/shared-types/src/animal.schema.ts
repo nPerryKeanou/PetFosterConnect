@@ -20,9 +20,10 @@ export type Species = z.infer<typeof SpeciesSchema>;
 
 // ANIMAL
 export const AnimalSchema = z.object({
-  id: z.int().positive(),
+  id: z.number().int().positive(),
   name: z.string().min(1).max(100),
   age: z.string().max(50).nullable().optional(),
+   // ou string si tu veux "3 mois"
   description: z.string().nullable().optional(),
 
   // Caractéristiques physiques
@@ -32,7 +33,7 @@ export const AnimalSchema = z.object({
 
   // Gestion et Médias
   animalStatus: AnimalStatusEnum.default("available"),
-  photos: z.array(z.url()).nullable().optional(), // JSONB -> Tableau URLs
+  photos: z.array(z.string().url()).nullable().optional(), // JSONB -> Tableau URLs
 
   // Critères de Matching
   acceptOtherAnimals: z.boolean().default(false),
@@ -49,6 +50,7 @@ export const AnimalSchema = z.object({
   updatedAt: z.date().nullable().optional(),
   deletedAt: z.date().nullable().optional(),
 });
+
 
 export type Animal = z.infer<typeof AnimalSchema>;
 

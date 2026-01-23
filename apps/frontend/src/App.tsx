@@ -22,6 +22,7 @@ import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminAnimals from "./pages/admin/AdminAnimals";
 import UserProfilePage from "./pages/profile/UserProfile.tsx";
 import AnimalForm from "./pages/profile/AnimalForm";
+import ShelterAnimalList from "./pages/profile/ShelterAnimalList.tsx";
 
 function App() {
   return (
@@ -46,6 +47,8 @@ function App() {
           <Route element={<UserSidebarLayout />}>
             <Route path="/user/:id/profil" element={<UserProfilePage />} />
             <Route path="/user/:id/profil/animaux/creer" element={<AnimalForm />} />
+            <Route path="/user/:id/animaux" element={<ShelterAnimalList />} />
+            <Route path="/user/:userId/animaux/:id" element={<AnimalDetail />} />
           </Route>
         </Route>
 
