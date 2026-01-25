@@ -1,5 +1,7 @@
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { AuthProvider } from "./auth/authContext";
+import "react-toastify/dist/ReactToastify.css";
 // Layouts
 import AdminLayout from "./components/layout/AdminLayout";
 import PublicLayout from "./components/layout/PublicLayout";
@@ -18,6 +20,7 @@ import Home from "./pages/Home.tsx";
 import Legal from "./pages/Legal";
 import NotFound from "./pages/Notfound.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import ProtectedRoute from "./pages/ProtectedRoute";
 import AnimalForm from "./pages/profile/AnimalForm";
 import ShelterAnimalList from "./pages/profile/ShelterAnimalList";
 import UserProfilePage from "./pages/profile/UserProfile";
@@ -46,18 +49,32 @@ function App() {
 
           {/* ESPACE UTILISATEUR */}
           <Route element={<UserSidebarLayout />}>
-            <Route path="/user/:id/profil" element={<UserProfilePage />} />
+            <Route
+              path="/user/:id/profil"
+              element={
+                <ProtectedRoute>
+                  <UserProfilePage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/user/:id/profil/animaux/creer"
-              element={<AnimalForm />}
+              element={
+                <ProtectedRoute>
+                  <AnimalForm />
+                </ProtectedRoute>
+              }
             />
             <Route path="/user/:id/animaux" element={<ShelterAnimalList />} />
             <Route
               path="/user/:userId/animaux/:id"
-              element={<AnimalDetail />}
+              element={
+                <ProtectedRoute>
+                  <AnimalDetail />
+                </ProtectedRoute>
+              }
             />
           </Route>
-          <Route path="/user/:id/profil" element={<UserProfilePage />} />
 
           {/* Route 404 */}
           <Route path="*" element={<NotFound />} />
@@ -69,11 +86,44 @@ function App() {
 
         {/* ZONE ADMIN */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="utilisateurs" element={<AdminUsers />} />
-          <Route path="animaux" element={<AdminAnimals />} />
+          <Route
+            index
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="utilisateurs"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="animaux"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminAnimals />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </AuthProvider>
   );
 }

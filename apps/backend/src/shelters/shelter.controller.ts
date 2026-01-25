@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UsePipes } from "@nestjs/common";
-import { ShelterService } from "./shelter.service";
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  UsePipes,
+} from "@nestjs/common";
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
+import { ShelterService } from "./shelter.service";
 
 @Controller("shelters")
 export class ShelterController {
@@ -20,13 +29,15 @@ export class ShelterController {
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    console.log("Controller param reçu:", id, "Number(id):", Number(id));
     return this.shelterService.findOne(Number(id));
   }
 
   @Put(":id")
   @UsePipes(new ZodPipe(sharedTypes.UpdateShelterProfileSchema))
-  update(@Param("id") id: string, @Body() body: sharedTypes.UpdateShelterProfileDto) {
+  update(
+    @Param("id") id: string,
+    @Body() body: sharedTypes.UpdateShelterProfileDto
+  ) {
     return this.shelterService.update(Number(id), body);
   }
 

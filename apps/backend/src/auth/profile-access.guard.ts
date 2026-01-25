@@ -22,7 +22,9 @@ export class ProfileAccessGuard implements CanActivate {
     if (user.id === requestedUserId) {
       return true;
     }
-
+    console.log(
+      `ProfileAccessGuard: accès refusé pour l'utilisateur ID ${user.id} au profil ID ${requestedUserId}`
+    );
     throw new ForbiddenException("Accès interdit");
   }
 }

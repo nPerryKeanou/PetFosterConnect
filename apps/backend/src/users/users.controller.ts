@@ -24,8 +24,8 @@ import {
   UpdateUserWithIndividualProfileSchema,
   UpdateUserWithShelterProfileSchema,
 } from "@projet/shared-types";
-import { JwtAuthGuard } from "src/auth/auth.guard";
-import { ProfileAccessGuard } from "src/auth/profile-access.guard";
+import { JwtAuthGuard } from "../auth/auth.guard";
+import { ProfileAccessGuard } from "../auth/profile-access.guard";
 import { ZodPipe } from "../common/pipes/zod.pipe";
 import { UsersService } from "./users.service";
 
@@ -64,7 +64,7 @@ export class UsersController {
   @Get(":id/profil")
   @UseGuards(JwtAuthGuard, ProfileAccessGuard)
   getProfile(@Param("id") id: string) {
-    console.log("Accès au profil de l'utilisateur ID :", id);
+    console.log("Getting profile for user ID:", id);
     return this.usersService.getProfile(Number(id));
   }
 
