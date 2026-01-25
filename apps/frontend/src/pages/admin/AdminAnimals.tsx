@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Trash2, Search, Eye, RotateCcw } from "lucide-react";
+import type { Animal } from "@projet/shared-types";
+import { Eye, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { api } from "../../api/api";
 import Badge from "../../components/ui/Badge";
 import Loader from "../../components/ui/Loader";
-import { api } from "../../api/api";
-import type { Animal } from "@projet/shared-types";
 
 // Type étendu pour matcher le retour API (Relations Prisma)
 type AnimalWithRelations = Animal & {
@@ -21,7 +21,7 @@ export default function AdminAnimals() {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const res = await api.get<AnimalWithRelations[]>("/animals/admin/all");
+        const res = await api.get<AnimalWithRelations[]>("/animals");
         setAnimals(res.data);
       } catch (error) {
         console.error("Erreur chargement animaux:", error);
@@ -34,8 +34,11 @@ export default function AdminAnimals() {
 
   // FILTRAGE
   const filteredAnimals = animals.filter((animal) => {
-    const matchesSearch = animal.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || animal.animalStatus === statusFilter;
+    const matchesSearch = animal.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" || animal.animalStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -44,8 +47,12 @@ export default function AdminAnimals() {
     if (confirm("Supprimer cet animal (Soft Delete) ?")) {
       try {
         await api.delete(`/animals/${id}`);
-        setAnimals(animals.map(a => a.id === id ? { ...a, deletedAt: new Date() } : a));
-      } catch (error) {
+        setAnimals(
+          animals.map((a) =>
+            a.id === id ? { ...a, deletedAt: new Date() } : a
+          )
+        );
+      } catch (_errorrrrr) {
         alert("Erreur lors de la suppression");
       }
     }
@@ -57,8 +64,10 @@ export default function AdminAnimals() {
       try {
         // Envoi de deletedAt: null
         await api.patch(`/animals/${id}`, { deletedAt: null });
-        setAnimals(animals.map(a => a.id === id ? { ...a, deletedAt: null } : a));
-      } catch (error) {
+        setAnimals(
+          animals.map((a) => (a.id === id ? { ...a, deletedAt: null } : a))
+        );
+      } catch (_errorrrrr) {
         alert("Erreur lors de la restauration");
       }
     }
@@ -69,22 +78,24 @@ export default function AdminAnimals() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800 font-montserrat">Gestion des Animaux</h1>
+        <h1 className="text-2xl font-bold text-gray-800 font-montserrat">
+          Gestion des Animaux
+        </h1>
       </div>
 
       {/* BARRE D'OUTILS */}
       <div className="bg-white p-4 rounded-lg shadow-sm flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder="Rechercher par nom..." 
+          <input
+            type="text"
+            placeholder="Rechercher par nom..."
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-primary transition"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <select 
+        <select
           className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-primary cursor-pointer"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -112,21 +123,28 @@ export default function AdminAnimals() {
           <tbody className="divide-y divide-gray-100 text-sm">
             {filteredAnimals.length > 0 ? (
               filteredAnimals.map((animal) => (
-                <tr key={animal.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{animal.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{animal.species?.name || "Inconnu"}</td>
+                <tr
+                  key={animal.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {animal.name}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {animal.species?.name || "Inconnu"}
+                  </td>
                   <td className="px-6 py-4 text-gray-500">
                     {animal.shelter?.shelterProfile?.shelterName || "Inconnu"}
                   </td>
                   <td className="px-6 py-4">
-                    <Badge 
+                    <Badge
                       label={animal.deletedAt ? "Supprimé" : "Disponible"}
                       variant={animal.deletedAt ? "error" : "success"}
                     />
                   </td>
                   <td className="px-6 py-4 text-right flex justify-end gap-2">
                     {animal.deletedAt ? (
-                      <button 
+                      <button
                         type="button"
                         onClick={() => animal.id && handleRestore(animal.id)}
                         className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors inline-flex items-center gap-1"
@@ -136,18 +154,18 @@ export default function AdminAnimals() {
                       </button>
                     ) : (
                       <>
-                        <a 
-                          href={`/animaux/${animal.id}`} 
-                          target="_blank" 
+                        <a
+                          href={`/animaux/${animal.id}`}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-gray-400 hover:text-primary p-2 rounded-full hover:bg-orange-50 transition-colors"
                           title="Voir la fiche publique"
                         >
                           <Eye className="w-5 h-5" />
                         </a>
-                        <button 
+                        <button
                           type="button"
-                          onClick={() => animal.id && handleDelete(animal.id)} 
+                          onClick={() => animal.id && handleDelete(animal.id)}
                           className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-full transition-colors"
                           title="Supprimer"
                         >
