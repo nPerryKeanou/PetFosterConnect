@@ -8,12 +8,12 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { api } from "../api/api";
 import { useAuth } from "../auth/authContext";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import InputPassword from "../components/ui/InputPassword";
-
 
 export default function AuthPage() {
   const location = useLocation();
@@ -74,12 +74,10 @@ export default function AuthPage() {
   );
 }
 
-// LOGIN
-// LOGIN
+//LOGIN
 function LoginForm() {
   const { setIsLoggedIn, setUser } = useAuth();
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,
@@ -91,23 +89,32 @@ function LoginForm() {
   const onSubmit = async (data: LoginDto) => {
     try {
       // ⚡ 1. Connexion
-      await api.post("/auth/login", data, { withCredentials: true });
+      const res = await api.post("/auth/login", data, {
+        withCredentials: true,
+      });
 
       // ⚡ 2. Met à jour l'état de connexion
       setIsLoggedIn(true);
 
       // ⚡ 3. Récupère l'utilisateur immédiatement
-      const me = await api.get("/auth/me", { withCredentials: true });
-      setUser(me.data);
+      setUser(res.data.user);
 
       // ⚡ 4. Feedback + redirection
-      alert("Connexion réussie !");
+      toast.success("Connexion réussie !", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
       navigate("/");
     } catch (error: any) {
       if (error.response?.status === 401) {
-        alert("Email ou mot de passe incorrect !");
+        toast.error("Email ou mot de passe incorrect !", {
+          position: "top-right",
+        });
       } else {
-        alert("Erreur serveur. Veuillez réessayer.");
+        toast.error("Erreur serveur. Veuillez réessayer.", {
+          position: "top-right",
+        });
         console.error(error);
       }
     }
@@ -122,14 +129,12 @@ function LoginForm() {
         {...register("email")}
         error={errors.email?.message}
       />
-
       <InputPassword
         label="Mot de passe"
         placeholder="••••••••"
         {...register("password")}
         error={errors.password?.message}
       />
-
       <div className="text-right">
         <Link
           to="/forgot-password"
@@ -138,14 +143,12 @@ function LoginForm() {
           Mot de passe oublié ?
         </Link>
       </div>
-
       <Button type="submit" fullWidth>
         Se connecter
       </Button>
     </form>
   );
 }
-
 
 // REGISTER
 function RegisterForm() {
@@ -157,10 +160,8 @@ function RegisterForm() {
   } = useForm<RegisterDto>({
     resolver: zodResolver(RegisterSchema),
   });
-
   const navigate = useNavigate();
-  const { setIsLoggedIn, setUser } = useAuth(); // ⚡ ajoute setUser
-
+  const { setIsLoggedIn, setUser } = useAuth();
   const selectedRole = watch("role");
 
   const onSubmit = async (data: RegisterDto) => {
@@ -176,10 +177,28 @@ function RegisterForm() {
       setUser(me.data);
 
       // ⚡ 4. Feedback + redirection
-      alert("Compte créé avec succès 🎉");
+      toast.success("Compte créé avec succès 🎉", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
       navigate("/");
-    } catch (_err: any) {
-      alert("Erreur lors de l'inscription");
+    } catch (err: any) {
+      // Gestion d'erreur plus détaillée
+      if (err.response?.status === 409) {
+        toast.error("Cet email est déjà utilisé", {
+          position: "top-right",
+        });
+      } else if (err.response?.data?.message) {
+        toast.error(err.response.data.message, {
+          position: "top-right",
+        });
+      } else {
+        toast.error("Erreur lors de l'inscription. Veuillez réessayer.", {
+          position: "top-right",
+        });
+      }
+      console.error(err);
     }
   };
 
@@ -191,7 +210,6 @@ function RegisterForm() {
         {...register("email")}
         error={errors.email?.message}
       />
-
       <InputPassword
         label="Mot de passe"
         {...register("password")}
@@ -207,7 +225,6 @@ function RegisterForm() {
             {...register("siret")}
             error={errors.siret?.message}
           />
-
           <Input
             label="Nom du refuge"
             type="text"
@@ -222,7 +239,6 @@ function RegisterForm() {
           <legend className="text-sm font-medium text-gray-700">
             Vous êtes :
           </legend>
-
           <div className="flex gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input

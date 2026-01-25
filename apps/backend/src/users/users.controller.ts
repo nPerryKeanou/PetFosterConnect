@@ -1,22 +1,33 @@
 // src/users/users.controller.ts
-import { Controller, Get, Post, Patch, Put, Delete, Param, Body, UsePipes } from "@nestjs/common";
-import { UsersService } from "./users.service";
-import * as sharedTypes from "@projet/shared-types";
-import { ZodPipe } from "../common/pipes/zod.pipe";
-
-// ⚡ Import des schémas globaux (runtime)
-import { 
-  UpdateUserWithIndividualProfileSchema, 
-  UpdateUserWithShelterProfileSchema,
-  UpdatePasswordSchema 
-} from "@projet/shared-types";
-
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common";
 // ⚡ Import des types uniquement pour le typage (compile-time)
-import type { 
-  UpdateUserWithIndividualProfileDto, 
+import type {
+  UpdatePasswordDto,
+  UpdateUserWithIndividualProfileDto,
   UpdateUserWithShelterProfileDto,
-  UpdatePasswordDto
 } from "@projet/shared-types";
+import * as sharedTypes from "@projet/shared-types";
+// ⚡ Import des schémas globaux (runtime)
+import {
+  UpdatePasswordSchema,
+  UpdateUserWithIndividualProfileSchema,
+  UpdateUserWithShelterProfileSchema,
+} from "@projet/shared-types";
+import { JwtAuthGuard } from "../auth/auth.guard";
+import { ProfileAccessGuard } from "../auth/profile-access.guard";
+import { ZodPipe } from "../common/pipes/zod.pipe";
+import { UsersService } from "./users.service";
 
 @Controller("users")
 export class UsersController {
@@ -51,12 +62,11 @@ export class UsersController {
 
   // --- Profils enrichis ---
   @Get(":id/profil")
+  @UseGuards(JwtAuthGuard, ProfileAccessGuard)
   getProfile(@Param("id") id: string) {
-    const userId = Number(id);
-    console.log("Controller param reçu:", id, "Number(id):", userId);
-    return this.usersService.getProfile(userId);
+    console.log("Getting profile for user ID:", id);
+    return this.usersService.getProfile(Number(id));
   }
-  
 
   // --- Mise à jour du profil individuel ---
   @Put(":id/individual-profile")
@@ -73,14 +83,15 @@ export class UsersController {
   @UsePipes(new ZodPipe(UpdateUserWithShelterProfileSchema))
   async updateShelterProfile(
     @Param("id") id: string,
-    @Body() updateDto: UpdateUserWithShelterProfileDto,
+    @Body() updateDto: UpdateUserWithShelterProfileDto
   ) {
     return this.usersService.updateShelterProfile(Number(id), updateDto);
   }
 
-  @Put(":id/password") async updatePassword( @Param("id") id: string,
-  @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto ) 
-  { return this.usersService.updatePassword(Number(id), dto); }
-  
-  
+  @Put(":id/password") async updatePassword(
+    @Param("id") id: string,
+    @Body(new ZodPipe(UpdatePasswordSchema)) dto: UpdatePasswordDto
+  ) {
+    return this.usersService.updatePassword(Number(id), dto);
+  }
 }

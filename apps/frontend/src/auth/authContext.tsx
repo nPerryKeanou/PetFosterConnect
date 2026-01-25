@@ -12,7 +12,8 @@ interface AuthContextType {
   setIsLoggedIn: (val: boolean) => void;
   logout: () => Promise<void>;
   user: any | null;
-  setUser: (user: any | null) => void; // 👈 expose setUser
+  setUser: (user: any | null) => void;
+  isLoading: boolean; // ✅ Ajout
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // ✅ true au départ
+
+  // ✅ Vérifier l'auth au chargement
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("/auth/me", { withCredentials: true });
+        setUser(response.data);
+        setIsLoggedIn(true);
+      } catch (_error) {
+        setUser(null);
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false); // ✅ Fin du chargement
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const logout = async () => {
     await api.post("/auth/logout", {}, { withCredentials: true });
@@ -27,24 +47,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await api.get("/auth/me", { withCredentials: true });
-        setIsLoggedIn(true);
-        setUser(res.data); // ⚡ stocke l'utilisateur
-      } catch {
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    };
-
-    checkAuth(); // 👈 exécute la fonction
-  }, []);
-
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, setIsLoggedIn, logout, user, setUser }}
+      value={{ isLoggedIn, setIsLoggedIn, logout, user, setUser, isLoading }}
     >
       {children}
     </AuthContext.Provider>
