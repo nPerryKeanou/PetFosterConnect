@@ -1,34 +1,35 @@
-import { Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./auth/authContext.tsx";
-
+import { Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./auth/authContext";
 // Layouts
-import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
-import UserSidebarLayout from "./components/layout/UserSidebarLayout.tsx";
+import PublicLayout from "./components/layout/PublicLayout";
+import UserSidebarLayout from "./components/layout/UserSidebarLayout";
 
-// Pages
-import Home from "./pages/Home.tsx";
-import About from "./pages/About.tsx";
+//Pages
+import About from "./pages/About";
 import AnimalDetail from "./pages/AnimalDetail";
 import AnimalList from "./pages/AnimalList";
 import AuthPage from "./pages/AuthPage";
-import Legal from "./pages/Legal";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import ShelterAnimalPage from "./pages/ShelterAnimal.tsx";
-import ShelterDetailPage from "./pages/ShelterDetail.tsx";
-import SheltersPage from "./pages/ShelterList.tsx";
-import DashboardPage from "./pages/admin/DashboardPage.tsx";
-import AdminUsers from "./pages/admin/AdminUsers.tsx";
 import AdminAnimals from "./pages/admin/AdminAnimals";
-import UserProfilePage from "./pages/profile/UserProfile.tsx";
+import AdminUsers from "./pages/admin/AdminUsers";
+import DashboardPage from "./pages/admin/DashboardPage";
+import Forbidden from "./pages/Forbidden";
+import Home from "./pages/Home.tsx";
+import Legal from "./pages/Legal";
+import NotFound from "./pages/Notfound.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AnimalForm from "./pages/profile/AnimalForm";
-import ShelterAnimalList from "./pages/profile/ShelterAnimalList.tsx";
+import ShelterAnimalList from "./pages/profile/ShelterAnimalList";
+import UserProfilePage from "./pages/profile/UserProfile";
+import ShelterAnimalPage from "./pages/ShelterAnimal";
+import ShelterDetailPage from "./pages/ShelterDetail";
+import SheltersPage from "./pages/ShelterList";
+import Unauthorized from "./pages/Unauthorized";
 
 function App() {
   return (
     <AuthProvider>
       <Routes>
-
         {/* ZONE PUBLIQUE */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
@@ -46,10 +47,24 @@ function App() {
           {/* ESPACE UTILISATEUR */}
           <Route element={<UserSidebarLayout />}>
             <Route path="/user/:id/profil" element={<UserProfilePage />} />
-            <Route path="/user/:id/profil/animaux/creer" element={<AnimalForm />} />
+            <Route
+              path="/user/:id/profil/animaux/creer"
+              element={<AnimalForm />}
+            />
             <Route path="/user/:id/animaux" element={<ShelterAnimalList />} />
-            <Route path="/user/:userId/animaux/:id" element={<AnimalDetail />} />
+            <Route
+              path="/user/:userId/animaux/:id"
+              element={<AnimalDetail />}
+            />
           </Route>
+          <Route path="/user/:id/profil" element={<UserProfilePage />} />
+
+          {/* Route 404 */}
+          <Route path="*" element={<NotFound />} />
+          {/* Route Unauthorized */}
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          {/* Route Forbidden */}
+          <Route path="/forbidden" element={<Forbidden />} />
         </Route>
 
         {/* ZONE ADMIN */}
@@ -58,7 +73,6 @@ function App() {
           <Route path="utilisateurs" element={<AdminUsers />} />
           <Route path="animaux" element={<AdminAnimals />} />
         </Route>
-
       </Routes>
     </AuthProvider>
   );
