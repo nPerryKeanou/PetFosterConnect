@@ -5,33 +5,37 @@ import {
 import { ApplicationsService } from './applications.service';
 import * as sharedTypes from '@projet/shared-types';
 import { ZodPipe } from '../common/pipes/zod.pipe';
+import { string } from 'zod';
+
 
 @Controller('applications')
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
   // CANDIDAT : Créer une demande
-  @Post()
+  @Post(":id")
   @UsePipes(new ZodPipe(sharedTypes.CreateApplicationSchema))
-  create(@Body() createApplicationDto: sharedTypes.CreateApplicationDto) {
-    // TODO: Remplacer par l'ID du token JWT (req.user.id)
-    const userId = 1; // ID Temporaire pour test (Particulier)
+  create(
+    @Body() createApplicationDto: sharedTypes.CreateApplicationDto,
+    @Param("id", ParseIntPipe) userId: number
+  ) {
     return this.applicationsService.create(userId, createApplicationDto);
   }
 
   // CANDIDAT : Mes demandes envoyées
-  @Get('sent')
-  findAllSent() {
-    const userId = 1; // ID Temporaire
-    return this.applicationsService.findAllSent(userId);
+  @Get("sent/:id")
+  findAllSent(@Param("id", ParseIntPipe) id: number) {
+    return this.applicationsService.findAllSent(id);
   }
+  
 
   // REFUGE : Demandes reçues
-  @Get('received')
-  findAllReceived() {
-    const shelterId = 2; // ID Temporaire pour test (Refuge)
-    return this.applicationsService.findAllReceived(shelterId);
+  @Get("received/:id")
+  findAllReceived(@Param("id", ParseIntPipe) id: number) {
+    const shelterId = id; // ID temporaire
+    return this.applicationsService.findAllReceived(id);
   }
+  
 
   // REFUGE : Accepter/Refuser
   // On a besoin des 2 IDs pour identifier la demande unique

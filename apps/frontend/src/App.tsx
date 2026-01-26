@@ -28,6 +28,8 @@ import ShelterAnimalPage from "./pages/ShelterAnimal";
 import ShelterDetailPage from "./pages/ShelterDetail";
 import SheltersPage from "./pages/ShelterList";
 import Unauthorized from "./pages/Unauthorized";
+import ApplicationsSent from "./pages/profile/ApplicationSent.tsx"
+import ApplicationsReceived from "./pages/profile/ApplicationsReceived.tsx"
 
 function App() {
   return (
@@ -74,6 +76,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/user/:id/demandes" element={
+              <ProtectedRoute>
+              <ApplicationsSent />
+              </ProtectedRoute>
+            }
+            />
+            <Route path="/user/:id/demandes-recus" element={
+              <ProtectedRoute>
+              <ApplicationsReceived />
+              </ProtectedRoute>} 
+              />
+            
           </Route>
 
           {/* Route 404 */}
