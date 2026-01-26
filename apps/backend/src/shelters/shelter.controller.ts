@@ -11,10 +11,13 @@ import {
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
 import { ShelterService } from "./shelter.service";
+import { AnimalsService } from '../animals/animals.service';
 
 @Controller("shelters")
 export class ShelterController {
-  constructor(private readonly shelterService: ShelterService) {}
+  constructor(private readonly shelterService: ShelterService,
+  private readonly animalsService: AnimalsService,
+  ) {}
 
   @Post()
   @UsePipes(new ZodPipe(sharedTypes.CreateShelterProfileSchema))
@@ -31,6 +34,11 @@ export class ShelterController {
   findOne(@Param("id") id: string) {
     return this.shelterService.findOne(Number(id));
   }
+
+  @Get(':id/animals') // L'URL doit correspondre EXACTEMENT
+  findAnimals(@Param('id') id: string) {
+  return this.animalsService.findAllByShelter(Number(id));
+}
 
   @Put(":id")
   @UsePipes(new ZodPipe(sharedTypes.UpdateShelterProfileSchema))

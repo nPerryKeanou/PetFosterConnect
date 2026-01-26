@@ -71,21 +71,19 @@ export class AnimalsService {
  
    return { ...rest, isBookmarked };
  }
- 
-async findAllByShelter(userId: number) {
-  return this.prisma.animal.findMany({
-    where: { pfcUserId: userId },
-    include: {
-      species: true,
-      shelter: { include: { shelterProfile: true } },
-    },
-    orderBy: { name: "asc" },
-  });
-}
-
-
-
-
+  async findAllByShelter(userId: number) {
+    return this.prisma.animal.findMany({
+      where: { pfcUserId: userId },
+      include: { // <--- C'EST CETTE PARTIE QUI MANQUE SÛREMENT
+        species: true, // "Va chercher le nom de l'espèce"
+        shelter: {     // "Va chercher les infos du refuge"
+          include: {
+            shelterProfile: true 
+          }
+        }
+      }
+    });
+  }
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     const data: any = {};
