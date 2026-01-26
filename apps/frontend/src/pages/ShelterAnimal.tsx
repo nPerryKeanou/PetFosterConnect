@@ -1,3 +1,5 @@
+//page de la liste des refuge.
+// url --> http://localhost:5173/refuges
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import _AnimalCard from "../components/AnimalCard";

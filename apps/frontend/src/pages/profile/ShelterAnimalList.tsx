@@ -18,16 +18,18 @@ export default function ShelterAnimalList() {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const res = await api.get<AnimalWithRelations[]>(`/animals/shelter/${id}`);
+        const res = await api.get<AnimalWithRelations[]>(`/shelters/${Number(id)}/animals`);        console.log("RETOUR SERVEUR BRUT :", JSON.stringify(res.data, null, 2));
         setAnimals(res.data);
       } catch (error) {
-        console.error("Erreur chargement animaux:", error);
+        console.error("ERREUR DÉTAILLÉE ICI :", error); // <--- Change cette ligne
       } finally {
         setLoading(false);
       }
     };
     if (id) fetchAnimals();
   }, [id]);
+
+
 
   const filteredAnimals = animals.filter((animal) => {
     const matchesSearch = animal.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -59,6 +61,8 @@ export default function ShelterAnimalList() {
 
   if (loading) return <Loader text="Chargement des animaux..." />;
 
+  console.log("DEBUG FRONT - Nombre d'animaux reçus :", animals.length);
+console.log("DEBUG FRONT - Nombre d'animaux après filtrage :", filteredAnimals.length);
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -104,8 +108,8 @@ export default function ShelterAnimalList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {filteredAnimals.length > 0 ? (
-              filteredAnimals.map((animal) => (
+            {animals.length > 0 ? (
+              animals.map((animal) => (
                 <tr key={animal.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-gray-500">#{animal.id}</td>
                   <td className="px-6 py-4 font-medium text-gray-900">{animal.name}</td>

@@ -11,32 +11,46 @@ export class ShelterService {
   }
 
   async findAll() {
-    return this.prisma.shelterProfile.findMany({
-      where: {
-        user: {
-          deletedAt: null,
-        },
+  return this.prisma.shelterProfile.findMany({
+    where: {
+      user: { deletedAt: null },
+    },
+    include: {
+      user: { 
+        include: { 
+          animals: {
+            include: { species: true }
+          } 
+        } 
       },
-      include: {
-        user: { include: { animals: true } },
+    },
+  });
+}
+
+async findOne(id: number) {
+  const shelter = await this.prisma.shelterProfile.findUnique({
+    where: { pfcUserId: id },
+    include: {
+      user: { 
+        include: { 
+          animals: {
+            include: { species: true,
+              shelter: {
+                include: { shelterProfile: true } 
+              }
+             }
+          } 
+        } 
       },
-    });
+    },
+  });
+
+  if (!shelter || shelter.user.deletedAt) {
+    throw new NotFoundException("Refuge introuvable");
   }
 
-  async findOne(id: number) {
-    const shelter = await this.prisma.shelterProfile.findUnique({
-      where: { pfcUserId: id },
-      include: {
-        user: { include: { animals: true } },
-      },
-    });
-
-    if (!shelter || shelter.user.deletedAt) {
-      throw new NotFoundException("Refuge introuvable");
-    }
-
-    return shelter;
-  }
+  return shelter;
+}
 
   async update(id: number, data: UpdateShelterProfileDto) {
     return this.prisma.shelterProfile.update({

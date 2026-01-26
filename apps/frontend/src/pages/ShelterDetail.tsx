@@ -1,3 +1,5 @@
+//Page des details d'un seul refuge
+//Url -> http://localhost:5173/refuges/48
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import BackBanner from "../components/ui/BackBanner";
