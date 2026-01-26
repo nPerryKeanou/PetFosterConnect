@@ -11,21 +11,28 @@ import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
+import { toast } from "react-toastify";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AnimalDetail() {
   const { userId, id } = useParams<{ userId: string; id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth(); // ✅ utilisateur connecté
+  const [hasApplied, setHasApplied] = useState(false);
 
   const [animal, setAnimal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [adoptMessage, setAdoptMessage] = useState("");
+  const [fosterMessage, setFosterMessage] = useState("");
+  
 
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/animals/${id}`, {
+        const response = await fetch(`${API_URL}/animals/${id}`, {
           credentials: "include",
         });
         const data = await response.json();
@@ -42,9 +49,52 @@ export default function AnimalDetail() {
     if (id) fetchAnimal();
   }, [id]);
 
+  const handleAdopt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const response = await fetch(`http://localhost:3001/applications/${user?.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        animalId: Number(id),
+        applicationType: "adoption",
+        message: adoptMessage,
+      }),
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      toast.success("Demande d'adoption envoyée !");
+      setHasApplied(true); // ✅ on masque les boutons
+    }else { 
+      const errorData = await response.json(); // ⚡ lire le corps de l'erreur 
+      console.error("Erreur API:", errorData); 
+      toast.error(`Erreur: ${errorData.errors?.message || errorData.message || "Bad Request"}`
+        );
+      }
+  };
+
+  const handleFoster = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const response = await fetch("http://localhost:3001/applications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        animalId: Number(id),
+        applicationType: "foster",
+        message: fosterMessage,
+      }),
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      toast.success("Demande d'accueil envoyée !");
+      setHasApplied(true); // ✅ on masque les boutons
+    }
+  };
+
   const handleToggleFavorite = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/bookmarks/toggle`, {
+      const response = await fetch(`${API_URL}/bookmarks/toggle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ animalId: Number(id) }),
@@ -55,7 +105,7 @@ export default function AnimalDetail() {
         const data = await response.json();
         setIsFavorite(data.bookmarked);
       } else if (response.status === 401) {
-        alert("Vous devez être connecté pour ajouter des favoris !");
+        toast.success("Vous devez être connecté pour ajouter des favoris !");
       }
     } catch (error) {
       console.error("Erreur toggle favori:", error);
@@ -306,49 +356,52 @@ export default function AnimalDetail() {
                 </Button>
               ) : (
                 <>
-                  {/* Formulaire Adoption */}
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                    }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="flex-grow">
-                      <Input
-                        label="Message d'adoption"
-                        placeholder="Pourquoi souhaitez-vous adopter ?"
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="w-32 mt-[26px]">
-                      <Button variant="primary" fullWidth type="submit">
-                        Adopter
-                      </Button>
-                    </div>
-                  </form>
-
-                  {/* Formulaire Accueil */}
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                    }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="flex-grow">
-                      <Input
-                        label="Message pour l'accueil"
-                        placeholder="Vos disponibilités et motivations..."
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="w-32 mt-[26px]">
-                      <Button variant="primary" fullWidth type="submit">
-                        Accueillir
-                      </Button>
-                    </div>
-                  </form>
+                  {hasApplied ? (
+                    <p className="text-green-600 font-semibold">
+                      Demande déjà réalisée pour cet animal ✅
+                    </p>
+                  ) : (
+                    <>
+                      {/* Formulaire Adoption */}
+                      <form onSubmit={handleAdopt} className="flex items-start gap-4">
+                        <div className="flex-grow">
+                          <Input
+                            label="Message d'adoption"
+                            placeholder="Pourquoi souhaitez-vous adopter ?"
+                            className="bg-white"
+                            value={adoptMessage}
+                            onChange={(e) => setAdoptMessage(e.target.value)}
+                          />
+                        </div>
+                        <div className="w-32 mt-[26px]">
+                          <Button variant="primary" fullWidth type="submit">
+                            Adopter
+                          </Button>
+                        </div>
+                      </form>
+            
+                      {/* Formulaire Accueil */}
+                      <form onSubmit={handleFoster} className="flex items-start gap-4">
+                        <div className="flex-grow">
+                          <Input
+                            label="Message pour l'accueil"
+                            placeholder="Vos disponibilités et motivations..."
+                            className="bg-white"
+                            value={fosterMessage}
+                            onChange={(e) => setFosterMessage(e.target.value)}
+                          />
+                        </div>
+                        <div className="w-32 mt-[26px]">
+                          <Button variant="primary" fullWidth type="submit">
+                            Accueillir
+                          </Button>
+                        </div>
+                      </form>
+                    </>
+                  )}
                 </>
               )}
+            
               {/* Bouton Export PDF */}
               <button
                 onClick={exportToPDF}
@@ -357,6 +410,7 @@ export default function AnimalDetail() {
                 Exporter en PDF
               </button>
             </div>
+            
           </div>
         </div>
       </main>

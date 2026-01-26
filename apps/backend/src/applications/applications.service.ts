@@ -24,19 +24,27 @@ export class ApplicationsService {
     });
   }
 
+
   // Voir mes demandes envoyées (Candidat)
   findAllSent(userId: number) {
     return this.prisma.application.findMany({
       where: { 
         pfcUserId: userId,
-        deletedAt: null // On exclut les archivées
+        deletedAt: null, // On exclut les archivées
       },
       include: {
-        animal: true, // On veut voir pour quel animal on a postulé
+        animal: true, // L’animal concerné
+        user: {       // Le candidat
+          select: {
+            id: true,
+            individualProfile: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
+  
 
   // Voir les demandes reçues (Refuge)
   // On cherche les demandes sur les animaux qui appartiennent à ce refuge
@@ -53,7 +61,8 @@ export class ApplicationsService {
           select: { name: true, photos: true, id: true } // Juste l'essentiel de l'animal
         },
         user: { 
-          include: {
+          select:{
+            id: true, email: true,
             individualProfile: true // Pour voir les critères (jardin, enfants...) du candidat
           }
         }
