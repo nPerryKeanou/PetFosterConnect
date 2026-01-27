@@ -25,7 +25,7 @@ export class ApplicationsService {
   }
 
 
-  // Voir mes demandes envoyées (Candidat)
+ // Voir mes demandes envoyées (Candidat)
   findAllSent(userId: number) {
     return this.prisma.application.findMany({
       where: { 
@@ -37,7 +37,8 @@ export class ApplicationsService {
         user: {       // Le candidat
           select: {
             id: true,
-            individualProfile: true,
+            email: true, 
+            phoneNumber: true,
           },
         },
       },
@@ -48,28 +49,42 @@ export class ApplicationsService {
 
   // Voir les demandes reçues (Refuge)
   // On cherche les demandes sur les animaux qui appartiennent à ce refuge
+  
   findAllReceived(shelterId: number) {
     return this.prisma.application.findMany({
       where: {
         animal: {
-          pfcUserId: shelterId // Le propriétaire de l'animal
+          pfcUserId: shelterId,
         },
-        deletedAt: null
+        deletedAt: null,
       },
-      include: {
+      select: {
+        pfcUserId: true,       // <-- clé primaire
+        animalId: true,        // <-- clé primaire
+        message: true,
+        applicationType: true,
+        applicationStatus: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phoneNumber: true,   // <-- ici le numéro
+            individualProfile: true,
+          },
+        },
         animal: {
-          select: { name: true, photos: true, id: true } // Juste l'essentiel de l'animal
+          select: {
+            id: true,
+            name: true,
+            photos: true,
+          },
         },
-        user: { 
-          select:{
-            id: true, email: true,
-            individualProfile: true // Pour voir les critères (jardin, enfants...) du candidat
-          }
-        }
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
+  
 
   // Mettre à jour le statut (Refuge)
   async updateStatus(
