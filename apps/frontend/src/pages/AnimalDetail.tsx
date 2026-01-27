@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SiteLogo from "../../public/Logo.png";
-import { useAuth } from "../auth/authContext"; // ✅ pour récupérer user
+import { useAuth } from "../auth/authContext"; // pour récupérer user
 import BackBanner from "../components/ui/BackBanner";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
@@ -18,7 +18,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function AnimalDetail() {
   const { userId, id } = useParams<{ userId: string; id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth(); // ✅ utilisateur connecté
+  const { user } = useAuth(); // utilisateur connecté
   const [hasApplied, setHasApplied] = useState(false);
 
   const [animal, setAnimal] = useState<any>(null);
@@ -32,7 +32,11 @@ export default function AnimalDetail() {
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`${API_URL}/animals/${id}`, {
+        const response = await fetch(`http://localhost:3001/animals/${id}`, {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem('token')}`, // Ajouter ceci si tu utilises des tokens
+            "Content-Type": "application/json"
+          },
           credentials: "include",
         });
         const data = await response.json();
@@ -64,9 +68,9 @@ export default function AnimalDetail() {
 
     if (response.ok) {
       toast.success("Demande d'adoption envoyée !");
-      setHasApplied(true); // ✅ on masque les boutons
+      setHasApplied(true); // n masque les boutons
     }else { 
-      const errorData = await response.json(); // ⚡ lire le corps de l'erreur 
+      const errorData = await response.json(); // ire le corps de l'erreur 
       console.error("Erreur API:", errorData); 
       toast.error(`Erreur: ${errorData.errors?.message || errorData.message || "Bad Request"}`
         );
@@ -88,30 +92,39 @@ export default function AnimalDetail() {
 
     if (response.ok) {
       toast.success("Demande d'accueil envoyée !");
-      setHasApplied(true); // ✅ on masque les boutons
+      setHasApplied(true); // on masque les boutons
     }
   };
 
-  const handleToggleFavorite = async () => {
-    try {
-      const response = await fetch(`${API_URL}/bookmarks/toggle`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ animalId: Number(id) }),
-        credentials: "include",
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorite(data.bookmarked);
-      } else if (response.status === 401) {
-        toast.success("Vous devez être connecté pour ajouter des favoris !");
-      }
-    } catch (error) {
-      console.error("Erreur toggle favori:", error);
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  try {
+    const response = await fetch(`${API_URL}/bookmarks/toggle`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ animalId: Number(id) }), // On force le type Number pour Zod
+      credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setIsFavorite(data.bookmarked);
+      toast.success(data.message);
+    } else {
+      console.error("Erreur du serveur :", data);
+      toast.error(data.message || "Erreur lors de l'ajout aux favoris");
     }
-  };
-
+  } catch (error) {
+    console.error("Erreur réseau :", error);
+  }
+};
+  
   if (loading) return <div className="text-center p-20">Chargement...</div>;
   if (!animal)
     return <div className="text-center p-20">Animal non trouvé.</div>;
