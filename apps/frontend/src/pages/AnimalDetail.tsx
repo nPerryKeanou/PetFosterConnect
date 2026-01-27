@@ -1,16 +1,17 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Heart } from "lucide-react";
+import { AlertCircle, Heart } from "lucide-react";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import SiteLogo from "../../public/Logo.png";
+import SiteLogo from "../assets/Logo.png";
 import { useAuth } from "../auth/authContext"; // pour récupérer user
 import BackBanner from "../components/ui/BackBanner";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
+import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -23,6 +24,7 @@ export default function AnimalDetail() {
 
   const [animal, setAnimal] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [adoptMessage, setAdoptMessage] = useState("");
@@ -39,6 +41,11 @@ export default function AnimalDetail() {
           },
           credentials: "include",
         });
+
+        if (!response.ok) {
+          throw new Error("Animal introuvable ou erreur serveur");
+        }
+
         const data = await response.json();
         setAnimal(data);
 
@@ -46,7 +53,7 @@ export default function AnimalDetail() {
         if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
       } catch (error) {
         console.error("Erreur chargement animal:", error);
-      } finally {
+        setError("Impossible de charger les détails de l'animal.");
         setLoading(false);
       }
     };
@@ -68,13 +75,11 @@ export default function AnimalDetail() {
 
     if (response.ok) {
       toast.success("Demande d'adoption envoyée !");
-      setHasApplied(true); // n masque les boutons
+      setHasApplied(true);
     }else { 
-      const errorData = await response.json(); // ire le corps de l'erreur 
-      console.error("Erreur API:", errorData); 
-      toast.error(`Erreur: ${errorData.errors?.message || errorData.message || "Bad Request"}`
-        );
-      }
+      const errorData = await response.json();
+      toast.error(`Erreur: ${errorData.errors?.message || errorData.message || "Bad Request"}`);
+    }
   };
 
   const handleFoster = async (e: React.FormEvent) => {
@@ -92,7 +97,9 @@ export default function AnimalDetail() {
 
     if (response.ok) {
       toast.success("Demande d'accueil envoyée !");
-      setHasApplied(true); // on masque les boutons
+      setHasApplied(true);
+    } else {
+        toast.error("Erreur lors de l'envoi de la demande");
     }
   };
 
@@ -114,32 +121,15 @@ export default function AnimalDetail() {
     const data = await response.json();
 
     if (response.ok) {
-      setIsFavorite(data.bookmarked);
-      toast.success(data.message);
-    } else {
-      console.error("Erreur du serveur :", data);
-      toast.error(data.message || "Erreur lors de l'ajout aux favoris");
+        setIsFavorite(data.bookmarked);
+        toast.success(data.message);
+        } else {
+        toast.error(data.message || "Erreur lors de l'ajout aux favoris");
+        }
+    } catch (error) {
+        toast.error("Erreur réseau");
     }
-  } catch (error) {
-    console.error("Erreur réseau :", error);
-  }
-};
-  
-  if (loading) return <div className="text-center p-20">Chargement...</div>;
-  if (!animal)
-    return <div className="text-center p-20">Animal non trouvé.</div>;
-
-  const photoArray = Array.isArray(animal.photos) ? animal.photos : [];
-
-  // ✅ Vérifie si refuge connecté est propriétaire
-  const isShelterOwner =
-    user?.role === "shelter" &&
-    Number(user?.id) === Number(userId) &&
-    // si le backend renvoie bien pfcUserId, on compare
-    (animal.shelter?.pfcUserId
-      ? Number(animal.shelter.pfcUserId) === Number(userId)
-      : // sinon on se contente de comparer userId de l’URL avec l’utilisateur connecté
-        true);
+  };
 
   const exportToPDF = async () => {
     const pdf = new jsPDF("p", "mm", "a4");
@@ -196,6 +186,30 @@ export default function AnimalDetail() {
     pdf.save(`animal-${animal.name}.pdf`);
   };
 
+  // Gestion Loading
+  if (loading) return (
+      <div className="h-screen flex items-center justify-center">
+          <Loader text="Chargement des détails..." />
+      </div>
+  );
+
+  // Gestion Error / Not Found
+  if (error || !animal) return (
+    <div className="h-screen flex flex-col items-center justify-center gap-4">
+        <AlertCircle size={48} className="text-gray-300" />
+        <p className="text-lg text-gray-500">{error || "Animal introuvable."}</p>
+        <Button onClick={() => navigate("/animaux")}>Retour à la liste</Button>
+    </div>
+  );
+
+  const photoArray = Array.isArray(animal.photos) ? animal.photos : [];
+  const isShelterOwner =
+    user?.role === "shelter" &&
+    Number(user?.id) === Number(userId) &&
+    (animal.shelter?.pfcUserId
+      ? Number(animal.shelter.pfcUserId) === Number(userId)
+      : true);
+
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
       {/* BackBanner visible uniquement pour les visiteurs */}
@@ -241,6 +255,7 @@ export default function AnimalDetail() {
             <div className="grid grid-cols-4 gap-4">
               {photoArray.map((photo: string, index: number) => (
                 <button
+                  type="button"
                   key={index}
                   onClick={() => setSelectedPhoto(photo)}
                   className={`h-24 rounded-lg overflow-hidden border-4 transition-all ${
