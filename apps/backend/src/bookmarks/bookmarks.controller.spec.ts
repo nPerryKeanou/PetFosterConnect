@@ -1,30 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookmarksController } from './bookmarks.controller';
 import { BookMarksService } from './bookmarks.service';
-import { PrismaService } from '../prisma/prisma.service';
 
 describe('BookmarksController', () => {
   let controller: BookmarksController;
   let service: BookMarksService;
-  let prisma: PrismaService;
 
-  beforeAll(async () => {
+  const mockService = {
+    toggle: jest.fn(),
+    findAllByUser: jest.fn(),
+  };
+
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [BookmarksController],
-      providers: [BookMarksService, PrismaService], // ✅ ajoute PrismaService
+      providers: [{ provide: BookMarksService, useValue: mockService }],
     }).compile();
 
     controller = module.get<BookmarksController>(BookmarksController);
     service = module.get<BookMarksService>(BookMarksService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
+  it('devrait appeler toggle avec les bons IDs', async () => {
+    const userId = 1;
+    const animalId = 99;
+    const req = { user: { id: userId } };
+    
+    mockService.toggle.mockResolvedValue({ bookmarked: true, message: 'Ajouté' });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-    expect(service).toBeDefined();
+    await controller.toggle(animalId, req as any); // Ajuste selon si ton controller prend un DTO ou un @Param
+    expect(service.toggle).toHaveBeenCalledWith(userId, animalId);
   });
 });
