@@ -113,6 +113,7 @@ export default function UserSidebarLayout() {
             )}
 
             {/* Particulier : Mes Favoris */}
+            {user?.role === "individual" && (
             <NavLink
               to={`/user/${user?.id}/favoris`}
               className={({ isActive }) =>
@@ -126,6 +127,7 @@ export default function UserSidebarLayout() {
               <PawPrint className="w-5 h-5" />
               Mes Favoris
             </NavLink>
+            )}
             
               {/* Particulier : Mes Demandes */}
             {user?.role === "individual" && (
