@@ -72,16 +72,11 @@ export class ApplicationsController {
         applicationStatus: ApplicationStatus.approved,
       });
     
-      await this.emailService.sendMail(
+      await this.emailService.sendAcceptanceEmail(
         application.user.email,
-        'Votre candidature a été acceptée',
-        'Félicitations, votre demande a été validée !',
-        `<p>Bonjour ${application.user?.email ?? ''},</p>
-          <p>Votre candidature pour l’animal <b>${application.animal.name}</b> a été <b>acceptée</b>.</p>`
+        application.user?.email ?? '',
+        application.animal.name,
       );
-      if (!application.user?.email) { 
-        throw new Error("Email du candidat introuvable"); 
-      }
     
       return { message: 'Candidature acceptée et email envoyé', application };
     }
@@ -94,22 +89,16 @@ export class ApplicationsController {
       const application = await this.applicationsService.updateStatus(candidateId, animalId, {
         applicationStatus: ApplicationStatus.rejected,
       });
-      if (!application.user?.email) { 
-        throw new Error("Email du candidat introuvable"); 
-      }
     
-      await this.emailService.sendMail(
+      await this.emailService.sendRejectionEmail(
         application.user.email,
-        'Votre candidature a été refusée',
-        'Nous sommes désolés, votre demande n’a pas été retenue.',
-        `<p>Bonjour ${application.user?.email ?? ''},</p>
-          <p>Votre candidature pour l’animal <b>${application.animal.name}</b> a été <b>refusée</b>.</p>`
+        application.user?.email ?? '',
+        application.animal.name,
       );
     
       return { message: 'Candidature refusée et email envoyé', application };
     }
+    
 
 }
 
-
- 
