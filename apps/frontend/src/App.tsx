@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Layouts
 import AdminLayout from "./components/layout/AdminLayout";
 import PublicLayout from "./components/layout/PublicLayout";
-import UserSidebarLayout from "./components/layout/UserSidebarLayout";
+import UserSidebarLayout from "./components/layout/UserSidebarLayout.tsx";
 
 //Pages
 import About from "./pages/About";
@@ -28,8 +28,9 @@ import ShelterAnimalPage from "./pages/ShelterAnimal";
 import ShelterDetailPage from "./pages/ShelterDetail";
 import SheltersPage from "./pages/ShelterList";
 import Unauthorized from "./pages/Unauthorized";
-import ApplicationsSent from "./pages/profile/ApplicationSent.tsx"
-import ApplicationsReceived from "./pages/profile/ApplicationsReceived.tsx"
+import ApplicationsSent from "./pages/profile/ApplicationSent.tsx";
+import ApplicationsReceived from "./pages/profile/ApplicationsReceived.tsx";
+import BookmarksPage from "./pages/profile/bookmark.tsx";
 
 function App() {
   return (
@@ -87,7 +88,13 @@ function App() {
               <ApplicationsReceived />
               </ProtectedRoute>} 
               />
-            
+
+            <Route path="/user/:id/favoris" element={
+              <ProtectedRoute>
+              <BookmarksPage />
+              </ProtectedRoute>
+              } />
+
           </Route>
 
           {/* Route 404 */}

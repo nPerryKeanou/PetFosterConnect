@@ -98,12 +98,12 @@ export default function UserSidebarLayout() {
 
                 <NavLink
                   to={`/user/${user?.id}/demandes-recus`}
-                 className={({ isActive }) =>
-                     `flex items-center gap-2 px-3 py-2 rounded-lg transition 
-                     ${isActive 
-                         ? "bg-[#F28C28] text-white" 
-                         : "text-gray-700 hover:bg-[#F28C28]/20"}`
-                   }
+                  className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                      ${isActive 
+                        ? "bg-[#F28C28] text-white" 
+                        : "text-gray-700 hover:bg-[#F28C28]/20"}`
+                    }
                   onClick={() => setIsOpen(false)}
                 >
                   <CiFolderOn className="w-5 h-5" /> 
@@ -112,7 +112,22 @@ export default function UserSidebarLayout() {
               </div>
             )}
 
-            {/* Particulier : Mes Demandes */}
+            {/* Particulier : Mes Favoris */}
+            <NavLink
+              to={`/user/${user?.id}/favoris`}
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                ${isActive 
+                    ? "bg-[#F28C28] text-white" 
+                    : "text-gray-700 hover:bg-[#F28C28]/20"}`
+              }
+              onClick={() => setIsOpen(false)}
+            >
+              <PawPrint className="w-5 h-5" />
+              Mes Favoris
+            </NavLink>
+            
+              {/* Particulier : Mes Demandes */}
             {user?.role === "individual" && (
               <NavLink
                 to={`/user/${user?.id}/demandes`}
