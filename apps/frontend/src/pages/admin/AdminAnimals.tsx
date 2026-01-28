@@ -1,8 +1,10 @@
 import type { Animal } from "@projet/shared-types";
 import { Eye, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { api } from "../../api/api";
 import Badge from "../../components/ui/Badge";
+import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import Loader from "../../components/ui/Loader";
 
 // Type étendu pour matcher le retour API (Relations Prisma)
@@ -17,6 +19,12 @@ export default function AdminAnimals() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // État pour la modale
+  const [actionToConfirm, setActionToConfirm] = useState<{
+    type: "delete" | "restore";
+    id: number;
+  } | null>(null);
+
   // Fetch
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -25,6 +33,7 @@ export default function AdminAnimals() {
         setAnimals(res.data);
       } catch (error) {
         console.error("Erreur chargement animaux:", error);
+        toast.error("Impossible de charger la liste des animaux.");
       } finally {
         setLoading(false);
       }
@@ -42,38 +51,46 @@ export default function AdminAnimals() {
     return matchesSearch && matchesStatus;
   });
 
-  // ACTION : SUPPRIMER
-  const handleDelete = async (id: number) => {
-    if (confirm("Supprimer cet animal (Soft Delete) ?")) {
-      try {
+  // Ouverture de la modale (au lieu de confirm)
+  const openDeleteModal = (id: number) =>
+    setActionToConfirm({ type: "delete", id });
+  const openRestoreModal = (id: number) =>
+    setActionToConfirm({ type: "restore", id });
+
+  // Exécution de l'action confirmée
+  const handleConfirmAction = async () => {
+    if (!actionToConfirm) return;
+
+    const { type, id } = actionToConfirm;
+
+    try {
+      if (type === "delete") {
         await api.delete(`/animals/${id}`);
         setAnimals(
           animals.map((a) =>
             a.id === id ? { ...a, deletedAt: new Date() } : a
           )
         );
-      } catch (_errorrrrr) {
-        alert("Erreur lors de la suppression");
-      }
-    }
-  };
-
-  // ACTION : RESTAURER
-  const handleRestore = async (id: number) => {
-    if (confirm("Restaurer cet animal ?")) {
-      try {
-        // Envoi de deletedAt: null
+        toast.success("Animal supprimé avec succès");
+      } else {
         await api.patch(`/animals/${id}`, { deletedAt: null });
         setAnimals(
           animals.map((a) => (a.id === id ? { ...a, deletedAt: null } : a))
         );
-      } catch (_errorrrrr) {
-        alert("Erreur lors de la restauration");
+        toast.success("Animal restauré avec succès");
       }
+    } catch (_error) {
+      toast.error("Une erreur est survenue lors de l'opération");
     }
+    setActionToConfirm(null);
   };
 
-  if (loading) return <Loader text="Chargement des animaux..." />;
+  if (loading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader text="Chargement des animaux..." />
+      </div>
+    );
 
   return (
     <div className="space-y-6">
@@ -146,7 +163,7 @@ export default function AdminAnimals() {
                     {animal.deletedAt ? (
                       <button
                         type="button"
-                        onClick={() => animal.id && handleRestore(animal.id)}
+                        onClick={() => animal.id && openRestoreModal(animal.id)}
                         className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors inline-flex items-center gap-1"
                         title="Restaurer"
                       >
@@ -165,7 +182,7 @@ export default function AdminAnimals() {
                         </a>
                         <button
                           type="button"
-                          onClick={() => animal.id && handleDelete(animal.id)}
+                          onClick={() => animal.id && openDeleteModal(animal.id)}
                           className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-full transition-colors"
                           title="Supprimer"
                         >
@@ -186,6 +203,23 @@ export default function AdminAnimals() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmationModal
+        isOpen={!!actionToConfirm}
+        onClose={() => setActionToConfirm(null)}
+        onConfirm={handleConfirmAction}
+        title={
+          actionToConfirm?.type === "delete"
+            ? "Supprimer l'animal ?"
+            : "Restaurer l'animal ?"
+        }
+        message={
+          actionToConfirm?.type === "delete"
+            ? "Cette action placera l'animal dans la corbeille. Il ne sera plus visible du public."
+            : "L'animal sera de nouveau visible publiquement."
+        }
+        variant={actionToConfirm?.type === "delete" ? "danger" : "info"}
+      />
     </div>
   );
 }

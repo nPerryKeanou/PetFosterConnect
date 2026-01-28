@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { HiEye, HiEyeOff } from "react-icons/hi";
+import { toast } from "react-toastify";
 
 type Props = {
   userId: number;
@@ -17,39 +18,50 @@ export default function PasswordForm({ userId }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${API_URL}/users/${userId}/password`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
-    if (res.ok) {
-      alert("Mot de passe modifié avec succès !");
-      setFormData({ oldPassword: "", newPassword: "" });
-    } else {
-      alert("Erreur lors de la modification du mot de passe");
+    try {
+      const res = await fetch(`${API_URL}/users/${userId}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        toast.success("Mot de passe modifié avec succès !");
+        setFormData({ oldPassword: "", newPassword: "" });
+      } else {
+        toast.error("Erreur lors de la modification du mot de passe");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erreur de connexion au serveur");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="relative"> 
-        <label>Ancien mot de passe</label> 
-        <input type={showOldPassword ? "text" : "password"} 
-        value={formData.oldPassword} 
-        onChange={(e) => setFormData({ ...formData, oldPassword: e.target.value }) }
-        className="border rounded p-2 w-full pr-10" 
+        <label className="block text-sm font-medium text-gray-700">Ancien mot de passe</label> 
+        <input 
+          type={showOldPassword ? "text" : "password"} 
+          value={formData.oldPassword} 
+          onChange={(e) => setFormData({ ...formData, oldPassword: e.target.value }) }
+          className="border rounded p-2 w-full pr-10 mt-1" 
         /> 
         <button type="button" 
-        onClick={() => setShowOldPassword(!showOldPassword)} 
-        className="absolute right-2 top-8 text-gray-600 hover:text-gray-800" > {showOldPassword ? ( <HiEyeOff className="w-5 h-5" /> ) : ( <HiEye className="w-5 h-5" /> )} </button> </div> 
+          onClick={() => setShowOldPassword(!showOldPassword)} 
+          className="absolute right-2 top-8 text-gray-600 hover:text-gray-800" 
+        > 
+          {showOldPassword ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />} 
+        </button> 
+      </div> 
 
       <div className="relative">
-        <label>Nouveau mot de passe</label>
+        <label className="block text-sm font-medium text-gray-700">Nouveau mot de passe</label>
         <input
           type={showPassword ? "text" : "password"}
           value={formData.newPassword}
           onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-          className="border rounded p-2 w-full pr-10"
+          className="border rounded p-2 w-full pr-10 mt-1"
         />
         <button
           type="button"
@@ -62,7 +74,7 @@ export default function PasswordForm({ userId }: Props) {
 
       <button
         type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full md:w-auto"
       >
         Mettre à jour le mot de passe
       </button>

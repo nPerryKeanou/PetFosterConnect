@@ -2,6 +2,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { CreateAnimalSchema } from "@projet/shared-types";
 import { api } from "../../api/api";
+import { toast } from "react-toastify";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -38,6 +39,7 @@ export default function AnimalForm() {
         setSpecies(data);
       } catch (err) {
         console.error("Erreur chargement espèces:", err);
+        toast.error("Impossible de charger les espèces.");
       }
     };
     fetchSpecies();
@@ -63,18 +65,26 @@ export default function AnimalForm() {
       if (animal) {
         // Mode édition → PATCH
         await api.patch(`/animals/${animal.id}`, parsed);
-        alert("Animal modifié avec succès 🎉");
+        toast.success("Animal modifié avec succès 🎉");
       } else {
         // Mode création → POST
         const payload = { ...parsed, pfcUserId: Number(id) };
         await api.post(`/animals`, payload);
-        alert("Animal créé avec succès 🎉");
+        toast.success("Animal créé avec succès 🎉");
       }
 
-      navigate(-1); // retour à la liste
-    } catch (err) {
+      navigate(-1);
+    } catch (err: any) {
       console.error(err);
-      alert("Erreur lors de l'enregistrement (voir console)");
+      // Gestion d'erreur Zod ou API
+      if (err.response) {
+        toast.error(`Erreur serveur: ${err.response.statusText}`);
+      } else if (err.issues) {
+        // Erreur Zod
+        toast.error("Formulaire invalide : vérifiez les champs.");
+      } else {
+        toast.error("Erreur lors de l'enregistrement.");
+      }
     }
   };
 

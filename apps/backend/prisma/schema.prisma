@@ -128,7 +128,6 @@ model PfcUser {
   createdAt     DateTime  @default(now()) @db.Timestamptz @map("created_at")
   updatedAt     DateTime? @updatedAt @db.Timestamptz      @map("updated_at")
   deletedAt     DateTime? @db.Timestamptz                 @map("deleted_at")
-  logo          String?
 
   // Relations
   /// Détails spécifiques si l'utilisateur est un particulier
