@@ -63,4 +63,25 @@ export async function archiveApplication(
     `${API_URL}/applications/${animalId}/${candidateId}`
   );
   return res.data;
+
 }
+export async function acceptApplication(candidateId: number, animalId: number) {
+  const res = await fetch(`${API_URL}/applications/${candidateId}/${animalId}/accept`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("Erreur lors de l'acceptation");
+  return res.json();
+}
+
+export async function rejectApplication(candidateId: number, animalId: number) {
+  const res = await fetch(`${API_URL}/applications/${candidateId}/${animalId}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("Erreur lors du refus");
+  return res.json();
+}
+
+
+

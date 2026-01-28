@@ -1,8 +1,10 @@
+import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import {
   getReceivedApplications,
-  updateApplicationStatus,
   archiveApplication,
+  acceptApplication, 
+  rejectApplication 
 } from "../profile/components/ApplicationsApi";
 import type { Application as BaseApplication, Animal } from "@projet/shared-types";
 import { useAuth } from "../../auth/authContext";
@@ -34,21 +36,47 @@ export default function ApplicationsReceived() {
       .finally(() => setLoading(false));
   }, []);
 
+
+
+  
   const handleStatus = async (
     candidateId: number,
     animalId: number,
     status: "approved" | "rejected"
   ) => {
-    await updateApplicationStatus(candidateId, animalId, status);
-
-    setApplications((prev) =>
-      prev.map((app) =>
-        app.animalId === animalId && app.pfcUserId === candidateId
-          ? { ...app, applicationStatus: status }
-          : app
-      )
-    );
+    try {
+      if (status === "approved") {
+        const res = await acceptApplication(candidateId, animalId);
+        toast.success(
+          `✅ Candidature acceptée pour ${res.application?.user?.individualProfile?.firstname ?? ""} ${res.application?.user?.individualProfile?.lastname ?? ""}.
+          Un email de confirmation a été envoyé !`,
+          { autoClose: 4000 }
+        );
+      } else {
+        const res = await rejectApplication(candidateId, animalId);
+        toast.error(
+          `❌ Candidature refusée pour ${res.application?.user?.individualProfile?.firstname ?? ""} ${res.application?.user?.individualProfile?.lastname ?? ""}.
+          Un email de notification a été envoyé.`,
+          { autoClose: 4000 }
+        );
+      }
+  
+      // Met à jour l'état local pour refléter le nouveau statut
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.animalId === animalId && app.pfcUserId === candidateId
+            ? { ...app, applicationStatus: status }
+            : app
+        )
+      );
+    } catch (err: any) {
+      toast.error(`⚠️ Erreur: ${err.message || "Impossible de mettre à jour la candidature"}`, {
+        autoClose: 5000,
+      });
+      console.error("Erreur handleStatus:", err);
+    }
   };
+  
 
   const handleArchive = async (candidateId: number, animalId: number) => {
     await archiveApplication(candidateId, animalId);

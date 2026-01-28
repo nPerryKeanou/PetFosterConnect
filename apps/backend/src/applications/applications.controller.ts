@@ -2,15 +2,20 @@ import {
   Controller, Get, Post, Body, Patch, Param, Delete, 
   UsePipes, ParseIntPipe 
 } from '@nestjs/common';
+import { EmailService } from '../email/email.service'
 import { ApplicationsService } from './applications.service';
 import * as sharedTypes from '@projet/shared-types';
 import { ZodPipe } from '../common/pipes/zod.pipe';
+import { ApplicationStatus } from '@prisma/client';
+
 import { string } from 'zod';
 
 
 @Controller('applications')
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService) {}
+  constructor(private readonly applicationsService: ApplicationsService,
+              private readonly emailService: EmailService,
+  ) {}
 
   // CANDIDAT : Créer une demande
   @Post(":id")
@@ -57,4 +62,54 @@ export class ApplicationsController {
   ) {
     return this.applicationsService.remove(candidateId, animalId);
   }
+
+    @Post(':candidateId/:animalId/accept')
+    async accept(
+      @Param('candidateId', ParseIntPipe) candidateId: number,
+      @Param('animalId', ParseIntPipe) animalId: number,
+    ) {
+      const application = await this.applicationsService.updateStatus(candidateId, animalId, {
+        applicationStatus: ApplicationStatus.approved,
+      });
+    
+      await this.emailService.sendMail(
+        application.user.email,
+        'Votre candidature a été acceptée',
+        'Félicitations, votre demande a été validée !',
+        `<p>Bonjour ${application.user?.email ?? ''},</p>
+          <p>Votre candidature pour l’animal <b>${application.animal.name}</b> a été <b>acceptée</b>.</p>`
+      );
+      if (!application.user?.email) { 
+        throw new Error("Email du candidat introuvable"); 
+      }
+    
+      return { message: 'Candidature acceptée et email envoyé', application };
+    }
+    
+    @Post(':candidateId/:animalId/reject')
+    async reject(
+      @Param('candidateId', ParseIntPipe) candidateId: number,
+      @Param('animalId', ParseIntPipe) animalId: number,
+    ) {
+      const application = await this.applicationsService.updateStatus(candidateId, animalId, {
+        applicationStatus: ApplicationStatus.rejected,
+      });
+      if (!application.user?.email) { 
+        throw new Error("Email du candidat introuvable"); 
+      }
+    
+      await this.emailService.sendMail(
+        application.user.email,
+        'Votre candidature a été refusée',
+        'Nous sommes désolés, votre demande n’a pas été retenue.',
+        `<p>Bonjour ${application.user?.email ?? ''},</p>
+          <p>Votre candidature pour l’animal <b>${application.animal.name}</b> a été <b>refusée</b>.</p>`
+      );
+    
+      return { message: 'Candidature refusée et email envoyé', application };
+    }
+
 }
+
+
+ 

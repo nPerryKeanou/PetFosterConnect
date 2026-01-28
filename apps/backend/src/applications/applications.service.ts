@@ -94,7 +94,6 @@ export class ApplicationsService {
   ) {
     return this.prisma.application.update({
       where: {
-        // Syntaxe Prisma pour clé composite @@id([pfc_user_id, animal_id])
         pfcUserId_animalId: {
           pfcUserId: candidateId,
           animalId: animalId,
@@ -103,8 +102,25 @@ export class ApplicationsService {
       data: {
         applicationStatus: updateDto.applicationStatus as ApplicationStatus,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            individualProfile: true,
+          },
+        },
+        animal: {
+          select: {
+            id: true,
+            name: true,
+            photos: true,
+          },
+        },
+      },
     });
   }
+  
 
   // Supprimer/Archiver (Soft Delete)
   remove(candidateId: number, animalId: number) {

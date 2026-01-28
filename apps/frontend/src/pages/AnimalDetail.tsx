@@ -34,7 +34,7 @@ export default function AnimalDetail() {
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/animals/${id}`, {
+        const response = await fetch(`${API_URL}/animals/${id}`, {
           headers: {
             "Authorization": `Bearer ${localStorage.getItem('token')}`, // Ajouter ceci si tu utilises des tokens
             "Content-Type": "application/json"
@@ -51,6 +51,7 @@ export default function AnimalDetail() {
 
         if (data.isBookmarked !== undefined) setIsFavorite(data.isBookmarked);
         if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
+        setLoading(false);
       } catch (error) {
         console.error("Erreur chargement animal:", error);
         setError("Impossible de charger les détails de l'animal.");
@@ -62,7 +63,7 @@ export default function AnimalDetail() {
 
   const handleAdopt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(`http://localhost:3001/applications/${user?.id}`, {
+    const response = await fetch(`${API_URL}/applications/${user?.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -84,7 +85,7 @@ export default function AnimalDetail() {
 
   const handleFoster = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:3001/applications", {
+    const response = await fetch("${API_URL}/applications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
