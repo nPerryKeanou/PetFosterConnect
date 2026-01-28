@@ -34,7 +34,7 @@ export default function AnimalDetail() {
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/animals/${id}`, {
+        const response = await fetch(`${API_URL}/animals/${id}`, {
           headers: {
             "Authorization": `Bearer ${localStorage.getItem('token')}`, // Ajouter ceci si tu utilises des tokens
             "Content-Type": "application/json"
