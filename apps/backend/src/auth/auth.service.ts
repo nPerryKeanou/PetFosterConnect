@@ -7,24 +7,9 @@ import { UsersService } from "../users/users.service";
 @Injectable()
 export class AuthService {
   constructor(
-    private jwt: JwtService,
     private usersService: UsersService,
     private jwtService: JwtService
   ) {}
-
-  getAccessToken(userId: number) {
-    return this.jwt.sign(
-      { sub: userId },
-      { secret: process.env.JWT_SECRET, expiresIn: "15m" }
-    );
-  }
-
-  getRefreshToken(userId: number) {
-    return this.jwt.sign(
-      { sub: userId },
-      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: "7d" }
-    );
-  }
 
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);

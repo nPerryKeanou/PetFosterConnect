@@ -1,20 +1,126 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { latestAnimals, featuredShelters } from "../mocks/home.mock";
+import { api } from "../api/api";
 import AnimalCard from "../components/ui/HomeAnimalCard";
 import ShelterCard from "../components/ui/HomeShelterCard";
 import Button from "../components/ui/Button";
+import Loader from "../components/ui/Loader";
+import { toast } from "react-toastify";
+
+// Import des types partagés
+import type { Animal, ShelterProfile, User, Species } from "@projet/shared-types";
+
+// TYPES D'AFFICHAGE (UI)
+// Ce sont les props attendues par les composants "Cards"
+type DisplayAnimal = {
+  id: number;
+  name: string;
+  species: string;
+  age: string;
+  image: string;
+  location: string;
+};
+
+type DisplayShelter = {
+  id: number;
+  name: string;
+  image: string;
+  location: string;
+};
+
+// TYPES TECHNIQUES (API RESPONSE)
+// Ces types décrivent la structure exacte du JSON renvoyé par le Backend avec les "include"
+
+// Animal avec ses relations (Espèce + Refuge)
+type AnimalResponse = Animal & {
+  species: Species | null; // Peut être null si supprimée
+  shelter: (User & {
+    shelterProfile: ShelterProfile | null;
+  }) | null; // Le créateur peut ne plus avoir de profil
+};
+
+// Refuge avec son User parent (pour l'adresse)
+type ShelterResponse = ShelterProfile & {
+  user: User;
+};
 
 export default function Home() {
+  const [animals, setAnimals] = useState<DisplayAnimal[]>([]);
+  const [shelters, setShelters] = useState<DisplayShelter[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Chargement parallèle pour la performance
+        // On demande explicitement les types étendus à axios
+        const [animalsRes, sheltersRes] = await Promise.all([
+          api.get<AnimalResponse[]>("/animals?limit=3"),
+          api.get<ShelterResponse[]>("/shelters?limit=3")
+        ]);
+
+        // MAPPING ANIMAUX
+        const recentAnimals = animalsRes.data.map((a) => {
+          // Gestion sécurisée de l'image (peut être string, tableau ou null)
+          let imageUrl = "https://placehold.co/600x400?text=Pas+de+photo";
+          if (Array.isArray(a.photos) && a.photos.length > 0) {
+            imageUrl = a.photos[0] as string;
+          } else if (typeof a.photos === "string") {
+            imageUrl = a.photos;
+          }
+
+          return {
+            id: a.id,
+            name: a.name,
+            // Protection contre les null (species?, shelter?)
+            species: a.species?.name || "Espèce inconnue",
+            age: a.age || "Âge non renseigné",
+            image: imageUrl,
+            location: a.shelter?.shelterProfile?.shelterName || "Refuge partenaire",
+          };
+        });
+
+        setAnimals(recentAnimals);
+
+        // MAPPING REFUGES
+        const featuredShelters = sheltersRes.data.map((s) => ({
+          id: s.pfcUserId, // L'ID du refuge est l'ID du user
+          name: s.shelterName,
+          image: s.logo || "https://placehold.co/600x400?text=Refuge",
+          // L'adresse est stockée sur l'objet 'user' parent
+          location: s.user?.address || "Localisation non renseignée",
+        }));
+
+        setShelters(featuredShelters);
+
+      } catch (error) {
+        console.error("Erreur chargement Home:", error);
+        toast.error("Impossible de charger les dernières annonces.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-bgapp">
+        <Loader text="Chargement de l'accueil..." />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-bgapp font-openSans text-gray-800">
       
       {/* HERO SECTION */}
       <section className="relative bg-secondary py-20 lg:py-32 overflow-hidden border-t border-white/10 shadow-inner">
-        {/* Fond décoratif */}
+        {/* Élément décoratif d'arrière-plan */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-12 transform translate-x-20" />
         
         <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-          
           {/* Texte Hero */}
           <div className="flex-1 text-center md:text-left text-white">
             <h1 className="text-4xl md:text-5xl font-bold font-montserrat mb-6 leading-tight">
@@ -29,13 +135,13 @@ export default function Home() {
                 <Button variant="primary">Je deviens Famille d'Accueil</Button>
               </Link>
               <Link to="/animaux">
-                <button type="button"  className="px-6 py-2 rounded-lg font-semibold border-2 border-white text-white hover:bg-white hover:text-secondary transition">
+                <button type="button" className="px-6 py-2 rounded-lg font-semibold border-2 border-white text-white hover:bg-white hover:text-secondary transition">
                   Voir les animaux
                 </button>
               </Link>
             </div>
           </div>
-
+          
           {/* Image Hero */}
           <div className="flex-1 flex justify-center">
             <img 
@@ -50,7 +156,6 @@ export default function Home() {
       {/* SECTION DERNIERS ANIMAUX */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6 max-w-6xl">
-          
           <div className="flex justify-between items-end mb-8">
             <div>
               <h2 className="text-3xl font-bold font-montserrat text-secondary mb-2">Les Derniers Animaux</h2>
@@ -61,12 +166,23 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-            {latestAnimals.map((animal) => (
-              <div key={animal.id} className="w-full max-w-sm"> 
-                <AnimalCard {...animal} />
-              </div>
-            ))}
+          {animals.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+              {animals.map((animal) => (
+                <div key={animal.id} className="w-full max-w-sm"> 
+                  <AnimalCard {...animal} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 italic">Aucun animal à afficher pour le moment.</p>
+          )}
+          
+          {/* Lien Mobile uniquement */}
+          <div className="mt-8 text-center md:hidden">
+            <Link to="/animaux" className="text-primary font-semibold hover:underline">
+              Voir tous les animaux →
+            </Link>
           </div>
         </div>
       </section>
@@ -74,7 +190,6 @@ export default function Home() {
       {/* SECTION REFUGES */}
       <section className="py-16 bg-white border-t border-gray-100">
         <div className="container mx-auto px-6 max-w-6xl">
-          
           <div className="flex justify-between items-end mb-8">
             <div>
               <h2 className="text-3xl font-bold font-montserrat text-secondary mb-2">Les Refuges Partenaires</h2>
@@ -85,12 +200,23 @@ export default function Home() {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
-            {featuredShelters.map((shelter) => (
-              <div key={shelter.id} className="w-full max-w-sm">
-                <ShelterCard {...shelter} />
-              </div>
-            ))}
+          {shelters.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+              {shelters.map((shelter) => (
+                <div key={shelter.id} className="w-full max-w-sm">
+                  <ShelterCard {...shelter} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 italic">Nos refuges partenaires s'affichent bientôt ici.</p>
+          )}
+
+          {/* Lien Mobile uniquement */}
+          <div className="mt-8 text-center md:hidden">
+            <Link to="/refuges" className="text-primary font-semibold hover:underline">
+              Voir tous les refuges →
+            </Link>
           </div>
         </div>
       </section>

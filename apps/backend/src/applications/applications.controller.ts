@@ -1,49 +1,56 @@
 import { 
   Controller, Get, Post, Body, Patch, Param, Delete, 
-  UsePipes, ParseIntPipe 
+  UsePipes, ParseIntPipe, UseGuards, Request 
 } from '@nestjs/common';
-import { EmailService } from '../email/email.service'
+import { EmailService } from '../email/email.service';
 import { ApplicationsService } from './applications.service';
 import * as sharedTypes from '@projet/shared-types';
 import { ZodPipe } from '../common/pipes/zod.pipe';
 import { ApplicationStatus } from '@prisma/client';
-
-import { string } from 'zod';
-
+import { JwtAuthGuard } from '../auth/auth.guard';
 
 @Controller('applications')
+// Toutes les routes nécessitent d'être connecté
+@UseGuards(JwtAuthGuard) 
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService,
-              private readonly emailService: EmailService,
+  constructor(
+    private readonly applicationsService: ApplicationsService,
+    private readonly emailService: EmailService,
   ) {}
 
-  // CANDIDAT : Créer une demande
-  @Post(":id")
+  // CANDIDAT
+
+  // Créer une demande
+  @Post()
   @UsePipes(new ZodPipe(sharedTypes.CreateApplicationSchema))
   create(
-    @Body() createApplicationDto: sharedTypes.CreateApplicationDto,
-    @Param("id", ParseIntPipe) userId: number
+    @Request() req, 
+    @Body() createApplicationDto: sharedTypes.CreateApplicationDto
   ) {
-    return this.applicationsService.create(userId, createApplicationDto);
+    // req.user.id est extrait automatiquement du Token
+    return this.applicationsService.create(req.user.id, createApplicationDto);
   }
 
-  // CANDIDAT : Mes demandes envoyées
-  @Get("sent/:id")
-  findAllSent(@Param("id", ParseIntPipe) id: number) {
-    return this.applicationsService.findAllSent(id);
+  // Mes demandes envoyées
+  @Get("sent")
+  findAllSent(@Request() req) {
+    return this.applicationsService.findAllSent(req.user.id);
+  }
+
+  // REFUGE
+
+  // Demandes reçues par le refuge
+  @Get("received")
+  findAllReceived(@Request() req) {
+    return this.applicationsService.findAllReceived(req.user.id);
   }
   
+  // GESTION (Refuge)
 
-  // REFUGE : Demandes reçues
-  @Get("received/:id")
-  findAllReceived(@Param("id", ParseIntPipe) id: number) {
-    const shelterId = id; // ID temporaire
-    return this.applicationsService.findAllReceived(id);
-  }
-  
+  // Note : Pour les actions spécifiques sur une candidature précise, 
+  // on garde les IDs dans l'URL car on cible une ressource spécifique, pas "moi".
 
-  // REFUGE : Accepter/Refuser
-  // On a besoin des 2 IDs pour identifier la demande unique
+  // Accepter/Refuser (Mise à jour statut générique)
   @Patch(':animalId/:candidateId')
   @UsePipes(new ZodPipe(sharedTypes.UpdateApplicationStatusSchema))
   update(
@@ -54,7 +61,7 @@ export class ApplicationsController {
     return this.applicationsService.updateStatus(candidateId, animalId, updateDto);
   }
 
-  // ARCHIVER
+  // Archiver / Supprimer
   @Delete(':animalId/:candidateId')
   remove(
     @Param('animalId', ParseIntPipe) animalId: number,
@@ -63,42 +70,63 @@ export class ApplicationsController {
     return this.applicationsService.remove(candidateId, animalId);
   }
 
-    @Post(':candidateId/:animalId/accept')
-    async accept(
-      @Param('candidateId', ParseIntPipe) candidateId: number,
-      @Param('animalId', ParseIntPipe) animalId: number,
-    ) {
-      const application = await this.applicationsService.updateStatus(candidateId, animalId, {
-        applicationStatus: ApplicationStatus.approved,
-      });
-    
-      await this.emailService.sendAcceptanceEmail(
-        application.user.email,
-        application.user?.email ?? '',
-        application.animal.name,
-      );
-    
-      return { message: 'Candidature acceptée et email envoyé', application };
-    }
-    
-    @Post(':candidateId/:animalId/reject')
-    async reject(
-      @Param('candidateId', ParseIntPipe) candidateId: number,
-      @Param('animalId', ParseIntPipe) animalId: number,
-    ) {
-      const application = await this.applicationsService.updateStatus(candidateId, animalId, {
-        applicationStatus: ApplicationStatus.rejected,
-      });
-    
-      await this.emailService.sendRejectionEmail(
-        application.user.email,
-        application.user?.email ?? '',
-        application.animal.name,
-      );
-    
-      return { message: 'Candidature refusée et email envoyé', application };
-    }
-    
+  // Raccourci : Accepter
+  @Post(':candidateId/:animalId/accept')
+  async accept(
+    @Param('candidateId', ParseIntPipe) candidateId: number,
+    @Param('animalId', ParseIntPipe) animalId: number,
+  ) {
+    // D'abord, on met à jour la base de données (C'est le plus important)
+    const application = await this.applicationsService.updateStatus(candidateId, animalId, {
+      applicationStatus: ApplicationStatus.approved,
+    });
+  
+    // Ensuite, on tente d'envoyer l'email (Non bloquant)
+    try {
+        if (application.user?.email) {
+            // Astuce : On utilise une valeur de secours si le prénom n'est pas dispo
+            const firstname = (application.user.individualProfile as any)?.firstname || "Candidat";
 
+            await this.emailService.sendAcceptanceEmail(
+                application.user.email,
+                firstname, 
+                application.animal.name,
+            );
+        }
+    } catch (error) {
+        // Si l'email plante (ex: pas de SMTP), on loggue l'erreur mais on ne casse pas la requête
+        console.error("⚠️ [Email Error] Impossible d'envoyer l'email d'acceptation :", error.message);
+    }
+  
+    // On renvoie quand même le succès au front, car la mise à jour BDD est faite
+    return { message: 'Candidature acceptée (Notification email traitée)', application };
+  }
+  
+  // Raccourci : Refuser
+  @Post(':candidateId/:animalId/reject')
+  async reject(
+    @Param('candidateId', ParseIntPipe) candidateId: number,
+    @Param('animalId', ParseIntPipe) animalId: number,
+  ) {
+    const application = await this.applicationsService.updateStatus(candidateId, animalId, {
+      applicationStatus: ApplicationStatus.rejected,
+    });
+  
+    // Protection anti-crash pour l'email
+    try {
+        if (application.user?.email) {
+            const firstname = (application.user.individualProfile as any)?.firstname || "Candidat";
+
+            await this.emailService.sendRejectionEmail(
+                application.user.email,
+                firstname,
+                application.animal.name,
+            );
+        }
+    } catch (error) {
+        console.error("⚠️ [Email Error] Impossible d'envoyer l'email de refus :", error.message);
+    }
+  
+    return { message: 'Candidature refusée', application };
+  }
 }
-

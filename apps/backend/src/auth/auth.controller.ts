@@ -31,7 +31,10 @@ export class AuthController {
       path: "/",
     });
 
-    return { user };
+    return { 
+      user, 
+      access_token: token 
+    };
   }
 
   @Post("logout")
@@ -63,6 +66,9 @@ export class AuthController {
       maxAge: 1000 * 60 * 60,
     });
 
-    return user;
+    return { 
+      user, 
+      access_token: token 
+    };
   }
 }

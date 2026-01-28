@@ -63,7 +63,7 @@ export default function AnimalDetail() {
 
   const handleAdopt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(`${API_URL}/applications/${user?.id}`, {
+    const response = await fetch(`${API_URL}/applications`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -85,7 +85,7 @@ export default function AnimalDetail() {
 
   const handleFoster = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(`${API_URL}/applications/${user?.id}`, {
+    const response = await fetch(`${API_URL}/applications`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -384,8 +384,7 @@ export default function AnimalDetail() {
                   Modifier
                 </Button>
               ) : (
-                <>
-                  {hasApplied ? (
+                hasApplied ? (
                     <p className="text-green-600 font-semibold">
                       Demande déjà réalisée pour cet animal ✅
                     </p>
@@ -427,12 +426,12 @@ export default function AnimalDetail() {
                         </div>
                       </form>
                     </>
-                  )}
-                </>
+                  )
               )}
             
               {/* Bouton Export PDF */}
               <button
+                type="button"
                 onClick={exportToPDF}
                 className="bg-primary text-white px-4 py-2 rounded"
               >

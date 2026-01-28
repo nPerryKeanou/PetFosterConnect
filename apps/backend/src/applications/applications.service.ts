@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { 
-  CreateApplicationDto, 
-  UpdateApplicationStatusDto 
-} from '@projet/shared-types';
-import { ApplicationType, ApplicationStatus } from '@prisma/client'; // Enums Prisma
+  Injectable, 
+  ConflictException 
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { ApplicationStatus, CreateApplicationDto, UpdateApplicationStatusDto } from '@projet/shared-types';
+import { Prisma } from '@prisma/client'; // Pour le typage des erreurs
 
 @Injectable()
 export class ApplicationsService {
@@ -12,18 +12,34 @@ export class ApplicationsService {
 
   // Créer une demande (Candidat)
   async create(userId: number, createDto: CreateApplicationDto) {
-    return this.prisma.application.create({
-      data: {
-        pfcUserId: userId,
-        animalId: createDto.animalId,
-        message: createDto.message,
-        // On cast les enums Zod vers Prisma si nécessaire (souvent compatibles si strings identiques)
-        applicationType: createDto.applicationType as ApplicationType,
-        applicationStatus: 'pending', // Défaut
-      },
-    });
+    try {
+      // On tente de créer
+      return await this.prisma.application.create({
+        data: {
+          pfcUserId: userId,
+          animalId: createDto.animalId,
+          applicationType: createDto.applicationType,
+          message: createDto.message,
+          // Statut par défaut défini dans le schema Prisma (pending)
+        },
+        include: {
+          animal: true, // On renvoie les infos de l'animal pour confirmer
+        }
+      });
+    } catch (error) {
+      // GESTION DES ERREURS PRISMA
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // P2002 = Violation de contrainte unique (Doublon)
+        if (error.code === 'P2002') {
+          throw new ConflictException(
+            'Vous avez déjà envoyé une demande pour cet animal.'
+          );
+        }
+      }
+      // Si c'est une autre erreur, on laisse planter (500)
+      throw error; 
+    }
   }
-
 
  // Voir mes demandes envoyées (Candidat)
   findAllSent(userId: number) {
