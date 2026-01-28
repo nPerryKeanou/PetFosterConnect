@@ -1,21 +1,31 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
+
+// On définit le faux comportement ici
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn().mockReturnValue({
+    // On simule la fonction sendMail qui répond "OK" tout de suite
+    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-123' }),
+  }),
+  getTestMessageUrl: jest.fn().mockReturnValue('https://fake-ethereal-url.com'),
+}));
 
 describe('EmailService', () => {
   let service: EmailService;
 
-  beforeAll(() => {
-    service = new EmailService();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [EmailService],
+    }).compile();
+
+    service = module.get<EmailService>(EmailService);
   });
 
-  it('envoie un email de test', async () => {
-    const result = await service.sendMail(
-      'test@test.com',
-      'Sujet de test',
-      'Texte brut',
-      '<p>HTML de test</p>'
-    );
+  it('doit envoyer un email (simulation)', async () => {
+    // On exécute la fonction normalement
+    const result = await service.sendMail('test@test.com', 'Sujet', 'Message', '<p>HTML</p>');
 
-    expect(result).toBeDefined();
-    expect(result.messageId).toBeDefined();
+    // On vérifie juste qu'on a reçu la fausse réponse définie plus haut
+    expect(result).toEqual({ messageId: 'test-123' });
   });
 });

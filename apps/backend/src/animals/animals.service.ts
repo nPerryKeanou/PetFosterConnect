@@ -40,9 +40,16 @@ export class AnimalsService {
   
   
 
-  async findAll(includeDeleted = false) {
+  async findAll(includeDeleted = false, limit?: number) {
     return this.prisma.animal.findMany({
-      where: { deletedAt: includeDeleted ? undefined : null },
+      where: { 
+        // Si includeDeleted est false, on ne veut que deletedAt: null
+        deletedAt: includeDeleted ? undefined : null 
+      },
+      take: limit, // On applique la limite si elle est fournie
+      orderBy: { 
+        createdAt: 'desc' // On trie toujours du plus récent au plus ancien
+      },
       include: {
         species: true,
         shelter: { include: { shelterProfile: true } },

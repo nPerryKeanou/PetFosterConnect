@@ -3,7 +3,6 @@ import { getSentApplications } from "../profile/components/ApplicationsApi";
 //import type { Application } from "@projet/shared-types";
 import { toast } from "react-toastify";
 import type { Application as BaseApplication, Animal } from "@projet/shared-types";
-import { useAuth } from "../../auth/authContext";
 
 
 export type ApplicationWithAnimal = BaseApplication & {
@@ -14,17 +13,14 @@ export type ApplicationWithAnimal = BaseApplication & {
 export default function ApplicationsSent() {
   const [applications, setApplications] = useState<ApplicationWithAnimal[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
 
   useEffect(() => {
-    console.log(user);
-    getSentApplications(user.id)
+    getSentApplications()
       .then((data) => {
         setApplications(data);
       })
       .catch((error) => {
         console.error(error);
-        // ✅ Toast en cas d'erreur
         toast.error("Erreur lors du chargement de vos candidatures.");
       })
       .finally(() => setLoading(false));

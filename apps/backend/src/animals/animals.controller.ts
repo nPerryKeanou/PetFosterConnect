@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Req,
+  Query,
 } from "@nestjs/common";
 import type { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { CreateAnimalSchema, UpdateAnimalSchema } from "@projet/shared-types";
@@ -31,8 +32,16 @@ export class AnimalsController {
   }
 
   @Get()
-  findAll() {
-    return this.animalsService.findAll();
+  findAll(
+    @Query('limit') limit?: string, 
+    @Query('includeDeleted') includeDeleted?: string
+  ) {
+    // Conversion des Query Params
+    const numericLimit = limit ? parseInt(limit, 10) : undefined;
+    const isDeletedIncluded = includeDeleted === 'true'; // simple conversion booléenne
+
+    // On passe les deux arguments
+    return this.animalsService.findAll(isDeletedIncluded, numericLimit);
   }
 
   @Get(":id")

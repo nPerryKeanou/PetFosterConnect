@@ -10,17 +10,19 @@ export class ShelterService {
     return this.prisma.shelterProfile.create({ data });
   }
 
-  async findAll() {
+  async findAll(limit?: number) {
   return this.prisma.shelterProfile.findMany({
-    where: {
-      user: { deletedAt: null },
-    },
+    where: { user: { deletedAt: null } },
+    take: limit, // Ajout de la limite
+    orderBy: { // Ajout du tri
+        user: {
+          createdAt: 'desc'
+        }
+      },
     include: {
       user: { 
         include: { 
-          animals: {
-            include: { species: true }
-          } 
+          animals: { include: { species: true } } 
         } 
       },
     },

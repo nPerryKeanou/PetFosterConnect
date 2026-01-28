@@ -7,7 +7,6 @@ import {
   rejectApplication 
 } from "../profile/components/ApplicationsApi";
 import type { Application as BaseApplication, Animal } from "@projet/shared-types";
-import { useAuth } from "../../auth/authContext";
 
 
 // Type minimal pour le candidat (pas besoin de tout PfcUser)
@@ -26,12 +25,11 @@ export type ApplicationWithRelations = BaseApplication & {
 };
 
 export default function ApplicationsReceived() {
-  const { user } = useAuth();
   const [applications, setApplications] = useState<ApplicationWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getReceivedApplications(user.id)
+    getReceivedApplications()
       .then((data: ApplicationWithRelations[]) => setApplications(data))
       .finally(() => setLoading(false));
   }, []);

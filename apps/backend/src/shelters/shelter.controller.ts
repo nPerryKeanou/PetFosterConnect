@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UsePipes,
+  Query,
 } from "@nestjs/common";
 import * as sharedTypes from "@projet/shared-types";
 import { ZodPipe } from "../common/pipes/zod.pipe";
@@ -26,8 +27,9 @@ export class ShelterController {
   }
 
   @Get()
-  findAll() {
-    return this.shelterService.findAll();
+  findAll(@Query('limit') limit?: string) {
+    const numericLimit = limit ? parseInt(limit, 10) : undefined;
+    return this.shelterService.findAll(numericLimit);
   }
 
   @Get(":id")

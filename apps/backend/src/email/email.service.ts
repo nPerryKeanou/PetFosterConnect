@@ -6,16 +6,37 @@ export class EmailService {
   private transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-    console.log("📧 [EmailService] Transporteur SMTP initialisé");
+    // Si on a des variables d'env (Prod/Docker), on les utilise
+    if (process.env.SMTP_HOST) {
+        this.transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT),
+            secure: false,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+        console.log("📧 [EmailService] Configuration SMTP chargée depuis .env");
+    } else {
+        // SINON : On crée un compte de test Ethereal
+        console.log("👻 [EmailService] Pas de config SMTP détectée, création d'un compte Ethereal...");
+        
+        nodemailer.createTestAccount().then((account) => {
+            this.transporter = nodemailer.createTransport({
+                host: account.smtp.host,
+                port: account.smtp.port,
+                secure: account.smtp.secure,
+                auth: {
+                    user: account.user,
+                    pass: account.pass,
+                },
+            });
+            console.log(`✨ [EmailService] Prêt ! Les emails seront visibles sur : https://ethereal.email/login`);
+            console.log(`   User: ${account.user}`);
+            console.log(`   Pass: ${account.pass}`);
+        });
+    }
   }
 
   async sendMail(to: string, subject: string, text: string, html: string) {
