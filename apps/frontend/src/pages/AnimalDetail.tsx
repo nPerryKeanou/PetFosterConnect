@@ -85,7 +85,7 @@ export default function AnimalDetail() {
 
   const handleFoster = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch("${API_URL}/applications", {
+    const response = await fetch(`${API_URL}/applications/${user?.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

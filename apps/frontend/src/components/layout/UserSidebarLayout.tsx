@@ -50,19 +50,30 @@ export default function UserSidebarLayout() {
             {/* Profil */}
             <NavLink
               to={`/user/${user?.id}/profil`}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+              className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                ${isActive 
+                    ? "bg-[#F28C28] text-white" 
+                    : "text-gray-700 hover:bg-[#F28C28]/20"}`
+              }
               onClick={() => setIsOpen(false)}
             >
               <UserCircle className="w-5 h-5" />
               Mon Profil
             </NavLink>
+            
 
             {/* Refuge : Mes Animaux + sous-menu */}
             {user?.role === "shelter" && (
               <div className="space-y-1">
                 <NavLink
                   to={`/user/${user?.id}/animaux`}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                      ${isActive 
+                          ? "bg-[#F28C28] text-white" 
+                          : "text-gray-700 hover:bg-[#F28C28]/20"}`
+                    }
                   onClick={() => setIsOpen(false)}
                 >
                   <PawPrint className="w-5 h-5" />
@@ -72,7 +83,12 @@ export default function UserSidebarLayout() {
                 <div className="ml-8">
                   <NavLink
                     to={`/user/${user?.id}/profil/animaux/creer`}
-                    className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
+                    className={({ isActive }) =>
+                        `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                        ${isActive 
+                            ? "bg-[#F28C28] text-white" 
+                            : "text-gray-700 hover:bg-[#F28C28]/20"}`
+                      }
                     onClick={() => setIsOpen(false)}
                   >
                     <LuPlus className="w-5 h-5"/>
@@ -82,7 +98,12 @@ export default function UserSidebarLayout() {
 
                 <NavLink
                   to={`/user/${user?.id}/demandes-recus`}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                 className={({ isActive }) =>
+                     `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                     ${isActive 
+                         ? "bg-[#F28C28] text-white" 
+                         : "text-gray-700 hover:bg-[#F28C28]/20"}`
+                   }
                   onClick={() => setIsOpen(false)}
                 >
                   <CiFolderOn className="w-5 h-5" /> 
@@ -95,7 +116,12 @@ export default function UserSidebarLayout() {
             {user?.role === "individual" && (
               <NavLink
                 to={`/user/${user?.id}/demandes`}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100"
+                className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                    ${isActive 
+                        ? "bg-[#F28C28] text-white" 
+                        : "text-gray-700 hover:bg-[#F28C28]/20"}`
+                  }
                 onClick={() => setIsOpen(false)}
               >
                 <CiFolderOn className="w-5 h-5" />
@@ -109,7 +135,12 @@ export default function UserSidebarLayout() {
         <div className="p-4 border-t border-gray-100 space-y-2 bg-gray-50/50">
           <NavLink
             to="/"
-            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-500 hover:text-secondary transition rounded-md hover:bg-gray-100"
+            className={({ isActive }) =>
+                `flex items-center gap-2 px-3 py-2 rounded-lg transition 
+                ${isActive 
+                    ? "bg-[#F28C28] text-white" 
+                    : "text-gray-700 hover:bg-[#F28C28]/20"}`
+              }
             onClick={() => setIsOpen(false)}
           >
             <Home size={18} />
@@ -122,7 +153,7 @@ export default function UserSidebarLayout() {
               logout();
               setIsOpen(false);
             }}
-            className="flex items-center gap-3 px-4 py-2 text-sm text-error hover:bg-red-50 w-full rounded-lg transition font-medium"
+            className="flex items-center gap-3 px-4 py-2 text-sm text-error hover:bg-[#F28C28]/20 w-full rounded-lg transition font-medium"
           >
             <LogOut size={18} />
             <span>Déconnexion</span>
