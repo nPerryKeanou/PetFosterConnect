@@ -1,7 +1,7 @@
 import { PawPrint } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import AnimalCard from "src/components/AnimalCard";
+import AnimalCard from "../components/AnimalCard";
 import Loader from "../components/ui/Loader";
 
 const API_URL = import.meta.env.VITE_API_URL;
