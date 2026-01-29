@@ -11,7 +11,10 @@ async function bootstrap() {
 
   // Autoriser les requêtes CORS depuis le frontend
   app.enableCors({
-    origin: "http://localhost:5173", // Vite
+    origin: [
+      "http://localhost:5173",          // Pour le dev local
+      process.env.CORS_ORIGIN || "",    // Pour la prod (Vercel)
+    ],
     credentials: true,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
