@@ -7,25 +7,22 @@ import { JwtAuthGuard } from '../../src/auth/auth.guard';
 import { UserRole } from '@prisma/client';
 
 describe('Animals (E2E)', () => {
-  let app: INestApplication;
-  let prisma: PrismaService;
-  let sharedShelterId: number;
-  let sharedSpeciesId: number;
-
   beforeAll(async () => {
+    // 1. On compile d'abord le module (le Guard utilisera la référence de la variable)
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-        .overrideGuard(JwtAuthGuard)
+      .overrideGuard(JwtAuthGuard)
       .useValue({
         canActivate: (context) => {
           const req = context.switchToHttp().getRequest();
-          // On simule un utilisateur connecté en injectant l'ID dans la requête
+          // Important : On passe l'objet par référence, 
+          // sharedShelterId sera mis à jour après la création en base
           req.user = { id: sharedShelterId }; 
-          return true; // On autorise toujours l'accès
+          return true;
         },
       })
-    .compile();
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
@@ -33,13 +30,12 @@ describe('Animals (E2E)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // NETTOYAGE COMPLET (Ordre important pour les contraintes SQL)
+    // 2. NETTOYAGE (Ordre strict pour les clés étrangères)
     await prisma.animal.deleteMany();
     await prisma.species.deleteMany();
     await prisma.pfcUser.deleteMany();
 
-    // PRÉPARATION DES DONNÉES REQUISES
-    // 1. Création d'un refuge (User)
+    // 3. PRÉPARATION DES DONNÉES
     const shelter = await prisma.pfcUser.create({
       data: {
         email: 'refuge@test.com',
@@ -47,17 +43,12 @@ describe('Animals (E2E)', () => {
         role: UserRole.shelter,
       },
     });
-    sharedShelterId = shelter.id;
+    sharedShelterId = shelter.id; // L'ID est maintenant disponible pour le Guard
 
-    // 2. Création d'une espèce
     const species = await prisma.species.create({
       data: { name: 'Chat' },
     });
     sharedSpeciesId = species.id;
-  });
-
-  afterAll(async () => {
-    await app.close();
   });
 
   // --- CREATE ---

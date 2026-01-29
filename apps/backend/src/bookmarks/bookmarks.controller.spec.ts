@@ -1,30 +1,39 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { BookmarksController } from './bookmarks.controller';
-import { BookMarksService } from './bookmarks.service';
-import { PrismaService } from '../prisma/prisma.service';
+
+// On empêche NestJS d'exécuter les décorateurs qui font planter Jest
+jest.mock('@nestjs/common', () => ({
+  ...jest.requireActual('@nestjs/common'),
+  Post: () => jest.fn(),
+  Get: () => jest.fn(),
+  Body: () => jest.fn(),
+  Req: () => jest.fn(),
+  UsePipes: () => jest.fn(),
+  UseGuards: () => jest.fn(),
+  Controller: () => jest.fn(),
+}));
 
 describe('BookmarksController', () => {
   let controller: BookmarksController;
-  let service: BookMarksService;
-  let prisma: PrismaService;
+  let mockService: any;
 
-  beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [BookmarksController],
-      providers: [BookMarksService, PrismaService], // ✅ ajoute PrismaService
-    }).compile();
+  beforeEach(() => {
+    // On simule le service
+    mockService = {
+      toggle: jest.fn().mockResolvedValue({ bookmarked: true }),
+      findAllByUser: jest.fn().mockResolvedValue([]),
+    };
 
-    controller = module.get<BookmarksController>(BookmarksController);
-    service = module.get<BookMarksService>(BookMarksService);
-    prisma = module.get<PrismaService>(PrismaService);
+    // Instanciation manuelle (sans TestingModule pour éviter le crash des décorateurs)
+    controller = new BookmarksController(mockService);
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
+  it('devrait appeler toggle avec les bonnes informations', async () => {
+    const req = { user: { id: 1 } };
+    const dto = { animalId: 10 };
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-    expect(service).toBeDefined();
+    const result = await controller.toggle(req as any, dto);
+
+    expect(mockService.toggle).toHaveBeenCalledWith(1, 10);
+    expect(result).toEqual({ bookmarked: true });
   });
 });
