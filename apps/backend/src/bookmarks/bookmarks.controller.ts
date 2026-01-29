@@ -12,8 +12,8 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from "@nestjs/swagger";
-// On importe le Schéma (pour la validation) et le Type (pour TypeScript)
+} from "@nestjs/swagger"; 
+
 import {
   type CreateBookmarkDto,
   CreateBookmarkSchema,
@@ -38,13 +38,12 @@ export class BookmarksController {
   @ApiResponse({ status: 400, description: "Données invalides" })
   @ApiResponse({ status: 401, description: "Non authentifié" })
   @ApiResponse({ status: 404, description: "Animal non trouvé" })
-  // Le ZodPipe fait le travail de validation à la place des Class-Validators
+  
   @UsePipes(new ZodPipe(CreateBookmarkSchema))
   async toggle(
     @Req() req: any,
-    @Body() dto: CreateBookmarkDto // Ici 'dto' est juste un objet typé par Zod
+    @Body() dto: CreateBookmarkDto
   ) {
-    // req.user.id est récupéré via ton cookie par la JwtStrategy
     return this.bookmarksService.toggle(req.user.id, dto.animalId);
   }
 
