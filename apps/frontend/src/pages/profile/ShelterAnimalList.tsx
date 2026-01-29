@@ -1,5 +1,5 @@
 import type { AnimalWithRelations } from "@projet/shared-types";
-import { Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
+import { Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,8 +12,6 @@ export default function ShelterAnimalList() {
   const { id } = useParams<{ id: string }>();
   const [animals, setAnimals] = useState<AnimalWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
 
   const [actionToConfirm, setActionToConfirm] = useState<{
     type: "delete" | "restore";
@@ -36,23 +34,6 @@ export default function ShelterAnimalList() {
     };
     if (id) fetchAnimals();
   }, [id]);
-
-const statusLabels: Record<string, string> = {
-  available: "Disponible",
-  adopted: "Adopté",
-  foster_care: "Famille d’accueil",
-  unavailable: "Indisponible",
-};
-
-
-  const filteredAnimals = animals.filter((animal) => {
-    const matchesSearch = animal.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || animal.animalStatus === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   const handleConfirmAction = async () => {
     if (!actionToConfirm) return;
@@ -90,31 +71,6 @@ const statusLabels: Record<string, string> = {
         <h1 className="text-2xl font-bold text-gray-800 font-montserrat">
           Gestion des Animaux
         </h1>
-      </div>
-
-      {/* Barre d’outils */}
-      <div className="bg-white p-4 rounded-lg shadow-sm flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Rechercher par nom..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-primary transition"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <select
-          className="px-4 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-primary cursor-pointer"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">Tous les statuts</option>
-          <option value="available">Disponible</option>
-          <option value="adopted">Adopté</option>
-          <option value="foster_care">Famille d’accueil</option>
-          <option value="unavailable">Indisponible</option>
-        </select>
       </div>
 
       {/* Tableau */}
