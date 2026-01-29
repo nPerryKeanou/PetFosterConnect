@@ -1,15 +1,15 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseIntPipe,
-  UseGuards,
-  Req,
+  Patch,
+  Post,
   Query,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
 import type { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { CreateAnimalSchema, UpdateAnimalSchema } from "@projet/shared-types";
@@ -33,15 +33,21 @@ export class AnimalsController {
 
   @Get()
   findAll(
-    @Query('limit') limit?: string, 
-    @Query('includeDeleted') includeDeleted?: string
+    @Query("limit") limit?: string,
+    @Query("includeDeleted") includeDeleted?: string
   ) {
     // Conversion des Query Params
     const numericLimit = limit ? parseInt(limit, 10) : undefined;
-    const isDeletedIncluded = includeDeleted === 'true'; // simple conversion booléenne
+    const isDeletedIncluded = includeDeleted === "true"; // simple conversion booléenne
 
     // On passe les deux arguments
     return this.animalsService.findAll(isDeletedIncluded, numericLimit);
+  }
+
+  // ROUTE SPECIALE ADMIN
+  @Get("admin/all")
+  findAllAdmin() {
+    return this.animalsService.findAll(true); // true = inclure les supprimés
   }
 
   @Get(":id")
