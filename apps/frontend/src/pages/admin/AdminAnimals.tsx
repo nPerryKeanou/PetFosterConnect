@@ -29,7 +29,7 @@ export default function AdminAnimals() {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const res = await api.get<AnimalWithRelations[]>("/animals");
+        const res = await api.get<AnimalWithRelations[]>("/animals/admin/all");
         setAnimals(res.data);
       } catch (error) {
         console.error("Erreur chargement animaux:", error);
