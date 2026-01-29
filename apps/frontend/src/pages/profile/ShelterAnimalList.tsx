@@ -87,8 +87,8 @@ export default function ShelterAnimalList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {animals.length > 0 ? (
-              animals.map((animal) => (
+            {filteredAnimals.length > 0 ? (
+              filteredAnimals.map((animal) => (
                 <tr
                   key={animal.id}
                   className="hover:bg-gray-50 transition-colors"
@@ -103,7 +103,7 @@ export default function ShelterAnimalList() {
                   </td>
                   <td className="px-6 py-4">
                     <Badge
-                      label={animal.animalStatus}
+                      label={statusLabels[animal.animalStatus] ?? animal.animalStatus}
                       variant={
                         animal.animalStatus === "available"
                           ? "success"
