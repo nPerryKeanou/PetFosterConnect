@@ -103,10 +103,14 @@ export class UsersService {
     }
     return this.prisma.pfcUser.findUnique({
       where: { id: userId },
-      include: {
-        individualProfile: true,
-        shelterProfile: true,
-      },
+      select: {
+          id: true,
+          email: true, 
+          phoneNumber: true, // <-- ajoute ce champ 
+          address: true, 
+          role: true, 
+          individualProfile: true, 
+          shelterProfile: true, },
     });
   }
   

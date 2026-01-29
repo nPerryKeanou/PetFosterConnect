@@ -7,32 +7,15 @@ import { UsersService } from "../users/users.service";
 @Injectable()
 export class AuthService {
   constructor(
-    private jwt: JwtService,
     private usersService: UsersService,
     private jwtService: JwtService
   ) {}
-
-  getAccessToken(userId: number) {
-    return this.jwt.sign(
-      { sub: userId },
-      { secret: process.env.JWT_SECRET, expiresIn: "15m" }
-    );
-  }
-
-  getRefreshToken(userId: number) {
-    return this.jwt.sign(
-      { sub: userId },
-      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: "7d" }
-    );
-  }
 
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user)
       throw new UnauthorizedException("Email ou mot de passe incorrect");
-
     const isValid = await argon2.verify(user.password, dto.password);
-    console.log("Password valid:", user.password, dto.password, isValid);
     if (!isValid)
       throw new UnauthorizedException("Email ou mot de passe incorrect");
 
@@ -46,14 +29,12 @@ export class AuthService {
   }
 
   async register(dto: RegisterDto) {
-    console.log("Registering user:", dto);
-
     const user = await this.usersService.create({
       email: dto.email,
       password: dto.password,
       role: dto.role,
       siret: dto.siret ? dto.siret : "",
-      shelterName: dto.shelterName ? dto.shelterName: ""
+      shelterName: dto.shelterName ? dto.shelterName : "",
     });
 
     const token = this.jwtService.sign({

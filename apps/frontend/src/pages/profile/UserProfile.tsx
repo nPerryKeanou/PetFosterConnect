@@ -1,9 +1,10 @@
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import UserCard from "../profile/components/UserCard";
+import { useParams } from "react-router-dom";
+import api from "../../api/api";
 import IndividualProfileForm from "../profile/components/IndividualProfilForm";
-import ShelterProfileForm from "../profile/components/ShelterProfilForm";
 import PasswordForm from "../profile/components/PasswordForm";
+import ShelterProfileForm from "../profile/components/ShelterProfilForm";
+import UserCard from "../profile/components/UserCard";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,38 +19,43 @@ export default function UserProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) return;
-      const res = await fetch(`${API_URL}/users/${id}/profil`);
-      const data = await res.json();
-      setUser(data);
 
-      if (data.role === "individual" && data.individualProfile) {
-        setFormData({
-          email: data.email ?? "",
-          phoneNumber: data.phoneNumber ?? "",
-          address: data.address ?? "",
-          surface: data.individualProfile.surface ?? 0,
-          housingType: data.individualProfile.housingType ?? "other",
-          haveGarden: data.individualProfile.haveGarden ?? false,
-          haveAnimals: data.individualProfile.haveAnimals ?? false,
-          haveChildren: data.individualProfile.haveChildren ?? false,
-          availableFamily: data.individualProfile.availableFamily ?? false,
-          availableTime: data.individualProfile.availableTime ?? "",
-          password: ""
-        });
-      
-      } else if (data.role === "shelter" && data.shelterProfile) {
-        setFormData({
-          logo: data.shelterProfile.logo ?? "",
-          email: data.email ?? "",
-          phoneNumber: data.phoneNumber ?? "",
-          address: data.address ?? "",
-          shelterName: data.shelterProfile.shelterName ?? "",
-          siret: data.shelterProfile.siret ?? "",
-          description: data.shelterProfile.description ?? "",
-          password: ""
-        });
+      try {
+        const res = await api.get(`/users/${id}/profil`);
+        const data = res.data;
+
+        setUser(data);
+
+        // Gestion des formulaires selon le rôle
+        if (data.role === "individual" && data.individualProfile) {
+          setFormData({
+            email: data.email ?? "",
+            phoneNumber: data.phoneNumber ?? "",
+            address: data.address ?? "",
+            surface: data.individualProfile.surface ?? 0,
+            housingType: data.individualProfile.housingType ?? "other",
+            haveGarden: data.individualProfile.haveGarden ?? false,
+            haveAnimals: data.individualProfile.haveAnimals ?? false,
+            haveChildren: data.individualProfile.haveChildren ?? false,
+            availableFamily: data.individualProfile.availableFamily ?? false,
+            availableTime: data.individualProfile.availableTime ?? "",
+          });
+        } else if (data.role === "shelter" && data.shelterProfile) {
+          setFormData({
+            email: data.email ?? "",
+            phoneNumber: data.phoneNumber ?? "",
+            address: data.address ?? "",
+            shelterName: data.shelterProfile.shelterName ?? "",
+            siret: data.shelterProfile.siret ?? "",
+            description: data.shelterProfile.description ?? "",
+          });
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Erreur API fetchUser:", err);
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchUser();
   }, [id]);
@@ -60,35 +66,34 @@ export default function UserProfilePage() {
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  let endpoint = "";
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let endpoint = "";
 
-  if (user.role === "individual") {
-    endpoint = `${API_URL}/users/${user.id}/individual-profile`;
-  } else {
-    endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
-  }
+    if (user.role === "individual") {
+      endpoint = `${API_URL}/users/${user.id}/individual-profile`;
+    } else {
+      endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
+    }
 
-  const { password, ...profileData } = formData;
+    const { password, ...profileData } = formData;
 
-  const res = await fetch(endpoint, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(profileData),
-  });
+    const res = await fetch(endpoint, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profileData),
+    });
 
-  if (!res.ok) {
-    console.error("Erreur API:", await res.text());
-    return;
-  }
+    if (!res.ok) {
+      console.error("Erreur API:", await res.text());
+      return;
+    }
 
-  const updated = await res.json();
-  
-  setUser({ ...user, ...updated });
-  setIsEditing(false);
-};
+    const updated = await res.json();
 
+    setUser({ ...user, ...updated });
+    setIsEditing(false);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -97,26 +102,32 @@ const handleSubmit = async (e: React.FormEvent) => {
           <>
             <UserCard user={user} />
             <button
+              type="button"
               onClick={() => setIsEditing(true)}
               className="mt-4 bg-primary text-white px-4 py-2 rounded"
             >
               Modifier
             </button>
-        
+
             {/* Bloc mot de passe toujours accessible */}
             <div className="mt-6 border-t pt-4">
-              <h2 className="text-lg font-semibold">Modifier le mot de passe</h2>
+              <h2 className="text-lg font-semibold">
+                Modifier le mot de passe
+              </h2>
               <PasswordForm userId={user.id} />
             </div>
           </>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {user.role === "individual" ? (
-              <IndividualProfileForm formData={formData} onChange={handleChange} />
+              <IndividualProfileForm
+                formData={formData}
+                onChange={handleChange}
+              />
             ) : (
               <ShelterProfileForm formData={formData} onChange={handleChange} />
             )}
-        
+
             <div className="flex justify-between">
               <button
                 type="button"

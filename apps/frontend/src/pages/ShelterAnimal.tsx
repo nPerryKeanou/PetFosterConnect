@@ -1,5 +1,7 @@
-import { Link, useParams } from "react-router-dom";
+//page de la liste des refuge.
+// url --> http://localhost:5173/refuges
 import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import _AnimalCard from "../components/AnimalCard";
 import BackBanner from "../components/ui/BackBanner";
 
@@ -7,7 +9,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const ShelterAnimalsPage = () => {
   const { id } = useParams<{ id: string }>();
-  console.log("useParams id côté frontend (ShelterAnimalsPage):", id);
 
   const [shelter, setShelter] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,11 +17,9 @@ const ShelterAnimalsPage = () => {
     const fetchShelter = async () => {
       try {
         if (!id) return; // évite l'appel avec undefined
-        console.log("Appel API ShelterAnimals avec id:", id);
         const res = await fetch(`${API_URL}/shelters/${id}`);
-        if (!res.ok) throw new Error("Erreur HTTP " + res.status);
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         const data = await res.json();
-        console.log("Réponse backend ShelterAnimals:", data);
         setShelter(data);
       } catch (err) {
         console.error("Erreur API:", err);

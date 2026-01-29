@@ -16,6 +16,10 @@ const Navbar = () => {
     links.push({ to: `/user/${user.id}/profil`, label: "Profil" });
   }
 
+  if (isLoggedIn && user?.role === "admin") {
+    links.push({ to: "/admin", label: "Admin" });
+  }
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `text-sm font-medium text-white transition hover:underline ${
       isActive ? "underline" : ""

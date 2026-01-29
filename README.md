@@ -2,181 +2,313 @@
 
 Application web de mise en relation entre refuges et familles d'accueil pour animaux.
 
-## Stack Technique
+## 📚 Table des matières
+
+- [Stack Technique](#stack-technique)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Scripts disponibles](#scripts-disponibles)
+- [Structure du projet](#structure-du-projet)
+- [Base de données & Persistance](#base-de-données--persistance)
+- [Documentation API (Swagger)](#documentation-api-swagger)
+- [Workflow Git](#workflow-git)
+
+## 🛠 Stack Technique
 
 - **Backend**: NestJS + TypeScript + Prisma + PostgreSQL
 - **Frontend**: React + TypeScript + Tailwind CSS + Vite
 - **Monorepo**: npm workspaces
+- **Documentation API**: Swagger/OpenAPI
 
-## Prérequis
+## 📋 Prérequis
 
 - Node.js >= 18
-- Docker & Docker Compose
-- Port utilisé : 5433
 - npm >= 9
+- Docker & Docker Compose
+- Port PostgreSQL : 5440
+- Port Backend : 3001
+- Port Frontend : 5173
 
-## Installation
+## 🚀 Installation
 
-1. Cloner le repo
+### 1. Cloner le repository
+
 ```bash
 git clone <url>
 cd projet
 ```
 
-2. Installer les dépendances
+### 2. Installer les dépendances
+
 ```bash
 npm install
 ```
 
-3. Lancer la base de données
+### 3. Lancer la base de données PostgreSQL
+
 ```bash
-npm run docker:up
+docker-compose up -d
 ```
 
-4. Configurer les variables d'environnement
+> ℹ️ La base de données est exposée sur le port **5440** pour éviter les conflits avec d'éventuelles instances PostgreSQL locales (port 5432 par défaut).
+
+### 4. Configurer les variables d'environnement
+
 ```bash
 cp apps/backend/.env.example apps/backend/.env
 # Éditer apps/backend/.env si nécessaire
 ```
 
-5. Générer Prisma Client & lancer les migrations
-```bash
-npm run prisma:generate
-npm run prisma:migrate
+Exemple de configuration dans `apps/backend/.env` :
+
+```env
+DATABASE_URL="postgresql://johndoe:randompassword@localhost:5440/petfosterconnect?schema=public"
+PORT=3001
 ```
 
-6. Lancer le projet en mode dev
+### 5. Initialiser Prisma
+
+#### a. Installer les dépendances de configuration Prisma 7
+
 ```bash
+cd apps/backend
+npm install --save-dev dotenv @prisma/config
+```
+
+#### b. Lancer la migration (création des tables)
+
+```bash
+NODE_CONFIG_STRATEGY=none npx prisma migrate dev --name init_db --schema=./prisma/schema.prisma
+```
+
+#### c. Générer le client Prisma
+
+```bash
+npx prisma generate --schema=./prisma/schema.prisma
+```
+
+### 6. Lancer le projet en mode développement
+
+```bash
+# Depuis la racine du projet
 npm run dev
 ```
 
-- Backend: http://localhost:3001
-- Frontend: http://localhost:5173
-- Prisma Studio: `npm run prisma:studio`
+Accès aux services :
 
-## Scripts disponibles
+- **Backend API**: http://localhost:3001
+- **Frontend**: http://localhost:5173
+- **Documentation Swagger**: http://localhost:3001/api
 
-- `npm run dev` - Lance backend + frontend en parallèle
-- `npm run dev:backend` - Lance uniquement le backend
-- `npm run dev:frontend` - Lance uniquement le frontend
-- `npm run build` - Build complet
-- `npm run docker:up` - Démarre PostgreSQL
-- `npm run docker:down` - Arrête PostgreSQL
-- `npm run prisma:generate` - Génère Prisma Client
-- `npm run prisma:migrate` - Applique les migrations
-- `npm run prisma:studio` - Ouvre Prisma Studio
+## 📜 Scripts disponibles
 
-## Structure du projet
-```
-apps/
-├── backend/    - API NestJS
-└── frontend/   - Application React
-packages/
-└── shared-types/  - Types TypeScript partagés
+### Scripts globaux (depuis la racine)
+
+```bash
+npm run dev              # Lance backend + frontend en parallèle
+npm run dev:backend      # Lance uniquement le backend
+npm run dev:frontend     # Lance uniquement le frontend
+npm run build            # Build complet du projet
 ```
 
-## Workflow Git
+### Scripts Docker
 
-1. Créer une branche depuis `main`
-    git checkout -b feature/nom-feature
+```bash
+npm run docker:up        # Démarre PostgreSQL (Docker)
+npm run docker:down      # Arrête PostgreSQL
+```
 
+### Scripts Prisma
 
-2. Développer et commit
-    git add .
-    git commit -m "feat: description"
+```bash
+npm run prisma:generate  # Génère le client Prisma
+npm run prisma:migrate   # Applique les migrations
+npm run prisma:studio    # Ouvre Prisma Studio (interface graphique)
+```
 
+Pour Prisma Studio :
 
-3. Push et créer une PR
-    git push origin feature/nom-feature
+```bash
+cd apps/backend
+npx prisma studio --config=./prisma.config.ts
+```
 
+## 📁 Structure du projet
 
-
+```
+projet/
+├── apps/
+│   ├── backend/          # API NestJS
+│   │   ├── src/
+│   │   │   ├── animals/
+│   │   │   ├── applications/
+│   │   │   ├── auth/
+│   │   │   ├── bookmarks/
+│   │   │   ├── email/
+│   │   │   ├── shelters/
+│   │   │   ├── species/
+│   │   │   ├── users/
+│   │   │   └── main.ts   # Configuration Swagger
+│   │   └── prisma/
+│   │       └── schema.prisma
+│   └── frontend/         # Application React
+│       └── src/
+├── packages/
+│   └── shared-types/     # Types TypeScript partagés
+├── docker-compose.yml
+└── package.json
+```
 
 ## 🗄️ Base de données & Persistance
 
 Le backend utilise **NestJS**, **Prisma 7** et **PostgreSQL** (via Docker). L'architecture est conçue pour être isolée et facile à reproduire.
 
-### 1. Prérequis
-* Docker & Docker Compose installés.
-* Node.js (v18+) et npm.
+### Configuration PostgreSQL
 
-### 2. Lancement de la Base de Données (Docker)
-L'infrastructure PostgreSQL est containerisée. Pour démarrer le service, placez-vous à la racine du projet :
+- **Port** : 5440
+- **Database** : petfosterconnect
+- **User** : johndoe
+- **Password** : randompassword
 
-```Bash
-    docker-compose up -d
-```
+### Commandes Prisma utiles
 
-# Documentation Base de données & Persistance
-Voici les instructions spécifiques pour configurer la base de données sur le port 5440 et utiliser les commandes adaptées à Prisma 7 afin d'éviter les erreurs de configuration rencontrées lors du setup initial.
+```bash
+# Créer une nouvelle migration
+NODE_CONFIG_STRATEGY=none npx prisma migrate dev --name nom_migration --schema=./prisma/schema.prisma
 
-## Guide de démarrage rapide
-### 1. Prérequis
+# Appliquer les migrations en production
+npx prisma migrate deploy --schema=./prisma/schema.prisma
 
-Docker & Docker Compose installés.
+# Réinitialiser la base de données (⚠️ supprime toutes les données)
+npx prisma migrate reset --schema=./prisma/schema.prisma
 
-Node.js (v18+) et npm.
-
-### 2. Lancement de la Base de Données (Docker)
-
-L'infrastructure PostgreSQL est containerisée. Pour démarrer le service, placez-vous à la racine du projet :
-
-```Bash
-    docker-compose up -d
-```
-
-Note : La base est exposée sur le port 5440 pour éviter les conflits avec d'éventuelles instances PostgreSQL locales (5432).
-
-### 3. Configuration du Backend
-
-Naviguez dans le dossier backend : cd apps/backend
-
-Créez un fichier .env (si non présent) et configurez l'URL de connexion :
-
-Extrait de code
-    DATABASE_URL="postgresql://johndoe:randompassword@localhost:5440/petfosterconnect?schema=public"
-
-#### 4. Initialisation de Prisma (Migration & Client)
-
-Depuis le dossier apps/backend, lancez les commandes suivantes pour synchroniser votre base et générer le client TypeScript :
-
-## 1. Installation des dépendances de configuration Prisma 7
-```Bash
-npm install --save-dev dotenv @prisma/config
-```
-
-## 2. Lancement de la migration (création des tables dans PostgreSQL)
-```Bash
-NODE_CONFIG_STRATEGY=none npx prisma migrate dev --name init_db --schema=./prisma/schema.prisma
-```
-
-## 3. Génération du client Prisma (pour l'autocomplétion TypeScript)
-```Bash
-npx prisma generate --schema=./prisma/schema.prisma
-```
-5. Exploration des données (Interface Graphique)
-
-Pour inspecter visuellement le contenu de la base de données (Prisma Studio) :
-
-```Bash
+# Visualiser la base de données
 npx prisma studio --config=./prisma.config.ts
 ```
 
-🏗️ Architecture Technique
-Prisma 7 : Utilisation du fichier prisma.config.ts pour la gestion de la connexion, séparée du schema.prisma.
+## 📖 Documentation API (Swagger)
 
-PrismaService : Module global NestJS. Une fois injecté, il permet d'accéder à la DB via this.prisma.user, this.prisma.animal, etc.
+L'API est entièrement documentée avec **Swagger/OpenAPI**. Une interface interactive permet de tester tous les endpoints directement depuis le navigateur.
 
-Migrations : Toutes les modifications de structure sont tracées dans prisma/migrations/. Ne jamais modifier la DB manuellement, passez toujours par le schéma.
+### Accès à la documentation
 
-💡 Conseils pour le déploiement et Git
-Migrations : Pensez à inclure le dossier apps/backend/prisma/migrations dans vos commits. C'est ce dossier qui contient l'historique SQL indispensable pour que les autres collaborateurs aient la même base.
+Une fois le backend lancé, accédez à :
 
-Sécurité : Vérifiez que votre fichier .gitignore exclut bien les fichiers .env pour ne pas exposer les identifiants de la base de données sur le dépôt distant.
+```
+http://localhost:3001/api
+```
 
-## Contributeurs
+### Fonctionnalités Swagger
 
-- Développeur 1 - Backend
-- Développeur 2 - Frontend
-- Développeur 3 - Frontend
-- Développeur 4 - Fullstack
+- ✅ Documentation complète de tous les endpoints
+- ✅ Schémas de requêtes et réponses
+- ✅ Testeur d'API intégré (essayer les requêtes directement)
+- ✅ Authentification JWT intégrée
+- ✅ Organisation par tags (modules)
+
+### Tags disponibles
+
+| Tag            | Description                      |
+| -------------- | -------------------------------- |
+| `animals`      | Gestion des animaux              |
+| `applications` | Gestion des demandes d'adoption  |
+| `auth`         | Authentification et autorisation |
+| `bookmarks`    | Gestion des favoris              |
+| `emails`       | Envoi d'emails                   |
+| `shelters`     | Gestion des refuges              |
+| `species`      | Liste des espèces                |
+| `users`        | Gestion des utilisateurs         |
+| `health`       | État de santé de l'API           |
+
+### Tester l'API avec Swagger
+
+1. Accédez à http://localhost:3001/api
+2. Pour les routes protégées, cliquez sur le bouton **"Authorize"** 🔒
+3. Entrez votre token JWT (récupéré via `/auth/login`)
+4. Testez les endpoints directement dans l'interface
+
+### Exemple : Authentification
+
+```bash
+# 1. S'inscrire
+POST /auth/register
+Body: { "email": "test@example.com", "password": "password123", ... }
+
+# 2. Se connecter
+POST /auth/login
+Body: { "email": "test@example.com", "password": "password123" }
+Response: { "access_token": "eyJhbGc..." }
+
+# 3. Utiliser le token dans Swagger
+Cliquez sur "Authorize" et collez le token
+```
+
+## 🔄 Workflow Git
+
+### 1. Créer une branche depuis `main`
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b feature/nom-feature
+```
+
+### 2. Développer et commit
+
+```bash
+git add .
+git commit -m "feat: description de la fonctionnalité"
+```
+
+**Convention de commit** :
+
+- `feat:` Nouvelle fonctionnalité
+- `fix:` Correction de bug
+- `docs:` Documentation
+- `style:` Formatage, pas de changement de code
+- `refactor:` Refactoring
+- `test:` Ajout de tests
+- `chore:` Tâches de maintenance
+
+### 3. Push et créer une Pull Request
+
+```bash
+git push origin feature/nom-feature
+```
+
+Puis créez une Pull Request sur GitHub/GitLab.
+
+## 🐛 Dépannage
+
+### La base de données ne démarre pas
+
+```bash
+# Vérifier les logs Docker
+docker-compose logs postgres
+
+# Arrêter et redémarrer
+npm run docker:down
+npm run docker:up
+```
+
+### Erreur Prisma "Client not generated"
+
+```bash
+cd apps/backend
+npx prisma generate --schema=./prisma/schema.prisma
+```
+
+### Port déjà utilisé
+
+Si le port 3001 ou 5173 est déjà utilisé, modifiez les fichiers de configuration :
+
+- Backend : `apps/backend/.env` → `PORT=3002`
+- Frontend : `apps/frontend/vite.config.ts` → `server: { port: 5174 }`
+
+### Swagger ne s'affiche pas
+
+Vérifiez que :
+
+1. Le backend est bien lancé sur http://localhost:3001
+2. Vous accédez bien à http://localhost:3001/api (et non /api-docs)
+3. Les décorateurs `@ApiTags()` sont bien présents dans vos contrôleurs

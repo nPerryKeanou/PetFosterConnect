@@ -36,7 +36,7 @@ export class BookMarksService {
           },
         },
       });
-      return { bookmarks: false, message: "Retiré des favoris"};
+      return { bookmarked: false, message: "Retiré des favoris"};
     }
 
    // 4. Il n'existe pas ? On le crée (Toggle ON)

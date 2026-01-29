@@ -1,27 +1,24 @@
-import { useParams, Link } from "react-router-dom";
+//Page des details d'un seul refuge
+//Url -> http://localhost:5173/refuges/48
 import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import BackBanner from "../components/ui/BackBanner";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const RefugeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  console.log("useParams id côté frontend:", id);
-
 
   const [shelter, setShelter] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("useEffect déclenché avec id:", id);
     const fetchShelter = async () => {
       try {
         if (!id) return; // évite l'appel avec undefined
-        console.log("Appel API avec id:", id);
         const res = await fetch(`${API_URL}/shelters/${id}`);
-        if (!res.ok) throw new Error("Erreur HTTP " + res.status);
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         const data = await res.json();
-        console.log("Réponse backend:", data);
         setShelter(data);
       } catch (err) {
         console.error("Erreur API:", err);
@@ -48,7 +45,9 @@ const RefugeDetailPage = () => {
           style={{ borderColor: "#2D6A4F" }}
         >
           <img
-            src={shelter.logo ?? "https://placehold.co/150x150?text=Pas+de+logo"}
+            src={
+              shelter.logo ?? "https://placehold.co/150x150?text=Pas+de+logo"
+            }
             alt={`${shelter.shelterName} logo`}
             className="w-32 h-32 rounded-full object-cover bg-gray-200"
           />
@@ -76,7 +75,6 @@ const RefugeDetailPage = () => {
               Voir les animaux du refuge
             </Link>
           )}
-  
         </div>
       </div>
     </div>

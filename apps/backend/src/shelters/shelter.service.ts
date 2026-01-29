@@ -10,33 +10,49 @@ export class ShelterService {
     return this.prisma.shelterProfile.create({ data });
   }
 
-  async findAll() {
-    return this.prisma.shelterProfile.findMany({
-      where: {
+  async findAll(limit?: number) {
+  return this.prisma.shelterProfile.findMany({
+    where: { user: { deletedAt: null } },
+    take: limit, // Ajout de la limite
+    orderBy: { // Ajout du tri
         user: {
-          deletedAt: null,
-        },
+          createdAt: 'desc'
+        }
       },
-      include: {
-        user: { include: { animals: true } },
+    include: {
+      user: { 
+        include: { 
+          animals: { include: { species: true } } 
+        } 
       },
-    });
+    },
+  });
+}
+
+async findOne(id: number) {
+  const shelter = await this.prisma.shelterProfile.findUnique({
+    where: { pfcUserId: id },
+    include: {
+      user: { 
+        include: { 
+          animals: {
+            include: { species: true,
+              shelter: {
+                include: { shelterProfile: true } 
+              }
+             }
+          } 
+        } 
+      },
+    },
+  });
+
+  if (!shelter || shelter.user.deletedAt) {
+    throw new NotFoundException("Refuge introuvable");
   }
 
-  async findOne(id: number) {
-    const shelter = await this.prisma.shelterProfile.findUnique({
-      where: { pfcUserId: id },
-      include: {
-        user: { include: { animals: true } },
-      },
-    });
-
-    if (!shelter || shelter.user.deletedAt) {
-      throw new NotFoundException("Refuge introuvable");
-    }
-
-    return shelter;
-  }
+  return shelter;
+}
 
   async update(id: number, data: UpdateShelterProfileDto) {
     return this.prisma.shelterProfile.update({

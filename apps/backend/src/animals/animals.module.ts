@@ -4,9 +4,10 @@ import { AnimalsController } from './animals.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule], // INDISPENSABLE
+  imports: [PrismaModule],
   controllers: [AnimalsController],
   providers: [AnimalsService],
+  exports: [AnimalsService],
 })
 export class AnimalsModule {}
 

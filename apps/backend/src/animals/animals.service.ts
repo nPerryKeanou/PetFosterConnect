@@ -40,9 +40,16 @@ export class AnimalsService {
   
   
 
-  async findAll(includeDeleted = false) {
+  async findAll(includeDeleted = false, limit?: number) {
     return this.prisma.animal.findMany({
-      where: { deletedAt: includeDeleted ? undefined : null },
+      where: { 
+        // Si includeDeleted est false, on ne veut que deletedAt: null
+        deletedAt: includeDeleted ? undefined : null 
+      },
+      take: limit, // On applique la limite si elle est fournie
+      orderBy: { 
+        createdAt: 'desc' // On trie toujours du plus récent au plus ancien
+      },
       include: {
         species: true,
         shelter: { include: { shelterProfile: true } },
@@ -71,21 +78,19 @@ export class AnimalsService {
  
    return { ...rest, isBookmarked };
  }
- 
-async findAllByShelter(userId: number) {
-  return this.prisma.animal.findMany({
-    where: { pfcUserId: userId },
-    include: {
-      species: true,
-      shelter: { include: { shelterProfile: true } },
-    },
-    orderBy: { name: "asc" },
-  });
-}
-
-
-
-
+  async findAllByShelter(userId: number) {
+    return this.prisma.animal.findMany({
+      where: { pfcUserId: userId },
+      include: { // <--- C'EST CETTE PARTIE QUI MANQUE SÛREMENT
+        species: true, // "Va chercher le nom de l'espèce"
+        shelter: {     // "Va chercher les infos du refuge"
+          include: {
+            shelterProfile: true 
+          }
+        }
+      }
+    });
+  }
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     const data: any = {};
