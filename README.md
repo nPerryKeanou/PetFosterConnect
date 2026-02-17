@@ -38,6 +38,12 @@ npm run docker:up
 ```bash
 cp apps/backend/.env.example apps/backend/.env
 # Éditer apps/backend/.env si nécessaire
+
+# URL de la base de données (celle qu'on a trouvée dans ton docker-compose)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5440/petfosterconnect?schema=public"
+
+# La clé pour l'authentification (l'erreur NestJS qu'on vient de voir)
+JWT_SECRET="ta_cle_secrete_ici"
 ```
 
 5. Générer Prisma Client & lancer les migrations
