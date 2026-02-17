@@ -179,7 +179,7 @@ Sécurité : Vérifiez que votre fichier .gitignore exclut bien les fichiers .en
 
 ## Contributeurs
 
-- Développeur 1 - Backend
-- Développeur 2 - Frontend
-- Développeur 3 - Frontend
-- Développeur 4 - Fullstack
+- Développeur 1 - nPerryKeanou
+- Développeur 2 - Leo-Fauquembergue
+- Développeur 3 - Vincent-Couturier
+- Développeur 4 - proed59
