@@ -1,9 +1,7 @@
-# !!!!!!!!!!!!!!!! I need to reconfigure the monorepo with Nx.
-
-
 # Famille d'Accueil Animaux - Monorepo
 
 Application web de mise en relation entre refuges et familles d'accueil pour animaux.
+PetFosterConnect est le fruit d'un travail d'équipe passionné, réalisé par quatre développeurs dans le cadre de l'apothéose de la formation O'clock. Ce projet constitue l'aboutissement de notre cursus et a été conçu pour être présenté devant un jury professionnel afin de valider le titre CDA (Concepteur Développeur d'Applications).
 
 ## Stack Technique
 
