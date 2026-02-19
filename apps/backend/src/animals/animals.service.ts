@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { PrismaService } from "../prisma/prisma.service";
+import { PetfinderService } from "src/dog-api/dog-api.service";
 
 @Injectable()
 export class AnimalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private petfinder: PetfinderService // on injecte ton nouveau service
+  ) {}
 
   async create(createAnimalDto: CreateAnimalDto, userId: number) {
     return this.prisma.animal.create({
@@ -16,11 +20,27 @@ export class AnimalsService {
     });
   }
 
-  async findAll() {
-    return this.prisma.animal.findMany({
+  
+
+ async findAll() {
+    // 1. Récupérer tes animaux locaux depuis PostgreSQL (via Prisma)
+    const localAnimals = await this.prisma.animal.findMany({
       where: { deleted_at: null },
       include: { species: true },
     });
+
+    // 2. Récupérer les animaux externes (via Petfinder)
+    // On entoure d'un try/catch pour que si l'API externe tombe, ton site ne plante pas
+    let externalAnimals = [];
+    try {
+      externalAnimals = await this.petfinder.getAnimals();
+    } catch (error) {
+      console.error("Erreur Petfinder API:", error);
+      // On continue avec une liste vide si l'API échoue
+    }
+
+    // 3. Fusionner les deux listes et les renvoyer
+    return [...localAnimals, ...externalAnimals];
   }
 
   async findOne(id: number) {

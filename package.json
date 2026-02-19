@@ -38,6 +38,8 @@
     "@rollup/rollup-linux-x64-gnu": "*"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
+    "axios": "^1.13.5",
     "zod": "^4.3.5"
   }
 }
