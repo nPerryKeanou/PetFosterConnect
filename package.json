@@ -10,7 +10,7 @@
     "start:backend": "node apps/backend/dist/apps/backend/src/main",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "// --- Build Shared Types First ---": "",
-    "build:shared": "cd packages/shared-types && npm install && npx tsc",
+    "build:backend": "npm run build:shared && ./node_modules/.bin/prisma generate --schema=apps/backend/prisma/schema.prisma && npm run build --workspace=backend",
     "// --- Backend ---": "",
     "dev:backend": "npm run build:shared && npm run start:dev --workspace=backend",
     "build:backend": "npm run build:shared && npx prisma generate --schema=apps/backend/prisma/schema.prisma && npm run build --workspace=backend",
