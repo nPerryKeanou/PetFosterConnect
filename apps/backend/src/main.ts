@@ -45,7 +45,9 @@ async function bootstrap() {
 
   app.useGlobalPipes();
 
-  await app.listen(process.env.PORT ?? 3001);
+  const port = process.env.PORT || 3001;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
 bootstrap();
