@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import _AnimalCard from "../components/AnimalCard";
 import BackBanner from "../components/ui/BackBanner";
+import api from '../api/api';
 
-const API_URL = import.meta.env.VITE_API_URL;
+
 
 const ShelterAnimalsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,14 +16,15 @@ const ShelterAnimalsPage = () => {
 
   useEffect(() => {
     const fetchShelter = async () => {
+      if (!id) return; 
+      
       try {
-        if (!id) return; // évite l'appel avec undefined
-        const res = await fetch(`${API_URL}/shelters/${id}`);
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-        const data = await res.json();
-        setShelter(data);
+        // ✅ Utilisation de l'instance api
+        // Plus besoin de .ok ou de .json()
+        const response = await api.get(`/shelters/${id}`);
+        setShelter(response.data);
       } catch (err) {
-        console.error("Erreur API:", err);
+        console.error("Erreur API lors de la récupération du refuge:", err);
       } finally {
         setLoading(false);
       }
@@ -42,11 +44,17 @@ const ShelterAnimalsPage = () => {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-          {shelter.user?.animals?.map((animal: any) => (
-            <Link key={animal.id} to={`/animaux/${animal.id}`}>
-              <_AnimalCard {...animal} />
-            </Link>
-          ))}
+          {shelter.user?.animals?.length > 0 ? (
+            shelter.user.animals.map((animal: any) => (
+              <Link key={animal.id} to={`/animaux/${animal.id}`}>
+                <_AnimalCard {...animal} />
+              </Link>
+            ))
+          ) : (
+            <p className="col-span-full text-gray-500 italic">
+              Ce refuge n'a pas encore d'animaux à l'adoption.
+            </p>
+          )}
         </div>
       </div>
     </div>

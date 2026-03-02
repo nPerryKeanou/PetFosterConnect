@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api/api";
+import api from "../api/api"; // ✅ Corrigé : Import par défaut sans {}
 import AnimalCard from "../components/ui/HomeAnimalCard";
 import ShelterCard from "../components/ui/HomeShelterCard";
 import Button from "../components/ui/Button";
@@ -11,7 +11,6 @@ import { toast } from "react-toastify";
 import type { Animal, ShelterProfile, User, Species } from "@projet/shared-types";
 
 // TYPES D'AFFICHAGE (UI)
-// Ce sont les props attendues par les composants "Cards"
 type DisplayAnimal = {
   id: number;
   name: string;
@@ -29,17 +28,13 @@ type DisplayShelter = {
 };
 
 // TYPES TECHNIQUES (API RESPONSE)
-// Ces types décrivent la structure exacte du JSON renvoyé par le Backend avec les "include"
-
-// Animal avec ses relations (Espèce + Refuge)
 type AnimalResponse = Animal & {
-  species: Species | null; // Peut être null si supprimée
+  species: Species | null;
   shelter: (User & {
     shelterProfile: ShelterProfile | null;
-  }) | null; // Le créateur peut ne plus avoir de profil
+  }) | null;
 };
 
-// Refuge avec son User parent (pour l'adresse)
 type ShelterResponse = ShelterProfile & {
   user: User;
 };
@@ -52,16 +47,14 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Chargement parallèle pour la performance
-        // On demande explicitement les types étendus à axios
+        // ✅ Utilisation de l'instance api avec les types génériques
         const [animalsRes, sheltersRes] = await Promise.all([
-          api.get<AnimalResponse[]>("/animals?limit=3"),
-          api.get<ShelterResponse[]>("/shelters?limit=3")
+          api.get<AnimalResponse[]>("/animals", { params: { limit: 3 } }),
+          api.get<ShelterResponse[]>("/shelters", { params: { limit: 3 } })
         ]);
 
         // MAPPING ANIMAUX
         const recentAnimals = animalsRes.data.map((a) => {
-          // Gestion sécurisée de l'image (peut être string, tableau ou null)
           let imageUrl = "https://placehold.co/600x400?text=Pas+de+photo";
           if (Array.isArray(a.photos) && a.photos.length > 0) {
             imageUrl = a.photos[0] as string;
@@ -72,7 +65,6 @@ export default function Home() {
           return {
             id: a.id,
             name: a.name,
-            // Protection contre les null (species?, shelter?)
             species: a.species?.name || "Espèce inconnue",
             age: a.age || "Âge non renseigné",
             image: imageUrl,
@@ -84,10 +76,9 @@ export default function Home() {
 
         // MAPPING REFUGES
         const featuredShelters = sheltersRes.data.map((s) => ({
-          id: s.pfcUserId, // L'ID du refuge est l'ID du user
+          id: s.pfcUserId,
           name: s.shelterName,
           image: s.logo || "https://placehold.co/600x400?text=Refuge",
-          // L'adresse est stockée sur l'objet 'user' parent
           location: s.user?.address || "Localisation non renseignée",
         }));
 
@@ -117,11 +108,9 @@ export default function Home() {
       
       {/* HERO SECTION */}
       <section className="relative bg-secondary py-20 lg:py-32 overflow-hidden border-t border-white/10 shadow-inner">
-        {/* Élément décoratif d'arrière-plan */}
         <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-12 transform translate-x-20" />
         
         <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-          {/* Texte Hero */}
           <div className="flex-1 text-center md:text-left text-white">
             <h1 className="text-4xl md:text-5xl font-bold font-montserrat mb-6 leading-tight">
               Offrez-leur un foyer, <br/>
@@ -142,7 +131,6 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Image Hero */}
           <div className="flex-1 flex justify-center">
             <img 
               src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?q=80&w=600&auto=format&fit=crop" 
@@ -178,7 +166,6 @@ export default function Home() {
             <p className="text-center text-gray-500 italic">Aucun animal à afficher pour le moment.</p>
           )}
           
-          {/* Lien Mobile uniquement */}
           <div className="mt-8 text-center md:hidden">
             <Link to="/animaux" className="text-primary font-semibold hover:underline">
               Voir tous les animaux →
@@ -212,7 +199,6 @@ export default function Home() {
             <p className="text-center text-gray-500 italic">Nos refuges partenaires s'affichent bientôt ici.</p>
           )}
 
-          {/* Lien Mobile uniquement */}
           <div className="mt-8 text-center md:hidden">
             <Link to="/refuges" className="text-primary font-semibold hover:underline">
               Voir tous les refuges →

@@ -1,144 +1,139 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../../api/api";
+import api from "../../api/api"; // ✅ Import par défaut correct
 import IndividualProfileForm from "../profile/components/IndividualProfilForm";
 import PasswordForm from "../profile/components/PasswordForm";
 import ShelterProfileForm from "../profile/components/ShelterProfilForm";
 import UserCard from "../profile/components/UserCard";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { toast } from "react-toastify"; // ✅ Pour les retours utilisateurs
 
 export default function UserProfilePage() {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
     const fetchUser = async () => {
       if (!id) return;
-
       try {
         const res = await api.get(`/users/${id}/profil`);
         const data = res.data;
-
         setUser(data);
 
-        // Gestion des formulaires selon le rôle
-        if (data.role === "individual" && data.individualProfile) {
+        // Pré-remplissage des formulaires selon le rôle
+        if (data.role === "individual") {
+          const profile = data.individualProfile || {};
           setFormData({
             email: data.email ?? "",
             phoneNumber: data.phoneNumber ?? "",
             address: data.address ?? "",
-            surface: data.individualProfile.surface ?? 0,
-            housingType: data.individualProfile.housingType ?? "other",
-            haveGarden: data.individualProfile.haveGarden ?? false,
-            haveAnimals: data.individualProfile.haveAnimals ?? false,
-            haveChildren: data.individualProfile.haveChildren ?? false,
-            availableFamily: data.individualProfile.availableFamily ?? false,
-            availableTime: data.individualProfile.availableTime ?? "",
+            surface: profile.surface ?? 0,
+            housingType: profile.housingType ?? "other",
+            haveGarden: profile.haveGarden ?? false,
+            haveAnimals: profile.haveAnimals ?? false,
+            haveChildren: profile.haveChildren ?? false,
+            availableFamily: profile.availableFamily ?? false,
+            availableTime: profile.availableTime ?? "",
           });
-        } else if (data.role === "shelter" && data.shelterProfile) {
+        } else if (data.role === "shelter") {
+          const profile = data.shelterProfile || {};
           setFormData({
             email: data.email ?? "",
             phoneNumber: data.phoneNumber ?? "",
             address: data.address ?? "",
-            shelterName: data.shelterProfile.shelterName ?? "",
-            siret: data.shelterProfile.siret ?? "",
-            description: data.shelterProfile.description ?? "",
+            shelterName: profile.shelterName ?? "",
+            siret: profile.siret ?? "",
+            description: profile.description ?? "",
           });
         }
-
-        setLoading(false);
       } catch (err) {
         console.error("Erreur API fetchUser:", err);
+        toast.error("Impossible de charger le profil.");
+      } finally {
         setLoading(false);
       }
     };
     fetchUser();
   }, [id]);
 
-  if (loading) return <p>Chargement...</p>;
-  if (!user) return <p>Utilisateur introuvable</p>;
-
   const handleChange = (field: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let endpoint = "";
+    
+    // ✅ Sélection dynamique de l'URL selon le rôle
+    const endpoint = user.role === "individual" 
+      ? `/users/${user.id}/individual-profile` 
+      : `/users/${user.id}/shelter-profile`;
 
-    if (user.role === "individual") {
-      endpoint = `${API_URL}/users/${user.id}/individual-profile`;
-    } else {
-      endpoint = `${API_URL}/users/${user.id}/shelter-profile`;
+    try {
+      // On retire le password des données de profil s'il existe
+      const { password, ...profileData } = formData;
+
+      // ✅ Utilisation de l'instance api (plus propre et sécurisé)
+      const res = await api.put(endpoint, profileData);
+      
+      setUser({ ...user, ...res.data });
+      setIsEditing(false);
+      toast.success("Profil mis à jour avec succès ! ✨");
+    } catch (err: any) {
+      console.error("Erreur lors de la mise à jour:", err);
+      const errorMsg = err.response?.data?.message || "Erreur lors de la sauvegarde";
+      toast.error(errorMsg);
     }
-
-    const { password, ...profileData } = formData;
-
-    const res = await fetch(endpoint, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(profileData),
-    });
-
-    if (!res.ok) {
-      console.error("Erreur API:", await res.text());
-      return;
-    }
-
-    const updated = await res.json();
-
-    setUser({ ...user, ...updated });
-    setIsEditing(false);
   };
 
+  if (loading) return <div className="p-10 text-center italic">Chargement du profil...</div>;
+  if (!user) return <div className="p-10 text-center text-error font-bold">Utilisateur introuvable</div>;
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-lg">
+    <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-lg border border-gray-100">
         {!isEditing ? (
           <>
             <UserCard user={user} />
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="mt-4 bg-primary text-white px-4 py-2 rounded"
+              className="mt-6 w-full bg-primary hover:bg-primary-dark text-white font-bold px-4 py-3 rounded-xl transition shadow-md"
             >
-              Modifier
+              Modifier mes informations
             </button>
 
-            {/* Bloc mot de passe toujours accessible */}
-            <div className="mt-6 border-t pt-4">
-              <h2 className="text-lg font-semibold">
-                Modifier le mot de passe
+            <div className="mt-8 border-t border-gray-100 pt-6">
+              <h2 className="text-xl font-bold font-montserrat text-secondary mb-4">
+                Sécurité
               </h2>
               <PasswordForm userId={user.id} />
             </div>
           </>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <h2 className="text-2xl font-bold text-secondary font-montserrat">
+              Édition du profil
+            </h2>
+            
             {user.role === "individual" ? (
-              <IndividualProfileForm
-                formData={formData}
-                onChange={handleChange}
-              />
+              <IndividualProfileForm formData={formData} onChange={handleChange} />
             ) : (
               <ShelterProfileForm formData={formData} onChange={handleChange} />
             )}
 
-            <div className="flex justify-between">
+            <div className="flex gap-4 pt-4">
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-4 py-3 rounded-xl transition"
               >
                 Annuler
               </button>
               <button
                 type="submit"
-                className="bg-primary text-white px-4 py-2 rounded"
+                className="flex-1 bg-primary hover:bg-primary-dark text-white font-bold px-4 py-3 rounded-xl transition shadow-md"
               >
                 Sauvegarder
               </button>

@@ -1,27 +1,30 @@
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
-import { ValidationPipe } from "@nestjs/common"; // <--- AJOUTE CETTE LIGNE
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Gérer les cookies
+  // 1. Gérer les cookies (nécessaire pour l'authentification si tu utilises des cookies)
   app.use(cookieParser());
 
-  // Autoriser les requêtes CORS depuis le frontend
+  // 2. Configuration dynamique des CORS
+  // On récupère l'URL du front depuis les variables d'environnement (Render)
+  const allowedOrigins = [
+    "http://localhost:5173",          // Dev local
+    process.env.CORS_ORIGIN,          // Prod (URL Vercel sans slash final)
+  ].filter(Boolean) as string[];      // Supprime les entrées vides si la variable n'est pas définie
+
   app.enableCors({
-    origin: [
-      "http://localhost:5173",          // Pour le dev local
-      process.env.CORS_ORIGIN || "",    // Pour la prod (Vercel)
-    ],
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   });
 
-  // Documentation Swagger
+  // 3. Documentation Swagger
   const config = new DocumentBuilder()
     .setTitle("API Adoption Animaux")
     .setDescription(
@@ -44,11 +47,22 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
 
-  app.useGlobalPipes(new ValidationPipe());
+  // 4. Validation globale (Pipes)
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,         // Supprime les propriétés non autorisées dans les DTOs
+    forbidNonWhitelisted: true,
+    transform: true,         // Transforme les types automatiquement (ex: string vers number)
+  }));
 
+  // 5. Lancement du serveur
+  // Render injecte automatiquement une variable PORT
   const port = process.env.PORT || 3001;
+  
+  // '0.0.0.0' est indispensable pour que le service soit accessible sur Render
   await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: ${await app.getUrl()}`);
+
+  console.log(`🚀 Serveur démarré sur le port : ${port}`);
+  console.log(`✅ Origines CORS autorisées : ${allowedOrigins.join(', ')}`);
 }
 
 bootstrap();

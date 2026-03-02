@@ -6,6 +6,14 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token"); // Ou le nom que tu as donné à ton stockage
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Routes qui ne doivent PAS déclencher de redirection automatique
 const NO_REDIRECT_ROUTES = [
   "/auth/login",

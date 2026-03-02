@@ -13,13 +13,13 @@ import CompatibilityBadge from "../components/ui/CompatibilityBadge";
 import Input from "../components/ui/Input";
 import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
+import api from "../api/api";
 
-const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AnimalDetail() {
   const { userId, id } = useParams<{ userId: string; id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth(); // utilisateur connecté
+  const { user } = useAuth();
   const [hasApplied, setHasApplied] = useState(false);
 
   const [animal, setAnimal] = useState<any>(null);
@@ -29,108 +29,73 @@ export default function AnimalDetail() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [adoptMessage, setAdoptMessage] = useState("");
   const [fosterMessage, setFosterMessage] = useState("");
-  
 
   useEffect(() => {
     const fetchAnimal = async () => {
       try {
-        const response = await fetch(`${API_URL}/animals/${id}`, {
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem('token')}`, // Ajouter ceci si tu utilises des tokens
-            "Content-Type": "application/json"
-          },
-          credentials: "include",
-        });
+        const response = await api.get(`/animals/${id}`);
+        const data = response.data;
 
-        if (!response.ok) {
-          throw new Error("Animal introuvable ou erreur serveur");
-        }
-
-        const data = await response.json();
         setAnimal(data);
-
         if (data.isBookmarked !== undefined) setIsFavorite(data.isBookmarked);
         if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
-        setLoading(false);
-      } catch (error) {
-        console.error("Erreur chargement animal:", error);
+      } catch (err: any) {
+        console.error("Erreur chargement animal:", err);
         setError("Impossible de charger les détails de l'animal.");
+      } finally {
         setLoading(false);
       }
     };
     if (id) fetchAnimal();
   }, [id]);
 
+  // ✅ Ajout de la fonction handleFoster qui manquait
+  const handleFoster = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post("/applications", {
+        animalId: Number(id),
+        applicationType: "foster", // Type pour Famille d'Accueil
+        message: fosterMessage,
+      });
+      toast.success("Demande de famille d'accueil envoyée !");
+      setHasApplied(true);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Erreur lors de l'envoi");
+    }
+  };
+
   const handleAdopt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(`${API_URL}/applications`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      await api.post("/applications", {
         animalId: Number(id),
         applicationType: "adoption",
         message: adoptMessage,
-      }),
-      credentials: "include",
-    });
-
-    if (response.ok) {
+      });
       toast.success("Demande d'adoption envoyée !");
       setHasApplied(true);
-    }else { 
-      const errorData = await response.json();
-      toast.error(`Erreur: ${errorData.errors?.message || errorData.message || "Bad Request"}`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Erreur lors de l'envoi");
     }
   };
-
-  const handleFoster = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const response = await fetch(`${API_URL}/applications`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        animalId: Number(id),
-        applicationType: "foster",
-        message: fosterMessage,
-      }),
-      credentials: "include",
-    });
-
-    if (response.ok) {
-      toast.success("Demande d'accueil envoyée !");
-      setHasApplied(true);
-    } else {
-        toast.error("Erreur lors de l'envoi de la demande");
-    }
-  };
-
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  try {
-    const response = await fetch(`${API_URL}/bookmarks/toggle`, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ animalId: Number(id) }), // On force le type Number pour Zod
-      credentials: "include",
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-        setIsFavorite(data.bookmarked);
-        toast.success(data.message);
-        } else {
-        toast.error(data.message || "Erreur lors de l'ajout aux favoris");
-        }
-    } catch (error) {
-        toast.error("Erreur réseau");
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const { data } = await api.post("/bookmarks/toggle", { 
+        animalId: Number(id) 
+      });
+      setIsFavorite(data.bookmarked);
+      toast.success(data.message);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Erreur réseau");
     }
   };
+
+
+
 
   const exportToPDF = async () => {
     const pdf = new jsPDF("p", "mm", "a4");

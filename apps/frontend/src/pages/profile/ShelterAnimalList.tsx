@@ -3,23 +3,22 @@ import { Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { api } from "../../api/api";
+import api from "../../api/api"; // ✅ Import par défaut sans {}
 import Badge from "../../components/ui/Badge";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import Loader from "../../components/ui/Loader";
 
 const statusLabels: Record<string, string> = {
-  AVAILABLE: 'Disponible',
-  ADOPTED: 'Adopté',
-  PENDING: 'En attente',
-  RESERVED: 'Réservé'
+  available: 'Disponible',
+  adopted: 'Adopté',
+  foster_care: 'En accueil',
+  unavailable: 'Indisponible'
 };
 
 export default function ShelterAnimalList() {
   const { id } = useParams<{ id: string }>();
   const [animals, setAnimals] = useState<AnimalWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
-  const filteredAnimals = animals; // Pour l'instant on met tout, tu filtreras plus tard
 
   const [actionToConfirm, setActionToConfirm] = useState<{
     type: "delete" | "restore";
@@ -28,19 +27,21 @@ export default function ShelterAnimalList() {
 
   useEffect(() => {
     const fetchAnimals = async () => {
+      if (!id) return;
       try {
+        // ✅ Utilisation de l'instance api propre
         const res = await api.get<AnimalWithRelations[]>(
           `/shelters/${Number(id)}/animals`
         );
         setAnimals(res.data);
-      } catch (error) {
-        console.error("ERREUR DÉTAILLÉE ICI :", error);
-        toast.error("Erreur de chargement des animaux");
+      } catch (error: any) {
+        console.error("Erreur chargement animaux refuge:", error);
+        toast.error(error.response?.data?.message || "Erreur de chargement des animaux");
       } finally {
         setLoading(false);
       }
     };
-    if (id) fetchAnimals();
+    fetchAnimals();
   }, [id]);
 
   const handleConfirmAction = async () => {
@@ -50,28 +51,32 @@ export default function ShelterAnimalList() {
     try {
       if (type === "delete") {
         await api.delete(`/animals/${animalId}`);
-        setAnimals(
-          animals.map((a) =>
+        setAnimals(prev =>
+          prev.map((a) =>
             a.id === animalId ? { ...a, deletedAt: new Date() } : a
           )
         );
-        toast.success("Animal supprimé");
+        toast.success("Animal déplacé dans la corbeille");
       } else {
         await api.patch(`/animals/${animalId}`, { deletedAt: null });
-        setAnimals(
-          animals.map((a) =>
+        setAnimals(prev =>
+          prev.map((a) =>
             a.id === animalId ? { ...a, deletedAt: null } : a
           )
         );
-        toast.success("Animal restauré");
+        toast.success("Animal restauré avec succès");
       }
-    } catch (_error) {
-      toast.error("Erreur lors de l'opération");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Une erreur est survenue");
     }
     setActionToConfirm(null);
   };
 
-  if (loading) return <Loader text="Chargement des animaux..." />;
+  if (loading) return (
+    <div className="h-64 flex items-center justify-center">
+      <Loader text="Chargement de vos pensionnaires..." />
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -79,9 +84,14 @@ export default function ShelterAnimalList() {
         <h1 className="text-2xl font-bold text-gray-800 font-montserrat">
           Gestion des Animaux
         </h1>
+        <Link 
+          to={`/user/${id}/profil/animaux/creer`}
+          className="bg-primary text-white px-4 py-2 rounded-lg font-semibold shadow-sm hover:bg-primary-dark transition"
+        >
+          + Ajouter un animal
+        </Link>
       </div>
 
-      {/* Tableau */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
@@ -95,76 +105,61 @@ export default function ShelterAnimalList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
-            {filteredAnimals.length > 0 ? (
-              filteredAnimals.map((animal) => (
-                <tr
-                  key={animal.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
+            {animals.length > 0 ? (
+              animals.map((animal) => (
+                <tr key={animal.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-gray-500">#{animal.id}</td>
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {animal.name}
-                  </td>
-                  <td className="px-6 py-4">{animal.species?.name ?? "-"}</td>
-                  <td className="px-6 py-4 hidden sm:table-cell text-gray-500">
-                    {animal.age ?? "-"}
-                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900">{animal.name}</td>
+                  <td className="px-6 py-4">{animal.species?.name ?? "Non spécifié"}</td>
+                  <td className="px-6 py-4 hidden sm:table-cell text-gray-500">{animal.age}</td>
                   <td className="px-6 py-4">
                     <Badge
-                      label={statusLabels[animal.animalStatus] ?? animal.animalStatus}
+                      label={animal.deletedAt ? "Supprimé" : (statusLabels[animal.animalStatus] ?? animal.animalStatus)}
                       variant={
-                        animal.animalStatus === "available"
-                          ? "success"
-                          : animal.animalStatus === "adopted"
-                          ? "neutral"
-                          : animal.animalStatus === "foster_care"
-                          ? "default"
-                          : "error"
+                        animal.deletedAt ? "error" :
+                        animal.animalStatus === "available" ? "success" : 
+                        "default"
                       }
                     />
                   </td>
-
-                  <td className="px-6 py-4 text-right flex gap-2 justify-end">
-                    <Link
-                      to={`/user/${id}/animaux/${animal.id}`}
-                      className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors"
-                      title="Voir / Modifier"
-                    >
-                      <Pencil className="w-5 h-5" />
-                    </Link>
-
-                    {animal.deletedAt ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          animal.id &&
-                          setActionToConfirm({ type: "restore", id: animal.id })
-                        }
-                        className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors"
-                        title="Restaurer"
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex gap-2 justify-end items-center">
+                      <Link
+                        to={`/user/${id}/profil/animaux/modifier`}
+                        state={{ animal }} // ✅ On passe l'animal complet pour remplir le formulaire
+                        className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                        title="Modifier"
                       >
-                        <RotateCcw className="w-4 h-4" />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          animal.id &&
-                          setActionToConfirm({ type: "delete", id: animal.id })
-                        }
-                        className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-full transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
+                        <Pencil className="w-4 h-4" />
+                      </Link>
+
+                      {animal.deletedAt ? (
+                        <button
+                          type="button"
+                          onClick={() => setActionToConfirm({ type: "restore", id: animal.id! })}
+                          className="text-primary hover:bg-orange-50 p-2 rounded-full transition-colors"
+                          title="Restaurer"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setActionToConfirm({ type: "delete", id: animal.id! })}
+                          className="text-gray-400 hover:text-error hover:bg-red-50 p-2 rounded-full transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                  Aucun animal trouvé.
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500 italic">
+                  Aucun animal enregistré pour le moment.
                 </td>
               </tr>
             )}
@@ -176,17 +171,12 @@ export default function ShelterAnimalList() {
         isOpen={!!actionToConfirm}
         onClose={() => setActionToConfirm(null)}
         onConfirm={handleConfirmAction}
-        title={
-          actionToConfirm?.type === "delete"
-            ? "Supprimer l'animal ?"
-            : "Restaurer l'animal ?"
-        }
+        title={actionToConfirm?.type === "delete" ? "Bannir cet animal ?" : "Restaurer l'animal ?"}
         message={
           actionToConfirm?.type === "delete"
-            ? "Cette action placera l'animal dans la corbeille."
-            : "L'animal sera de nouveau visible."
+            ? "L'animal ne sera plus visible par les adoptants."
+            : "L'animal sera de nouveau affiché sur la plateforme."
         }
-        variant={actionToConfirm?.type === "delete" ? "danger" : "info"}
       />
     </div>
   );

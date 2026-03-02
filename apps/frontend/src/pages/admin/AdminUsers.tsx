@@ -2,7 +2,7 @@ import type { User } from "@projet/shared-types";
 import { RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { api } from "../../api/api";
+import  api  from "../../api/api";
 import Badge from "../../components/ui/Badge";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import Loader from "../../components/ui/Loader";
@@ -44,7 +44,6 @@ export default function AdminUsers() {
     return matchesSearch && matchesRole;
   });
 
-  // Action
   const handleConfirmAction = async () => {
     if (!actionToConfirm) return;
     const { type, id } = actionToConfirm;
@@ -52,19 +51,22 @@ export default function AdminUsers() {
     try {
       if (type === "delete") {
         await api.delete(`/users/${id}`);
-        setUsers(
-          users.map((u) => (u.id === id ? { ...u, deletedAt: new Date() } : u))
+        setUsers(prev =>
+          prev.map((u) => (u.id === id ? { ...u, deletedAt: new Date() } : u))
         );
         toast.success("Utilisateur banni");
       } else {
+        // Attention : vérifie si ta route de restauration est bien un PATCH sur /users/:id
         await api.patch(`/users/${id}`, { deletedAt: null });
-        setUsers(
-          users.map((u) => (u.id === id ? { ...u, deletedAt: null } : u))
+        setUsers(prev =>
+          prev.map((u) => (u.id === id ? { ...u, deletedAt: null } : u))
         );
         toast.success("Utilisateur restauré");
       }
-    } catch (_error) {
-      toast.error("Une erreur est survenue");
+    } catch (error: any) {
+      // On affiche le message d'erreur précis renvoyé par NestJS si possible
+      const message = error.response?.data?.message || "Une erreur est survenue";
+      toast.error(message);
     }
     setActionToConfirm(null);
   };

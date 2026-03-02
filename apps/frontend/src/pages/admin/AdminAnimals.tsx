@@ -2,7 +2,7 @@ import type { Animal } from "@projet/shared-types";
 import { Eye, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { api } from "../../api/api";
+import  api  from "../../api/api";
 import Badge from "../../components/ui/Badge";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import Loader from "../../components/ui/Loader";
@@ -25,21 +25,7 @@ export default function AdminAnimals() {
     id: number;
   } | null>(null);
 
-  // Fetch
-  useEffect(() => {
-    const fetchAnimals = async () => {
-      try {
-        const res = await api.get<AnimalWithRelations[]>("/animals/admin/all");
-        setAnimals(res.data);
-      } catch (error) {
-        console.error("Erreur chargement animaux:", error);
-        toast.error("Impossible de charger la liste des animaux.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnimals();
-  }, []);
+ 
 
   // FILTRAGE
   const filteredAnimals = animals.filter((animal) => {
@@ -57,7 +43,6 @@ export default function AdminAnimals() {
   const openRestoreModal = (id: number) =>
     setActionToConfirm({ type: "restore", id });
 
-  // Exécution de l'action confirmée
   const handleConfirmAction = async () => {
     if (!actionToConfirm) return;
 
@@ -66,21 +51,23 @@ export default function AdminAnimals() {
     try {
       if (type === "delete") {
         await api.delete(`/animals/${id}`);
-        setAnimals(
-          animals.map((a) =>
+        // On met à jour l'état local pour refléter le changement immédiatement
+        setAnimals(prev =>
+          prev.map((a) =>
             a.id === id ? { ...a, deletedAt: new Date() } : a
           )
         );
-        toast.success("Animal supprimé avec succès");
+        toast.success("Animal mis à la corbeille");
       } else {
-        await api.patch(`/animals/${id}`, { deletedAt: null });
-        setAnimals(
-          animals.map((a) => (a.id === id ? { ...a, deletedAt: null } : a))
+        // Pour la restauration
+        await api.patch(`/animals/${id}/restore`); // Vérifie si ta route backend est bien celle-ci ou celle avec deletedAt: null
+        setAnimals(prev =>
+          prev.map((a) => (a.id === id ? { ...a, deletedAt: null } : a))
         );
         toast.success("Animal restauré avec succès");
       }
-    } catch (_error) {
-      toast.error("Une erreur est survenue lors de l'opération");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Une erreur est survenue");
     }
     setActionToConfirm(null);
   };

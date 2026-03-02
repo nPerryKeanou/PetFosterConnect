@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AnimalCard from "../components/AnimalCard";
 import Loader from "../components/ui/Loader";
+import api from '../api/api'; // ✅ CORRIGÉ : Import par défaut sans les accolades {}
 
-const API_URL = import.meta.env.VITE_API_URL;
+// ❌ Supprimé car api gère déjà l'URL de base : const API_URL = import.meta.env.VITE_API_URL;
 
 const AnimalList = () => {
   const [animals, setAnimals] = useState<any[]>([]);
@@ -16,13 +17,14 @@ const AnimalList = () => {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const response = await fetch(`${API_URL}/animals`);
-        if (!response.ok) throw new Error("Erreur réseau");
-        const data = await response.json();
-        setAnimals(data);
-        setFilteredAnimals(data); // Initialise aussi la liste filtrée
-      } catch (error) {
-        console.error("Erreur lors de la récupération :", error);
+        // ✅ Utilisation de l'instance api propre
+        const response = await api.get("/animals");
+        
+        // Axios place les données directement dans .data
+        setAnimals(response.data);
+        setFilteredAnimals(response.data);
+      } catch (err) {
+        console.error("Erreur lors de la récupération :", err);
         setError(true);
       } finally {
         setLoading(false);
@@ -31,7 +33,7 @@ const AnimalList = () => {
     fetchAnimals();
   }, []);
 
-  // Filtrage en temps réel
+  // Filtrage en temps réel (Reste identique)
   useEffect(() => {
     const filtered = animals.filter((animal) => {
       const searchLower = searchTerm.toLowerCase();
@@ -42,7 +44,7 @@ const AnimalList = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader text="Recherche de compagnons..." />
       </div>
     );
@@ -50,7 +52,7 @@ const AnimalList = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8">
+      <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 bg-gray-50">
         <p className="text-xl text-error font-semibold mb-2">
           Oups ! Impossible de charger les animaux.
         </p>
@@ -65,7 +67,7 @@ const AnimalList = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 font-montserrat">
             Nos animaux à adopter
           </h1>
           <p className="text-gray-600">
@@ -73,7 +75,6 @@ const AnimalList = () => {
           </p>
         </div>
 
-        {/* Gestion liste vide */}
         {animals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
             <div className="bg-orange-100 p-4 rounded-full mb-4">
@@ -83,13 +84,11 @@ const AnimalList = () => {
               Aucun animal pour le moment
             </h3>
             <p className="text-gray-500 mt-2">
-              Revenez plus tard, nos refuges ajoutent régulièrement de nouveaux
-              compagnons !
+              Revenez plus tard, nos refuges ajoutent régulièrement de nouveaux compagnons !
             </p>
           </div>
         ) : (
           <>
-            {/* Barre de recherche */}
             <div className="mb-6">
               <div className="relative max-w">
                 <input
@@ -97,63 +96,34 @@ const AnimalList = () => {
                   placeholder="Rechercher par nom"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
-                <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <title>Search icon</title>
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 {searchTerm && (
                   <button
                     type="button"
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <title>Clear search icon</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <CloseIcon />
                   </button>
                 )}
               </div>
               <p className="text-sm text-gray-500 mt-2">
-                {filteredAnimals.length} résultat
-                {filteredAnimals.length > 1 ? "s" : ""} trouvé
-                {filteredAnimals.length > 1 ? "s" : ""}
+                {filteredAnimals.length} résultat{filteredAnimals.length > 1 ? "s" : ""} trouvé{filteredAnimals.length > 1 ? "s" : ""}
               </p>
             </div>
 
-            {/* Grille des animaux */}
             {filteredAnimals.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-xl text-gray-500">
+                <p className="text-xl text-gray-500 italic">
                   Aucun animal ne correspond à votre recherche
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                 {filteredAnimals.map((animal) => (
-                  <Link to={`/animaux/${animal.id}`} key={animal.id}>
+                  <Link to={`/animaux/${animal.id}`} key={animal.id} className="w-full max-w-sm transform hover:scale-[1.02] transition-transform duration-300">
                     <AnimalCard {...animal} />
                   </Link>
                 ))}
@@ -165,5 +135,18 @@ const AnimalList = () => {
     </div>
   );
 };
+
+// Petits composants internes pour les icônes du champ de recherche
+const SearchIcon = ({ className }: { className: string }) => (
+  <svg className={`${className} w-5 h-5`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
 
 export default AnimalList;
