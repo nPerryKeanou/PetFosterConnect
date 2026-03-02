@@ -9,7 +9,7 @@
 "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:shared": "cd packages/shared-types && npm install && npx tsc",
-    "build:backend": "npm run build:shared && npx prisma generate --schema=apps/backend/prisma/schema.prisma && npm run build --workspace=backend",
+    "build:backend": "npm run build:shared && npx prisma generate --schema=apps/backend/prisma/schema.prisma --generator client && npm run build --workspace=backend",
     "start:backend": "node apps/backend/dist/apps/backend/src/main",
     "dev:backend": "npm run build:shared && npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
