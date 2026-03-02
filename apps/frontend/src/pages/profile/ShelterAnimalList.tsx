@@ -8,10 +8,18 @@ import Badge from "../../components/ui/Badge";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import Loader from "../../components/ui/Loader";
 
+const statusLabels: Record<string, string> = {
+  AVAILABLE: 'Disponible',
+  ADOPTED: 'Adopté',
+  PENDING: 'En attente',
+  RESERVED: 'Réservé'
+};
+
 export default function ShelterAnimalList() {
   const { id } = useParams<{ id: string }>();
   const [animals, setAnimals] = useState<AnimalWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
+  const filteredAnimals = animals; // Pour l'instant on met tout, tu filtreras plus tard
 
   const [actionToConfirm, setActionToConfirm] = useState<{
     type: "delete" | "restore";
