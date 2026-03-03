@@ -6,7 +6,7 @@ import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  const allowedRegex = /https:\/\/pet-foster-connect-frontend.*\.vercel\.app$/;
   // 1. Gérer les cookies (nécessaire pour l'authentification si tu utilises des cookies)
   app.use(cookieParser());
 
@@ -18,7 +18,21 @@ async function bootstrap() {
   ].filter(Boolean) as string[];      // Supprime les entrées vides si la variable n'est pas définie
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      const allowedRegex = /https:\/\/pet-foster-connect-frontend.*\.vercel\.app$/;
+      const staticOrigins = ["http://localhost:5173", process.env.CORS_ORIGIN];
+
+      // Autorise si : pas d'origine (ex: Postman), localhost, URL fixe ou URL Vercel via Regex
+      if (
+        !origin || 
+        staticOrigins.includes(origin) || 
+        allowedRegex.test(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
