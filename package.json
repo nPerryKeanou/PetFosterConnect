@@ -13,7 +13,7 @@
     "start:backend": "node apps/backend/dist/apps/backend/src/main",
     "dev:backend": "npm run build:shared && npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
-    "build:frontend": "npm run build:shared && npm run build -w frontend",
+    "build:frontend": "npm run build:shared && npm run build --prefix apps/frontend",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prisma:generate": "npm run prisma generate --workspace=backend",
