@@ -1,6 +1,6 @@
 import type { Animal } from "@projet/shared-types";
 import { Eye, RotateCcw, Search, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import  api  from "../../api/api";
 import Badge from "../../components/ui/Badge";
@@ -15,7 +15,7 @@ type AnimalWithRelations = Animal & {
 
 export default function AdminAnimals() {
   const [animals, setAnimals] = useState<AnimalWithRelations[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
