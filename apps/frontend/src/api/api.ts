@@ -7,14 +7,24 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // Ou le nom que tu as donné à ton stockage
+  const token = localStorage.getItem("token");
+  const requestUrl = config.url || "";
+  
+  // Vérifie si c'est une route qui nécessite un token
+  const isAuthRoute = NO_REDIRECT_ROUTES.some((route) => requestUrl.includes(route));
+
+  if (!token && !isAuthRoute) {
+    // Si pas de token et pas une route d'auth, on redirige direct
+    window.location.replace("/auth/signup"); 
+    return Promise.reject("No token found, redirecting...");
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Routes qui ne doivent PAS déclencher de redirection automatique
 const NO_REDIRECT_ROUTES = [
   "/auth/login",
   "/auth/register",
@@ -28,7 +38,6 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const requestUrl = error.config?.url || "";
 
-    // Ne pas rediriger si la requête concerne l'authentification
     const isAuthRoute = NO_REDIRECT_ROUTES.some((route) =>
       requestUrl.includes(route)
     );
