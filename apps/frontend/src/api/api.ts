@@ -8,20 +8,11 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  const requestUrl = config.url || "";
   
-  // Vérifie si c'est une route qui nécessite un token
-  const isAuthRoute = NO_REDIRECT_ROUTES.some((route) => requestUrl.includes(route));
-
-  if (!token && !isAuthRoute) {
-    // Si pas de token et pas une route d'auth, on redirige direct
-    window.location.replace("/auth/signup"); 
-    return Promise.reject("No token found, redirecting...");
-  }
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
   return config;
 });
 
@@ -47,9 +38,13 @@ api.interceptors.response.use(
     }
 
     const currentPath = window.location.pathname;
-    console.log("Interceptor triggered", status, requestUrl, error.response);
-    if (status === 401 && currentPath !== "/unauthorized") {
-      window.location.replace("/unauthorized");
+    
+    if (status === 401) {
+      localStorage.removeItem("token"); 
+
+      if (currentPath !== "/inscription" && currentPath !== "/connexion") {
+        window.location.replace("/inscription");
+      }
     } else if (status === 403 && currentPath !== "/forbidden") {
       window.location.replace("/forbidden");
     }

@@ -38,7 +38,6 @@ function App() {
       <Routes>
         {/* ZONE PUBLIQUE */}
         <Route element={<PublicLayout />}>
-          <Route path="/" element={<Home />} />
           <Route path="/mentions-legales" element={<Legal />} />
           <Route path="/confidentialite" element={<PrivacyPolicy />} />
           <Route path="/a-propos" element={<About />} />
@@ -49,6 +48,15 @@ function App() {
           <Route path="/refuges" element={<SheltersPage />} />
           <Route path="/refuges/:id" element={<ShelterDetailPage />} />
           <Route path="/refuges/:id/animaux" element={<ShelterAnimalPage />} />
+
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* ESPACE UTILISATEUR */}
           <Route element={<UserSidebarLayout />}>
