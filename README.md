@@ -1,5 +1,7 @@
 # Famille d'Accueil Animaux - Monorepo
 
+Note sur l'état du projet : Ce site est un projet de formation en cours de maintenance. Je travaille actuellement sur une application personnelle prioritaire, mais je continue d'apporter des correctifs à ce projet de manière ponctuelle (notamment sur la stabilisation de l'authentification et l'affichage des données externes).
+
 Application web de mise en relation entre refuges et familles d'accueil pour animaux.
 
 Liens du Projet:
