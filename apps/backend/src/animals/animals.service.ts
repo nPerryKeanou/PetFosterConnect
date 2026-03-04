@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateAnimalDto, UpdateAnimalDto } from "@projet/shared-types";
 import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "@prisma/client";
+import axios from "axios";
 
 
 // Animal avec relations species + shelterProfile
@@ -40,22 +41,77 @@ export class AnimalsService {
   
   
 
+  // async findAll(includeDeleted = false, limit?: number) {
+  //   return this.prisma.animal.findMany({
+  //     where: { 
+  //       // Si includeDeleted est false, on ne veut que deletedAt: null
+  //       deletedAt: includeDeleted ? undefined : null 
+  //     },
+  //     take: limit, // On applique la limite si elle est fournie
+  //     orderBy: { 
+  //       createdAt: 'desc' // On trie toujours du plus récent au plus ancien
+  //     },
+  //     include: {
+  //       species: true,
+  //       shelter: { include: { shelterProfile: true } },
+  //     },
+  //   });
+  // }
+
+
   async findAll(includeDeleted = false, limit?: number) {
-    return this.prisma.animal.findMany({
-      where: { 
-        // Si includeDeleted est false, on ne veut que deletedAt: null
-        deletedAt: includeDeleted ? undefined : null 
-      },
-      take: limit, // On applique la limite si elle est fournie
-      orderBy: { 
-        createdAt: 'desc' // On trie toujours du plus récent au plus ancien
-      },
+    // 1. Récupération des animaux depuis TA base (Supabase)
+    const localAnimals = await this.prisma.animal.findMany({
+      where: { deletedAt: includeDeleted ? undefined : null },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
       include: {
         species: true,
         shelter: { include: { shelterProfile: true } },
       },
     });
+
+    // 2. Récupération depuis les APIs externes
+    try {
+      const [catsRes, dogsRes] = await Promise.all([
+        axios.get('https://api.thecatapi.com/v1/images/search?limit=5', {
+          headers: { 'x-api-key': process.env.CAT_API_KEY }
+        }),
+        axios.get('https://api.thedogapi.com/v1/images/search?limit=5', {
+          headers: { 'x-api-key': process.env.DOG_API_KEY }
+        })
+      ]);
+
+      // On transforme les données externes pour qu'elles ressemblent à tes modèles locaux
+      const externalAnimals = [
+        ...catsRes.data.map(cat => this.mapExternalToLocal(cat, 'Chat')),
+        ...dogsRes.data.map(dog => this.mapExternalToLocal(dog, 'Chien'))
+      ];
+
+      // On fusionne les deux listes
+      return [...localAnimals, ...externalAnimals];
+    } catch (error) {
+      console.error("Erreur API Externes:", error.message);
+      return localAnimals; // Si les APIs externes plantent, on montre au moins le local
+    }
   }
+
+  // Petite fonction utilitaire pour formater les données
+  private mapExternalToLocal(ext: any, speciesName: string) {
+    return {
+      id: `ext-${ext.id}`, // On préfixe pour éviter les conflits d'ID avec ta base
+      name: `${speciesName} externe`,
+      photos: [ext.url],
+      species: { name: speciesName },
+      shelter: { shelterProfile: { name: "Partenaire Externe" } },
+      animalStatus: "AVAILABLE",
+      description: "Animal récupéré via API partenaire.",
+      age: "Inconnu"
+    };
+  }
+  
+  // ... reste de tes méthodes (create, findOne, etc.)
+
 
  async findOne(id: number, userId?: number): Promise<AnimalWithBookmark> {
    const animal = await this.prisma.animal.findUnique({

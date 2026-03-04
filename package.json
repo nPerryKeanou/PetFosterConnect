@@ -6,7 +6,7 @@
     "apps/*",
     "packages/*"
   ],
-"scripts": {
+  "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm run build:shared && npm run start:dev --workspace=backend",
     "build:backend": "npm run build:shared && npx prisma generate --schema=apps/backend/prisma/schema.prisma --generator client && npm run build --workspace=backend",
