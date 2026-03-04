@@ -1,42 +1,37 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/authContext";
+import Loader from "../components/ui/Loader";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   roles?: string[];
 }
 
-export default function ProtectedRoute({
-  children,
-  roles,
-}: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth(); // ✅ Ajout de isLoading
+const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
+  const { isLoggedIn, user, isLoading } = useAuth();
   const location = useLocation();
 
-  // ⚡ ne pas rediriger si on est sur la page de login ou inscription
-  const publicPaths = ["/connexion", "/inscription"];
-  if (publicPaths.includes(location.pathname)) {
-    return <>{children}</>;
-  }
-
-  // ✅ Pendant le chargement, afficher un loader
+  // 1. TANT QUE LE SERVEUR N'A PAS RÉPONDU (Refresh), ON NE FAIT RIEN
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Vérification de l'authentification...</div>
+      <div className="h-screen flex items-center justify-center">
+        <Loader text="Vérification de la session..." />
       </div>
     );
   }
 
-  // ✅ Après le chargement, vérifier l'utilisateur
-  if (!user) {
-    return <Navigate to="/connexion" state={{ from: location }} replace />;
+  // 2. SI PAS CONNECTÉ APRÈS CHARGEMENT -> REDIRECTION
+  if (!isLoggedIn) {
+    // On enregistre l'endroit où l'utilisateur voulait aller
+    return <Navigate to="/inscription" state={{ from: location }} replace />;
   }
 
-  // ✅ Vérifier les rôles
-  if (roles && !roles.includes(user.role)) {
+  // 3. SI RÔLE SPÉCIFIQUE REQUIS (ex: Admin)
+  if (roles && !roles.includes(user?.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;
-}
+};
+
+export default ProtectedRoute;
