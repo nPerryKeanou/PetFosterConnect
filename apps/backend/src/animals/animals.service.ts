@@ -153,4 +153,18 @@ async findOne(id: string | number, userId?: number): Promise<any> {
       data: { deletedAt: new Date() },
     });
   }
+
+  async findAllByShelter(userId: number) {
+    return this.prisma.animal.findMany({
+      where: { pfcUserId: userId, deletedAt: null },
+      include: {
+        species: true,
+        shelter: {
+          include: {
+            shelterProfile: true 
+          }
+        }
+      }
+    });
+  }
 }
