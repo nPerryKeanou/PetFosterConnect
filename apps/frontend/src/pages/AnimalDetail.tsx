@@ -34,29 +34,39 @@ export default function AnimalDetail() {
   const [fosterMessage, setFosterMessage] = useState("");
 
   useEffect(() => {
-    // Si on a déjà l'animal (ex: via le state), pas besoin de fetch
+  const fetchAnimal = async () => {
+    // 1. PRIORITÉ ABSOLUE : Si on a les données dans le state, on les utilise et on S'ARRÊTE
     if (location.state?.animalData) {
-        setLoading(false);
-        return;
+      setAnimal(location.state.animalData);
+      if (location.state.animalData.photos?.length > 0) {
+        setSelectedPhoto(location.state.animalData.photos[0]);
+      }
+      setLoading(false);
+      return; // <--- C'est ce return qui empêche l'erreur 400
     }
 
-    const fetchAnimal = async () => {
-      try {
-        const response = await api.get(`/animals/${id}`);
-        const data = response.data;
-        setAnimal(data);
-        if (data.isBookmarked !== undefined) setIsFavorite(data.isBookmarked);
-        if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
-      } catch (err: any) {
-        console.error("Erreur chargement animal:", err);
-        setError("Impossible de charger les détails de l'animal.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    // 2. SÉCURITÉ : Si c'est un ID externe mais qu'on n'a pas de state (ex: refresh page)
+    if (typeof id === 'string' && id.startsWith('ext-')) {
+      setError("Les détails de cet animal partenaire ne sont plus disponibles. Retournez à la liste.");
+      setLoading(false);
+      return;
+    }
 
-    if (id) fetchAnimal();
-  }, [id, location.state]);
+    // 3. APPEL API : Uniquement pour les animaux locaux (IDs numériques)
+    try {
+      setLoading(true);
+      const response = await api.get(`/animals/${id}`);
+      setAnimal(response.data);
+      if (response.data.photos?.length > 0) setSelectedPhoto(response.data.photos[0]);
+    } catch (err) {
+      setError("Impossible de charger les détails.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (id) fetchAnimal();
+}, [id, location.state]);
 
   // ✅ SÉCURITÉ : Empêcher les actions sur les animaux externes (IDs "ext-")
   const isExternal = typeof id === "string" && id.startsWith("ext-");
