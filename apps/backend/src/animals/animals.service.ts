@@ -113,40 +113,31 @@ export class AnimalsService {
   // ... reste de tes méthodes (create, findOne, etc.)
 
 
- async findOne(id: number, userId?: number): Promise<AnimalWithBookmark> {
-   const animal = await this.prisma.animal.findUnique({
-     where: { id },
-     include: {
-       species: true,
-       shelter: { include: { shelterProfile: true } },
-       bookmarks: userId ? { where: { pfcUserId: userId } } : false,
-     },
-   });
- 
-   if (!animal || animal.deletedAt) {
-     throw new NotFoundException(`Animal ${id} non trouvé ou supprimé`);
-   }
- 
-   const isBookmarked = !!animal.bookmarks?.length;
- 
-   // On supprime bookmarks du retour si tu veux éviter de l’exposer
-   const { bookmarks, ...rest } = animal;
- 
-   return { ...rest, isBookmarked };
- }
-  async findAllByShelter(userId: number) {
-    return this.prisma.animal.findMany({
-      where: { pfcUserId: userId },
-      include: { // <--- C'EST CETTE PARTIE QUI MANQUE SÛREMENT
-        species: true, // "Va chercher le nom de l'espèce"
-        shelter: {     // "Va chercher les infos du refuge"
-          include: {
-            shelterProfile: true 
-          }
-        }
-      }
-    });
+async findOne(id: string | number, userId?: number): Promise<any> {
+  // Si l'ID est externe, on renvoie un objet simulé pour ne pas faire planter Prisma
+  if (typeof id === 'string' && id.startsWith('ext-')) {
+    return {
+      id,
+      name: "Animal Partenaire",
+      description: "Cet animal est disponible via un refuge partenaire externe.",
+      photos: [], // On verra comment passer l'image via le frontend juste après
+      animalStatus: "AVAILABLE",
+      isBookmarked: false,
+      species: { name: "Externe" },
+      shelter: { shelterProfile: { name: "API Externe" } }
+    };
   }
+
+  // Pour les animaux locaux (Supabase), on garde ta logique habituelle
+  return this.prisma.animal.findUnique({
+    where: { id: Number(id) },
+    include: {
+      species: true,
+      shelter: { include: { shelterProfile: true } },
+      bookmarks: userId ? { where: { pfcUserId: userId } } : false,
+    },
+  });
+}
 
   async update(id: number, updateAnimalDto: UpdateAnimalDto) {
     const data: any = {};

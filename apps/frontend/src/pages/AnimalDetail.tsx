@@ -3,9 +3,9 @@ import jsPDF from "jspdf";
 import { AlertCircle, Heart } from "lucide-react";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom"; // ✅ Ajout useLocation
 import SiteLogo from "../assets/Logo.png";
-import { useAuth } from "../auth/authContext"; // pour récupérer user
+import { useAuth } from "../auth/authContext";
 import BackBanner from "../components/ui/BackBanner";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
@@ -15,27 +15,35 @@ import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
 import api from "../api/api";
 
-
 export default function AnimalDetail() {
   const { userId, id } = useParams<{ userId: string; id: string }>();
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Pour récupérer les données de la carte
   const { user } = useAuth();
   const [hasApplied, setHasApplied] = useState(false);
 
-  const [animal, setAnimal] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // ✅ PRIORITÉ : On vérifie si on a déjà l'animal dans le state (cas API externe)
+  const [animal, setAnimal] = useState<any>(location.state?.animalData || null);
+  const [loading, setLoading] = useState(!location.state?.animalData); // Pas de loader si on a déjà le state
   const [error, setError] = useState<string | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(
+    location.state?.animalData?.photos?.[0] || null
+  );
   const [isFavorite, setIsFavorite] = useState(false);
   const [adoptMessage, setAdoptMessage] = useState("");
   const [fosterMessage, setFosterMessage] = useState("");
 
   useEffect(() => {
+    // Si on a déjà l'animal (ex: via le state), pas besoin de fetch
+    if (location.state?.animalData) {
+        setLoading(false);
+        return;
+    }
+
     const fetchAnimal = async () => {
       try {
         const response = await api.get(`/animals/${id}`);
         const data = response.data;
-
         setAnimal(data);
         if (data.isBookmarked !== undefined) setIsFavorite(data.isBookmarked);
         if (data.photos?.length > 0) setSelectedPhoto(data.photos[0]);
@@ -46,19 +54,23 @@ export default function AnimalDetail() {
         setLoading(false);
       }
     };
-    if (id) fetchAnimal();
-  }, [id]);
 
-  // ✅ Ajout de la fonction handleFoster qui manquait
+    if (id) fetchAnimal();
+  }, [id, location.state]);
+
+  // ✅ SÉCURITÉ : Empêcher les actions sur les animaux externes (IDs "ext-")
+  const isExternal = typeof id === "string" && id.startsWith("ext-");
+
   const handleFoster = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isExternal) return toast.info("Contactez le refuge partenaire directement.");
     try {
       await api.post("/applications", {
         animalId: Number(id),
-        applicationType: "foster", // Type pour Famille d'Accueil
+        applicationType: "foster",
         message: fosterMessage,
       });
-      toast.success("Demande de famille d'accueil envoyée !");
+      toast.success("Demande envoyée !");
       setHasApplied(true);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Erreur lors de l'envoi");
@@ -67,6 +79,7 @@ export default function AnimalDetail() {
 
   const handleAdopt = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isExternal) return toast.info("Contactez le refuge partenaire directement.");
     try {
       await api.post("/applications", {
         animalId: Number(id),
@@ -83,17 +96,15 @@ export default function AnimalDetail() {
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isExternal) return toast.info("Favoris non disponibles pour les partenaires.");
     try {
-      const { data } = await api.post("/bookmarks/toggle", { 
-        animalId: Number(id) 
-      });
+      const { data } = await api.post("/bookmarks/toggle", { animalId: Number(id) });
       setIsFavorite(data.bookmarked);
       toast.success(data.message);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Erreur réseau");
     }
   };
-
 
 
 
