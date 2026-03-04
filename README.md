@@ -2,6 +2,12 @@
 
 Application web de mise en relation entre refuges et familles d'accueil pour animaux.
 
+Liens du Projet:
+
+Application (Frontend) : https://pet-foster-connect-frontend.vercel.app
+
+API (Backend) : https://petfosterconnect-e3l8.onrender.com
+
 ## 📚 Table des matières
 
 - [Stack Technique](#stack-technique)
