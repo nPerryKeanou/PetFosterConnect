@@ -5,9 +5,11 @@ type AnimalWithDetails = Animal & {
   species: Species;
   shelter: {
     address: string | null;
+    pfcUserId?: number; // Optionnel, utile pour la logique propriétaire
     shelterProfile: {
       shelterName: string;
       description: string | null;
+      logoUrl?: string;
     } | null;
   };
 };
@@ -21,7 +23,6 @@ const AnimalCard = ({
   shelter,
 }: AnimalWithDetails) => {
   const navigate = useNavigate();
-  console.log(`DEBUG [Animal: ${name}]:`, { species, shelter });
 
   // On extrait l'image une seule fois de manière sécurisée
   const mainPhoto = Array.isArray(photos) && photos.length > 0 
@@ -52,36 +53,37 @@ const AnimalCard = ({
             <span className="font-medium text-gray-800">Refuge :</span> {shelter?.shelterProfile?.shelterName || 'Chargement...'}
           </p>
         </div>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`/animaux/${id}`, {
-                state: {
-                  animalData: {
-                    id,
-                    name,
-                    photos,
-                    age,
-                    species,
-                    shelter,
-                    // On ajoute des valeurs par défaut pour éviter les champs vides dans le détail
-                    description: "Cet animal est proposé par un refuge partenaire via notre API.",
-                    animalStatus: "available",
-                    sex: "Non précisé",
-                    height: "--",
-                    weight: "--",
-                    acceptChildren: true,
-                    acceptOtherAnimals: true,
-                    needGarden: false,
-                    treatment: "Non renseigné",
-                  },
+        
+        <button
+          type="button"
+          onClick={() =>
+            navigate(`/animaux/${id}`, {
+              state: {
+                animalData: {
+                  id,
+                  name,
+                  photos,
+                  age,
+                  species,
+                  shelter,
+                  // Valeurs par défaut pour compléter la fiche détail des animaux API
+                  description: "Cet animal est proposé par un refuge partenaire via notre API.",
+                  animalStatus: "available",
+                  sex: "Non précisé",
+                  height: "--",
+                  weight: "--",
+                  acceptChildren: true,
+                  acceptOtherAnimals: true,
+                  needGarden: false,
+                  treatment: "Non renseigné",
                 },
-              })
-            }
-            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:scale-[0.98] active:scale-95"
-          >
-            Plus d'infos
-          </button>
+              },
+            })
+          }
+          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 hover:scale-[0.98] active:scale-95"
+        >
+          Plus d'infos
+        </button>
       </div>
     </div>
   );
