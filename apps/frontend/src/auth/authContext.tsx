@@ -13,28 +13,38 @@ interface AuthContextType {
   logout: () => Promise<void>;
   user: any | null;
   setUser: (user: any | null) => void;
-  isLoading: boolean; // ✅ Ajout
+  isLoading: boolean;
 }
 
+// ✅ Création du contexte
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // ✅ true au départ
+  // ✅ ON LIT LE LOCALSTORAGE DÈS LE DÉPART (Indispensable pour le Refresh)
+  const [user, setUser] = useState<any | null>(() => {
+    const saved = localStorage.getItem("pfc_user");
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("pfc_user"));
+  const [isLoading, setIsLoading] = useState(true);
 
-  // ✅ Vérifier l'auth au chargement
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get("/auth/me", { withCredentials: true });
+        // On vérifie quand même si la session est toujours valide côté serveur
+        const response = await api.get("/auth/me");
         setUser(response.data);
         setIsLoggedIn(true);
-      } catch (_error) {
-        setUser(null);
-        setIsLoggedIn(false);
+        localStorage.setItem("pfc_user", JSON.stringify(response.data));
+      } catch (error: any) {
+        // Si le serveur répond 401 (non autorisé), on nettoie tout
+        if (error.response?.status === 401) {
+          setUser(null);
+          setIsLoggedIn(false);
+          localStorage.removeItem("pfc_user");
+        }
       } finally {
-        setIsLoading(false); // ✅ Fin du chargement
+        setIsLoading(false);
       }
     };
 
@@ -42,9 +52,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const logout = async () => {
-    await api.post("/auth/logout", {}, { withCredentials: true });
-    setIsLoggedIn(false);
-    setUser(null);
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Erreur déconnexion", err);
+    } finally {
+      setIsLoggedIn(false);
+      setUser(null);
+      localStorage.removeItem("pfc_user");
+    }
   };
 
   return (
@@ -56,10 +72,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth doit être utilisé dans un AuthProvider");
-  }
-  return context;
-};
+export const useAuth = ()
